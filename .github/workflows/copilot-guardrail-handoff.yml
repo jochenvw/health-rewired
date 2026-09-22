@@ -1,0 +1,188 @@
+name: Copilot guardrail handoff
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - reopened
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: copilot-guardrail-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  apply-rejection:
+    name: Apply Copilot rejection
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Apply guardrail result to original issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pullRequest = context.payload.pull_request;
+            const author = pullRequest.user.login.replace(/\[bot\]$/i, "");
+
+            if (author !== "copilot-swe-agent") {
+              core.notice(`Ignoring pull request from ${pullRequest.user.login}.`);
+              return;
+            }
+
+            const body = pullRequest.body || "";
+            const marker = body.match(
+              /<!--\s*health-rewired-guardrail:\s*(rejected|needs-bold-thinking)\s+issue:\s*#(\d+)\s*-->/i,
+            );
+
+            if (!marker) {
+              core.notice("No guardrail handoff marker found.");
+              return;
+            }
+
+            const outcome = marker[1].toLowerCase();
+            const issueNumber = Number(marker[2]);
+            const feedbackHeading = body
+              .split(/\r?\n/)
+              .findIndex((line) => line.trim().toLowerCase() === "## guardrail feedback");
+
+            if (feedbackHeading < 0) {
+              core.setFailed("The guardrail handoff is missing the required feedback heading.");
+              return;
+            }
+
+            const feedbackLines = body.split(/\r?\n/).slice(feedbackHeading + 1);
+            const nextHeading = feedbackLines.findIndex((line) => /^##\s+/.test(line));
+            const feedback = feedbackLines
+              .slice(0, nextHeading < 0 ? undefined : nextHeading)
+              .join("\n")
+              .replace(/<!-- START COPILOT CODING AGENT SUFFIX -->[\s\S]*$/i, "")
+              .trim();
+
+            if (feedback.length < 40) {
+              core.setFailed("Guardrail feedback must contain at least 40 characters.");
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const issue = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number: issueNumber,
+            });
+
+            if (issue.data.pull_request) {
+              core.setFailed("The handoff target must be an issue, not a pull request.");
+              return;
+            }
+
+            const issueText = `${issue.data.title}\n${issue.data.body || ""}`;
+            if (issueText.includes("#build_anyway")) {
+              core.notice("The issue contains #build_anyway; no rejection was applied.");
+              return;
+            }
+
+            const labelDefinitions = {
+              rejected: {
+                color: "CF222E",
+                description: "Outside repository guardrails; closed without implementation",
+              },
+              "needs-bold-thinking": {
+                color: "F9D0C4",
+                description: "Oncology use case needs a more progressive and ambitious approach",
+              },
+            };
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: outcome });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: outcome,
+                ...labelDefinitions[outcome],
+              });
+            }
+
+            const otherOutcome =
+              outcome === "rejected" ? "needs-bold-thinking" : "rejected";
+            if (issue.data.labels.some((label) => label.name === otherOutcome)) {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                name: otherOutcome,
+              });
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              labels: [outcome],
+            });
+
+            const commentMarker =
+              `<!-- health-rewired-guardrail-result pr:#${pullRequest.number} -->`;
+            const issueComment = [
+              commentMarker,
+              `## Guardrail feedback`,
+              "",
+              feedback,
+              "",
+              `Outcome: \`${outcome}\`. This issue was closed as not planned. ` +
+                "Revise and reopen it, or use `#build_anyway` for a deliberate exception.",
+            ].join("\n");
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) =>
+              comment.body?.includes(commentMarker),
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body: issueComment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: issueComment,
+              });
+            }
+
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              state: "closed",
+              state_reason: "not_planned",
+            });
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pullRequest.number,
+              body:
+                `Guardrail handoff completed for #${issueNumber}: ` +
+                `applied \`${outcome}\`, posted feedback, and closed the issue.`,
+            });
+            await github.rest.pulls.update({
+              owner,
+              repo,
+              pull_number: pullRequest.number,
+              state: "closed",
+            });
