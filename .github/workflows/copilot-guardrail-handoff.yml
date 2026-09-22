@@ -23,13 +23,16 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Apply guardrail result to original issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const pullRequest = context.payload.pull_request;
-            const author = pullRequest.user.login.replace(/\[bot\]$/i, "");
+            const author = pullRequest.user.login.replace(/\[bot\]$/i, "").toLowerCase();
+            const isCopilot =
+              pullRequest.user.type === "Bot" &&
+              ["copilot", "copilot-swe-agent"].includes(author);
 
-            if (author !== "copilot-swe-agent") {
+            if (!isCopilot) {
               core.notice(`Ignoring pull request from ${pullRequest.user.login}.`);
               return;
             }
