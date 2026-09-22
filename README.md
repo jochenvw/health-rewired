@@ -11,3 +11,5 @@ GitHub Copilot coding agent for implementation.
 3. Review, test, and improve the resulting pull request together.
 
 Only oncology-related use cases are accepted.
+Out-of-scope issues assigned to GitHub Copilot are labeled `rejected` and closed without
+implementation.
