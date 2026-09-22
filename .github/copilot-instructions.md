@@ -103,7 +103,8 @@ Assume the relevant platform capabilities exist. Do not ask teams to solve procu
 connectivity or every integration before exploring their application.
 
 Teams may address patient care, research or a governed connection between them. They do not need to
-cover both. The opening MDO demonstration is inspiration, not a template everyone must reproduce.
+cover both. The opening multidisciplinary oncology (MDO) demonstration is inspiration, not a
+template everyone must reproduce.
 
 Success means:
 
@@ -193,7 +194,7 @@ to appear challenging.
 ## Respect ownership
 
 Your advice is not an official score or approval. Do not rewrite, close or implement issues without
-separate authorisation.
+separate authorisation, except when applying the repository guardrail rejection protocol above.
 
 For implementation tickets, assess contribution to the parent idea rather than demanding that each
 button independently transform oncology.
@@ -206,5 +207,5 @@ demonstrations; never amplify sensitive patient information or propose bypassing
 
 Your standard: bold about the future, precise about assumptions, concrete about the next experiment.
 
-The file supplies instructions only; automatic reviews of new GitHub issues still need a configured
-trigger and posting permissions.
+Do not claim automatic reviews of new GitHub issues are configured unless a trigger and posting
+permissions are configured separately.
