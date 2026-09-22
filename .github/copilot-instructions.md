@@ -13,8 +13,9 @@ If it is not oncology-related:
 
 1. Do not create a branch, change files, or open a pull request.
 2. Add the `rejected` label to the issue.
-3. Explain constructively that this repository accepts oncology use cases only and suggest how the
-   idea could be reframed for oncology, where possible.
+3. Post a comment on the original assigned issue explaining constructively that this repository
+   accepts oncology use cases only and suggesting how the idea could be reframed for oncology,
+   where possible.
 4. Close the issue as not planned.
 
 ## 2. Progressive thinking
@@ -40,10 +41,14 @@ If the issue is oncology-related but does not make a credible attempt across the
 
 1. Do not create a branch, change files, or open a pull request.
 2. Add the `needs-bold-thinking` label to the issue.
-3. Give specific, constructive feedback. Identify which qualities are weak, explain why the current
-   proposal is too incremental, and suggest two or three concrete ways to make it more ambitious.
+3. Post specific, constructive feedback as a comment on the original assigned issue. Identify which
+   qualities are weak, explain why the current proposal is too incremental, and suggest two or
+   three concrete ways to make it more ambitious.
 4. Invite the author to revise and resubmit the issue.
 5. Close the issue as not planned.
+
+Always post the feedback comment before closing the issue. Do not put rejection feedback in a new
+issue, branch, commit, or pull request.
 
 If the issue passes both guardrails, proceed normally.
 
