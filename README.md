@@ -17,3 +17,6 @@ boundaries**, and **from discovery to impact**.
 Issues outside oncology are labeled `rejected`. Oncology ideas that are too incremental are
 labeled `needs-bold-thinking`. Both are closed without implementation and receive constructive
 feedback so they can be reframed and resubmitted.
+
+Add `#build_anyway` to an issue when a deliberate exception is needed. This bypasses the
+guardrails and instructs GitHub Copilot to implement the issue normally.
