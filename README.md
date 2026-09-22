@@ -10,6 +10,10 @@ GitHub Copilot coding agent for implementation.
 2. Assign the issue to GitHub Copilot.
 3. Review, test, and improve the resulting pull request together.
 
-Only oncology-related use cases are accepted.
-Out-of-scope issues assigned to GitHub Copilot are labeled `rejected` and closed without
-implementation.
+Ideas should use the reasoning capabilities of modern models, push oncology boundaries, and think
+beyond current constraints. The hackathon themes are **pursue the impossible**, **cross
+boundaries**, and **from discovery to impact**.
+
+Issues outside oncology are labeled `rejected`. Oncology ideas that are too incremental are
+labeled `needs-bold-thinking`. Both are closed without implementation and receive constructive
+feedback so they can be reframed and resubmitted.

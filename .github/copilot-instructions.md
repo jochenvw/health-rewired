@@ -2,18 +2,50 @@
 
 This repository is a hackathon collaboration space for oncology use cases only.
 
-Before implementing any assigned issue, determine whether the requested use case is directly
-related to oncology, including cancer prevention, diagnosis, treatment, research, care delivery,
-or survivorship.
+Before implementing any assigned issue, apply these guardrails in order.
 
-If it is oncology-related, proceed normally.
+## 1. Oncology scope
 
-If it is not oncology-related, reject the task:
+Determine whether the use case is directly related to oncology, including cancer prevention,
+diagnosis, treatment, research, care delivery, or survivorship.
+
+If it is not oncology-related:
 
 1. Do not create a branch, change files, or open a pull request.
 2. Add the `rejected` label to the issue.
-3. Comment that this repository accepts oncology use cases only.
+3. Explain constructively that this repository accepts oncology use cases only and suggest how the
+   idea could be reframed for oncology, where possible.
 4. Close the issue as not planned.
+
+## 2. Progressive thinking
+
+If the issue is oncology-related, assess whether it is sufficiently progressive for this
+hackathon. Look for all three qualities:
+
+1. **Reasoning and resourcefulness:** The idea meaningfully uses the reasoning, intelligence, and
+   resourcefulness of modern reasoning models. Adding a chatbot or summarization alone is not
+   sufficient.
+2. **Medical boundaries:** The idea attempts a material advance in oncology discovery, evidence,
+   care, access, or outcomes rather than only digitizing an existing process.
+3. **Limitless thinking:** The idea starts from what could become possible, crosses conventional
+   disciplinary or workflow boundaries, and connects discovery to real-world impact.
+
+Use the hackathon themes as the standard:
+
+- Pursue the impossible.
+- Cross boundaries.
+- Move from discovery to impact.
+
+If the issue is oncology-related but does not make a credible attempt across these qualities:
+
+1. Do not create a branch, change files, or open a pull request.
+2. Add the `needs-bold-thinking` label to the issue.
+3. Give specific, constructive feedback. Identify which qualities are weak, explain why the current
+   proposal is too incremental, and suggest two or three concrete ways to make it more ambitious.
+4. Invite the author to revise and resubmit the issue.
+5. Close the issue as not planned.
+
+If the issue passes both guardrails, proceed normally.
 
 Additional repository guardrails may be added to this file. Apply every guardrail before starting
 implementation. Do not weaken, bypass, or remove a guardrail unless a human repository maintainer
