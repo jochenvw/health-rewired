@@ -1,6 +1,6 @@
-# Oncology Hackathon 2026 — Munich
+# Health Rewired Munich 2026 Hackathon
 
-This repository is a deliberately simple but polished starter for the Oncology Hackathon 2026 in Munich. It is designed for participants who are not professional software engineers and for coding agents that need a clean, agent-friendly way to turn oncology ideas into working prototypes.
+This repository is a deliberately simple but polished starter for the Health Rewired Munich 2026 Hackathon. It is designed for participants who are not professional software engineers and for coding agents that need a clean, agent-friendly way to turn oncology ideas into working prototypes.
 
 The application is a canvas, not a solution. It gives each team a strong starting point: clear branding, a clean product shell, a working agent example, and a repeatable structure for issue-driven development.
 

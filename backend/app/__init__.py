@@ -1,1 +1,1 @@
-"""Oncology Hackathon backend package."""
+"""Health Rewired backend package."""

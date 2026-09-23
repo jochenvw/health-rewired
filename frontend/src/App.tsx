@@ -72,8 +72,8 @@ export default function App() {
     <div className="page-shell">
       <header className="topbar">
         <div className="brand-block">
-          <span className="eyebrow">Oncology Hackathon 2026</span>
-          <h1>Munich</h1>
+          <span className="eyebrow">Health Rewired</span>
+          <h1>Munich 2026</h1>
         </div>
         <nav className="topnav" aria-label="Main navigation">
           <a href="#concept">Concept</a>
@@ -87,8 +87,9 @@ export default function App() {
           <p className="kicker">Starting canvas for bold oncology ideas</p>
           <h2>Turn promising concepts into prototypes that move the field.</h2>
           <p className="lede">
-            This repository is not a finished medical product. It is the clean beginning for
-            hackathon teams to turn early oncology ideas into testable, ambitious prototypes.
+            This repository is not a finished medical product. It is the clean beginning for the
+            Health Rewired Munich 2026 hackathon teams to turn early oncology ideas into testable,
+            ambitious prototypes.
           </p>
           <div className="cta-row">
             <a href="#agent" className="primary-button">Explore the agent</a>

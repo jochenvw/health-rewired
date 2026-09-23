@@ -8,8 +8,8 @@ from app.agent import run_intent_agent
 from app.models import IdeaRequest
 
 app = FastAPI(
-    title="Oncology Hackathon 2026 — Munich",
-    summary="Starter app and Copilot SDK demo for oncology hackathon teams.",
+    title="Health Rewired Munich 2026 Hackathon",
+    summary="Starter app and Copilot SDK demo for Health Rewired hackathon teams.",
     version="0.1.0",
 )
 
@@ -30,8 +30,8 @@ async def health() -> dict[str, str]:
 @app.get("/api/landing")
 async def landing() -> dict[str, str]:
     return {
-        "title": "Oncology Hackathon 2026",
-        "city": "Munich",
+        "title": "Health Rewired",
+        "city": "Munich 2026",
         "tagline": "A starting canvas for ambitious oncology ideas.",
     }
 

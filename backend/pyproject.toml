@@ -1,7 +1,7 @@
 [project]
 name = "oncology-hackathon"
 version = "0.1.0"
-description = "Starter app for Oncology Hackathon 2026 — Munich"
+description = "Starter app for the Health Rewired Munich 2026 Hackathon"
 readme = "../README.md"
 requires-python = ">=3.11"
 dependencies = [
