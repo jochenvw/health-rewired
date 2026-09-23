@@ -1,11 +1,19 @@
 import { FormEvent, useState } from 'react';
 
+type CoachWidget = {
+  kind?: string;
+  title?: string;
+  body?: string;
+  meta?: string;
+};
+
 type CoachResponse = {
   status?: string;
   title?: string;
   summary?: string;
   next_steps?: string[];
   evidence?: string[];
+  widgets?: CoachWidget[];
   sdk_status?: string;
 };
 
@@ -28,6 +36,12 @@ export default function App() {
   const [idea, setIdea] = useState(starterIdeas[0]);
   const [feedback, setFeedback] = useState<CoachResponse>(defaultResponse);
   const [loading, setLoading] = useState(false);
+
+  const widgetCards = feedback.widgets && feedback.widgets.length > 0 ? feedback.widgets : [
+    { kind: 'summary', title: 'Summary', body: feedback.summary || '', meta: 'Coach' },
+    { kind: 'action', title: 'Next steps', body: (feedback.next_steps || [])[0] || '', meta: 'Workflow' },
+    { kind: 'alert', title: 'Evidence', body: (feedback.evidence || [])[0] || '', meta: 'Relevance' },
+  ];
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -124,28 +138,13 @@ export default function App() {
         </div>
 
         <div className="result-grid">
-          <div className="result-card">
-            <h4>Summary</h4>
-            <p>{feedback.summary}</p>
-          </div>
-
-          <div className="result-card">
-            <h4>Next steps</h4>
-            <ul>
-              {(feedback.next_steps || []).map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="result-card">
-            <h4>Evidence</h4>
-            <ul>
-              {(feedback.evidence || []).map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
+          {widgetCards.map((widget) => (
+            <div key={`${widget.kind}-${widget.title}-${widget.meta}`} className={`result-card ${widget.kind || 'summary'}`}>
+              <span className="widget-tag">{widget.meta || 'Layer'}</span>
+              <h4>{widget.title}</h4>
+              <p>{widget.body}</p>
+            </div>
+          ))}
         </div>
 
         <div className="meta-row">

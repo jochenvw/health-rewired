@@ -268,6 +268,31 @@ textarea {
   margin: 0 0 12px;
 }
 
+.widget-tag {
+  display: inline-flex;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08rem;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(41, 85, 209, 0.08);
+  padding: 6px 8px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.result-card.summary {
+  border-left: 4px solid var(--accent);
+}
+
+.result-card.action {
+  border-left: 4px solid var(--success);
+}
+
+.result-card.alert {
+  border-left: 4px solid #f59e0b;
+}
+
 .result-card p,
 .result-card li {
   color: var(--text-soft);
