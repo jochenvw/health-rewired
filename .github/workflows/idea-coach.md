@@ -13,7 +13,7 @@ on:
   skip-bots: [github-actions, dependabot, copilot]
   reaction: eyes
 
-if: ${{ !github.event.issue.pull_request }}
+if: ${{ github.event.issue.pull_request == null }}
 
 permissions:
   contents: read
