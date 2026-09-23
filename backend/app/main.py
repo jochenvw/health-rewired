@@ -41,6 +41,6 @@ async def coach(payload: IdeaRequest) -> dict:
     return await run_intent_agent(payload.idea)
 
 
-static_dir = Path(__file__).resolve().parent.parent.parent / "static"
+static_dir = Path(__file__).resolve().parent.parent / "static"
 if static_dir.exists():
     app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
