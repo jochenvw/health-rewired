@@ -103,8 +103,14 @@ add_federated() {
       "{\"name\":\"$name\",\"issuer\":\"https://token.actions.githubusercontent.com\",\"subject\":\"$subject\",\"audiences\":[\"api://AzureADTokenExchange\"]}"
   fi
 }
+# Repos may use the immutable OIDC subject format (repo:owner@id/name@id:...); ask GitHub which one.
+SUB_PREFIX="$(gh api "repos/${GITHUB_REPOSITORY}/actions/oidc/customization/sub" --jq '.sub_claim_prefix // empty' 2>/dev/null || true)"
 add_federated github-main "repo:${GITHUB_REPOSITORY}:ref:refs/heads/main"
 add_federated github-pull-request "repo:${GITHUB_REPOSITORY}:pull_request"
+if [[ -n "$SUB_PREFIX" && "$SUB_PREFIX" != "repo:${GITHUB_REPOSITORY}" ]]; then
+  add_federated github-main-immutable "${SUB_PREFIX}:ref:refs/heads/main"
+  add_federated github-pull-request-immutable "${SUB_PREFIX}:pull_request"
+fi
 
 RG_ID="$(az group show -n "$RESOURCE_GROUP" --query id -o tsv)"
 for role_scope in "Contributor|$RG_ID" "AcrPush|$ACR_ID"; do
