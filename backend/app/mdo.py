@@ -191,7 +191,7 @@ def build_discussion(case: PatientCase, detailed: bool = False) -> list[dict[str
         {"sequence": 2, "role": "pathologist", "kind": "agent", "text": facts.get("path-1").value if facts.get("path-1") else "Pathology unavailable.", "source_id": "path-1"},
     ]
     if detailed:
-        turns.append({"sequence": 3, "role": "nurse", "kind": "agent", "text": f"Patient contact: {case.contact}", "source_id": None})
+        turns.append({"sequence": len(turns), "role": "nurse", "kind": "agent", "text": f"Patient contact: {case.contact}", "source_id": None})
     turns.append({
         "sequence": len(turns),
         "role": "chair",
