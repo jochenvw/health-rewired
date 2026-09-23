@@ -11,6 +11,7 @@ from app.mdo import (
     voice_config,
 )
 from app.models import CommunicationPreferences, MDODecision
+from app.main import audit_events, record_audit
 
 
 class MDOTests(unittest.TestCase):
@@ -71,6 +72,13 @@ class MDOTests(unittest.TestCase):
         self.assertEqual(len(voices), 8)
         for voice in voices:
             self.assertIn(voice["provider"], ("ElevenLabs", "Browser fallback"))
+
+    def test_audit_history_is_bounded(self):
+        audit_events.clear()
+        for index in range(105):
+            record_audit({"event": "test", "index": index})
+        self.assertEqual(len(audit_events), 100)
+        self.assertEqual(audit_events[0]["index"], 5)
 
 
 if __name__ == "__main__":

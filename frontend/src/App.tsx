@@ -176,7 +176,8 @@ export default function App() {
     const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!Recognition) { setMicError('Live transcription is unavailable in this browser. Type the contribution instead.'); return; }
     const recognition = new Recognition();
-    recognition.continuous = false; recognition.interimResults = true; recognition.lang = language === 'German' ? 'de-DE' : 'en-GB';
+    const recognitionLanguages: Record<string, string> = { English: 'en-GB', German: 'de-DE', French: 'fr-FR', Spanish: 'es-ES' };
+    recognition.continuous = false; recognition.interimResults = true; recognition.lang = recognitionLanguages[language] || 'en-GB';
     recognition.onresult = (event: any) => setDraftSpeech(Array.from(event.results).map((result: any) => result[0].transcript).join(''));
     recognition.onerror = (event: any) => { setMicError(event.error === 'not-allowed' ? 'Microphone permission was denied.' : `Transcription failed: ${event.error}`); setRecording(false); };
     recognition.onend = () => { recognitionRef.current = null; setRecording(false); };
@@ -291,7 +292,7 @@ export default function App() {
           <section className="panel join-panel">
             <h3>Join discussion</h3><p>Speaking pauses agent audio. Contributions enter the transcript but never become the final decision.</p>
             <label>Address<select value={selectedAgent} onChange={(event) => setSelectedAgent(event.target.value)}>{voices.map((voice) => <option value={voice.role} key={voice.role}>{voice.name}</option>)}</select></label>
-            <button className={`mic-button ${recording ? 'recording' : ''}`} onMouseDown={startMic} onMouseUp={stopMic} onTouchStart={startMic} onTouchEnd={stopMic} aria-pressed={recording}>{recording ? '● Listening — release to stop' : '🎙 Hold to talk'}</button>
+            <button className={`mic-button ${recording ? 'recording' : ''}`} onMouseDown={startMic} onMouseUp={stopMic} onTouchStart={startMic} onTouchEnd={stopMic} onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && !event.repeat) { event.preventDefault(); startMic(); } }} onKeyUp={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); stopMic(); } }} aria-pressed={recording}>{recording ? '● Listening — release to stop' : '🎙 Hold to talk'}</button>
             <label>Transcript<textarea value={draftSpeech} onChange={(event) => setDraftSpeech(event.target.value)} placeholder="Speech transcription appears here and can be corrected." /></label>
             <label className="override"><input type="checkbox" checked={confirmSpeech} onChange={(event) => setConfirmSpeech(event.target.checked)} />Confirm or correct transcript before submitting</label>
             {micError && <p className="error" role="alert">{micError}</p>}

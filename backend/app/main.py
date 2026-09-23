@@ -52,6 +52,11 @@ async def coach(payload: IdeaRequest) -> dict:
 audit_events: list[dict] = []
 
 
+def record_audit(event: dict) -> None:
+    audit_events.append(event)
+    del audit_events[:-100]
+
+
 @app.get("/api/mdo/demo")
 async def mdo_demo() -> dict:
     return {"case": DEMO_CASE.model_dump(), "decision": DEMO_DECISION.model_dump(), "voices": voice_config()}
@@ -60,14 +65,14 @@ async def mdo_demo() -> dict:
 @app.post("/api/mdo/decision")
 async def save_decision(payload: MDODecision) -> dict:
     missing = validate_decision(payload)
-    audit_events.append({"event": f"decision_{payload.status}", "actor": payload.approved_by or "clinician", "synthetic": True})
+    record_audit({"event": f"decision_{payload.status}", "actor": payload.approved_by or "clinician", "synthetic": True})
     return {"decision": payload.model_dump(), "missing": missing, "saved": True}
 
 
 @app.post("/api/mdo/generate")
 async def generate_mdo_documents(payload: GenerationRequest) -> dict:
     result = generate_documents(payload.case, payload.decision, payload.preferences)
-    audit_events.append({"event": "communications_generated", "actor": payload.decision.approved_by, "synthetic": payload.case.synthetic})
+    record_audit({"event": "communications_generated", "actor": payload.decision.approved_by, "synthetic": payload.case.synthetic})
     return result
 
 

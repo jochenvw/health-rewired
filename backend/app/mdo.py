@@ -104,7 +104,7 @@ def generate_documents(
         raise HTTPException(status_code=409, detail="Generated communications require a clinician-approved decision.")
 
     sources = [{"statement": fact.value, "source_id": fact.id, "source": fact.source} for fact in case.facts]
-    actions = "; ".join(f"{item.action} — {item.owner} ({item.due})" for item in decision.actions)
+    actions_summary = "; ".join(f"{item.action} — {item.owner} ({item.due})" for item in decision.actions)
     uncertainty = decision.unresolved_questions or "No unresolved question was recorded."
     missing = decision.missing_evidence or "No missing evidence was recorded."
 
@@ -124,13 +124,13 @@ def generate_documents(
     )
     recorded_outcomes = ", ".join(decision.outcomes) or "Not recorded (clinician override confirmed)."
     recorded_rationale = decision.rationale or "No rationale recorded (clinician override confirmed)."
-    actions = actions or "No action recorded (clinician override confirmed)."
+    actions_summary = actions_summary or "No action recorded (clinician override confirmed)."
     age_note = "The wording is intended for a young person and their caregiver." if preferences.age_appropriate and case.age < 18 else "The wording is intended for an adult patient."
     patient_summary = (
         f"DRAFT — clinician review required\n\n{headings[0]}\n{case.diagnosis}.\n\n"
         f"{headings[1]}\n{_fact_text(case)}\n\n{headings[2]}\n"
         f"{recorded_rationale} The recorded outcomes are: {recorded_outcomes}.\n\n"
-        f"{headings[3]}\n{uncertainty} {missing}\n\n{headings[4]}\n{actions}\n\n"
+        f"{headings[3]}\n{uncertainty} {missing}\n\n{headings[4]}\n{actions_summary}\n\n"
         f"{headings[5]}\nContact {case.contact}.\n\nCommunication settings: {preferences.language}; "
         f"{preferences.literacy}; accessibility: {preferences.accessibility}. {age_note} {detail}"
     )
@@ -138,14 +138,14 @@ def generate_documents(
         f"CLINICIAN-APPROVED MDO DECISION\nCase: {case.id}\nClinical context: {case.diagnosis}. "
         f"Evidence reviewed: {_fact_text(case)}\nDecision: {recorded_outcomes}.\n"
         f"Rationale: {recorded_rationale}\nDisagreement/uncertainty: {decision.disagreements}; {uncertainty}\n"
-        f"Outstanding evidence: {missing}\nActions: {actions}\nApproved by: {decision.approved_by}."
+        f"Outstanding evidence: {missing}\nActions: {actions_summary}\nApproved by: {decision.approved_by}."
     )
     letter = (
         f"DRAFT POST-MDO LETTER — clinician review required\n\nRe: {case.patient_name} ({case.id})\n\n"
         f"Clinical context\n{case.diagnosis}.\n\nEvidence reviewed\n{_fact_text(case)}\n\n"
         f"Human board decision\n{recorded_outcomes}.\n\nSupporting rationale\n{recorded_rationale}\n\n"
         f"Disagreements and uncertainty\n{decision.disagreements or 'None recorded.'} {uncertainty}\n\n"
-        f"Outstanding investigations\n{missing}\n\nFollow-up\n{actions}\n\n"
+        f"Outstanding investigations\n{missing}\n\nFollow-up\n{actions_summary}\n\n"
         f"Approved by {decision.approved_by}. Evidence summaries above are machine-formatted from "
         "the cited case facts; the decision is the human board's approved decision."
     )
