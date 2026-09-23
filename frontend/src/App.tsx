@@ -124,10 +124,12 @@ export default function App() {
     }).then(async (response) => {
       if (!response.ok) throw new Error();
       const url = URL.createObjectURL(await response.blob());
+      if (cancelled) { URL.revokeObjectURL(url); return; }
       const audio = new Audio(url); audioRef.current = audio;
       audio.onended = () => { URL.revokeObjectURL(url); finish(); };
       await audio.play();
     }).catch(() => {
+      if (cancelled) return;
       if (!('speechSynthesis' in window)) { setNotice('No speech provider is available. Captions remain available.'); finish(); return; }
       const utterance = new SpeechSynthesisUtterance(turn.text);
       utterance.onend = finish;
@@ -141,7 +143,7 @@ export default function App() {
     setDecision((current) => ({ ...current, [key]: value, status: key === 'status' ? value as Status : 'draft', approved_by: key === 'status' ? current.approved_by : null }));
 
   const saveDecision = async (approve: boolean) => {
-    const next = { ...decision, status: approve ? 'approved' as const : 'draft' };
+    const next: Decision = { ...decision, status: approve ? 'approved' : 'draft' };
     if (approve && !next.approved_by) { setNotice('Enter the approving clinician before approval.'); return; }
     try {
       const response = await fetch('/api/mdo/decision', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) });
@@ -169,6 +171,7 @@ export default function App() {
     setPlaying(false); audioRef.current?.pause(); window.speechSynthesis?.cancel();
   };
   const startMic = () => {
+    if (recognitionRef.current) return;
     stopAudio();
     const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!Recognition) { setMicError('Live transcription is unavailable in this browser. Type the contribution instead.'); return; }
@@ -176,7 +179,7 @@ export default function App() {
     recognition.continuous = false; recognition.interimResults = true; recognition.lang = language === 'German' ? 'de-DE' : 'en-GB';
     recognition.onresult = (event: any) => setDraftSpeech(Array.from(event.results).map((result: any) => result[0].transcript).join(''));
     recognition.onerror = (event: any) => { setMicError(event.error === 'not-allowed' ? 'Microphone permission was denied.' : `Transcription failed: ${event.error}`); setRecording(false); };
-    recognition.onend = () => setRecording(false);
+    recognition.onend = () => { recognitionRef.current = null; setRecording(false); };
     recognitionRef.current = recognition; setMicError(''); setRecording(true); recognition.start();
   };
   const stopMic = () => { recognitionRef.current?.stop(); setRecording(false); };

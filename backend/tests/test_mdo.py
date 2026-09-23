@@ -41,6 +41,25 @@ class MDOTests(unittest.TestCase):
         overridden = incomplete.model_copy(update={"override_missing": True})
         self.assertIn("approving clinician", validate_decision(overridden))
 
+        fully_missing = incomplete.model_copy(update={
+            "outcomes": [],
+            "rationale": "",
+            "actions": [],
+            "override_missing": True,
+            "approved_by": "Dr Reviewer",
+        })
+        result = generate_documents(DEMO_CASE, fully_missing, CommunicationPreferences())
+        self.assertIn("override confirmed", result["medical_record_note"])
+
+    def test_patient_summary_adapts_language_headings(self):
+        result = generate_documents(
+            DEMO_CASE,
+            DEMO_DECISION,
+            CommunicationPreferences(language="German", accessibility="Large text"),
+        )
+        self.assertIn("Was wir über die Erkrankung wissen", result["patient_summary"])
+        self.assertIn("accessibility: Large text", result["patient_summary"])
+
     def test_speakers_are_strictly_sequenced_and_end_at_checkpoint(self):
         turns = build_discussion(DEMO_CASE, detailed=True)
         self.assertEqual([turn["sequence"] for turn in turns], list(range(len(turns))))

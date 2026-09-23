@@ -50,12 +50,12 @@ class DecisionAction(BaseModel):
 
 
 class MDODecision(BaseModel):
-    outcomes: list[str] = Field(..., min_length=1)
-    rationale: str = Field(..., min_length=1)
+    outcomes: list[str]
+    rationale: str
     disagreements: str = ""
     unresolved_questions: str = ""
     missing_evidence: str = ""
-    actions: list[DecisionAction] = Field(..., min_length=1)
+    actions: list[DecisionAction]
     status: Literal["draft", "approved"] = "draft"
     override_missing: bool = False
     approved_by: str | None = None

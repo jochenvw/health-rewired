@@ -109,28 +109,41 @@ def generate_documents(
     missing = decision.missing_evidence or "No missing evidence was recorded."
 
     detail = {
-        "simple": "Some medical words are included below and explained by the clinical team.",
+        "simple": "Some medical words are included below and should be explained by the clinical team.",
         "standard": "This summary uses plain language while retaining the key clinical details.",
         "detailed": "This detailed summary includes the recorded test terminology and decision rationale.",
     }[preferences.literacy]
+    language_labels = {
+        "German": ("Was wir über die Erkrankung wissen", "Untersuchungen und Ergebnisse", "Was das MDO besprochen und entschieden hat", "Was noch unklar ist", "Nächste Schritte", "Fragen"),
+        "French": ("Ce que nous savons de la maladie", "Examens et résultats", "Discussion et décision de la RCP", "Incertitudes restantes", "Prochaines étapes", "Questions"),
+        "Spanish": ("Lo que sabemos de la enfermedad", "Pruebas y resultados", "Discusión y decisión del comité", "Aspectos aún inciertos", "Próximos pasos", "Preguntas"),
+    }
+    headings = language_labels.get(
+        preferences.language,
+        ("What we know about the illness", "Tests and results", "What the MDO discussed and decided", "What remains uncertain or missing", "Expected next steps", "Questions"),
+    )
+    recorded_outcomes = ", ".join(decision.outcomes) or "Not recorded (clinician override confirmed)."
+    recorded_rationale = decision.rationale or "No rationale recorded (clinician override confirmed)."
+    actions = actions or "No action recorded (clinician override confirmed)."
+    age_note = "The wording is intended for a young person and their caregiver." if preferences.age_appropriate and case.age < 18 else "The wording is intended for an adult patient."
     patient_summary = (
-        f"DRAFT — clinician review required\n\nWhat we know about the illness\n{case.diagnosis}.\n\n"
-        f"Tests and results\n{_fact_text(case)}\n\nWhat the MDO discussed and decided\n"
-        f"{decision.rationale} The recorded outcomes are: {', '.join(decision.outcomes)}.\n\n"
-        f"What remains uncertain or missing\n{uncertainty} {missing}\n\nExpected next steps\n{actions}\n\n"
-        f"Questions\nContact {case.contact}.\n\nCommunication settings: {preferences.language}; "
-        f"{preferences.literacy}; accessibility: {preferences.accessibility}. {detail}"
+        f"DRAFT — clinician review required\n\n{headings[0]}\n{case.diagnosis}.\n\n"
+        f"{headings[1]}\n{_fact_text(case)}\n\n{headings[2]}\n"
+        f"{recorded_rationale} The recorded outcomes are: {recorded_outcomes}.\n\n"
+        f"{headings[3]}\n{uncertainty} {missing}\n\n{headings[4]}\n{actions}\n\n"
+        f"{headings[5]}\nContact {case.contact}.\n\nCommunication settings: {preferences.language}; "
+        f"{preferences.literacy}; accessibility: {preferences.accessibility}. {age_note} {detail}"
     )
     note = (
         f"CLINICIAN-APPROVED MDO DECISION\nCase: {case.id}\nClinical context: {case.diagnosis}. "
-        f"Evidence reviewed: {_fact_text(case)}\nDecision: {', '.join(decision.outcomes)}.\n"
-        f"Rationale: {decision.rationale}\nDisagreement/uncertainty: {decision.disagreements}; {uncertainty}\n"
+        f"Evidence reviewed: {_fact_text(case)}\nDecision: {recorded_outcomes}.\n"
+        f"Rationale: {recorded_rationale}\nDisagreement/uncertainty: {decision.disagreements}; {uncertainty}\n"
         f"Outstanding evidence: {missing}\nActions: {actions}\nApproved by: {decision.approved_by}."
     )
     letter = (
         f"DRAFT POST-MDO LETTER — clinician review required\n\nRe: {case.patient_name} ({case.id})\n\n"
         f"Clinical context\n{case.diagnosis}.\n\nEvidence reviewed\n{_fact_text(case)}\n\n"
-        f"Human board decision\n{', '.join(decision.outcomes)}.\n\nSupporting rationale\n{decision.rationale}\n\n"
+        f"Human board decision\n{recorded_outcomes}.\n\nSupporting rationale\n{recorded_rationale}\n\n"
         f"Disagreements and uncertainty\n{decision.disagreements or 'None recorded.'} {uncertainty}\n\n"
         f"Outstanding investigations\n{missing}\n\nFollow-up\n{actions}\n\n"
         f"Approved by {decision.approved_by}. Evidence summaries above are machine-formatted from "
