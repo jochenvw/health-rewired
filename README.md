@@ -36,8 +36,8 @@ The frontend is configured to proxy `/api` requests to the backend.
 ## Production-style container
 
 ```bash
-docker build -t oncology-hackathon .
-docker run --rm -p 8000:8000 oncology-hackathon
+docker build -t health-rewired-munich .
+docker run --rm -p 8000:8000 health-rewired-munich
 ```
 
 The app serves the built frontend and exposes the API on the same container.

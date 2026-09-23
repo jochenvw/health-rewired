@@ -24,7 +24,7 @@ app.add_middleware(
 
 @app.get("/api/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok", "service": "oncology-hackathon"}
+    return {"status": "ok", "service": "health-rewired-munich"}
 
 
 @app.get("/api/landing")

@@ -1,5 +1,5 @@
 [project]
-name = "oncology-hackathon"
+name = "health-rewired-munich"
 version = "0.1.0"
 description = "Starter app for the Health Rewired Munich 2026 Hackathon"
 readme = "../README.md"
