@@ -1,87 +1,61 @@
-# Repository instructions
+# Copilot instructions – Oncology Hackathon 2026 Munich (Health Rewired)
 
-This repository is a hackathon collaboration space for oncology use cases only.
+This repository is the starter platform for **Oncology Hackathon 2026 – Munich**. Participants are
+mostly clinicians and researchers who describe ideas in GitHub Issues; you turn approved ideas into
+working, polished prototypes.
 
-Before implementing any assigned issue, apply these guardrails in order.
+The hackathon policy lives in Markdown in [`.github/hackathon/`](hackathon/README.md). Read it
+before implementing anything. It overrides generic habits.
 
-## 1. Explicit override
+## Core principles
 
-First inspect the original issue title and body for the exact token `#build_anyway`.
+1. Context: Oncology Hackathon 2026 Munich. Every feature serves an oncology use case.
+2. The **GitHub Copilot SDK** (`backend/app/agent/`) must remain central to the app.
+3. Use the existing stack (FastAPI + uv, React + TypeScript + Vite, one Docker container) unless there
+   is a strong reason not to.
+4. Use **synthetic data** from `/sample-data`. Never real patient data.
+5. Keep applications visually polished.
+6. Build demonstrable functionality, not architecture diagrams.
+7. Avoid unnecessary infrastructure (no databases, queues, extra services).
+8. Preserve the participant's clinical insight – it is the point of the idea.
+9. Prefer agentic behaviour (tools, multi-step work, generative UI, human-in-the-loop) over a generic chatbot.
+10. Never add complexity merely to appear "agentic".
 
-If the token is present, bypass all repository guardrails and implement the issue normally. Do not
-reject or close the issue. Remove the `rejected` or `needs-bold-thinking` label if either is already
-present, then proceed with implementation.
+Detailed build rules: [`.github/hackathon/implementation-guidelines.md`](hackathon/implementation-guidelines.md).
 
-The override has priority over current and future guardrails in this file.
+## Before implementing an assigned issue
 
-## 2. Oncology scope
+Ideas are normally gated by the idea coach, which labels the issue `ready-for-build` and posts a
+"🚀 Implementation proposal" comment before assigning you. Build that proposal.
 
-Determine whether the use case is directly related to oncology, including cancer prevention,
-diagnosis, treatment, research, care delivery, or survivorship.
-
-If it is not oncology-related:
-
-1. Do not create a branch, change files, or open a pull request.
-2. Reject it using the rejection protocol below with the outcome `rejected`.
-3. Explain constructively that this repository accepts oncology use cases only and suggest how the
-   idea could be reframed for oncology, where possible.
-
-## 3. Progressive thinking
-
-If the issue is oncology-related, assess whether it is sufficiently progressive for this
-hackathon. Look for all three qualities:
-
-1. **Reasoning and resourcefulness:** The idea meaningfully uses the reasoning, intelligence, and
-   resourcefulness of modern reasoning models. Adding a chatbot or summarization alone is not
-   sufficient.
-2. **Medical boundaries:** The idea attempts a material advance in oncology discovery, evidence,
-   care, access, or outcomes rather than only digitizing an existing process.
-3. **Limitless thinking:** The idea starts from what could become possible, crosses conventional
-   disciplinary or workflow boundaries, and connects discovery to real-world impact.
-
-Use the hackathon themes as the standard:
-
-- Pursue the impossible.
-- Cross boundaries.
-- Move from discovery to impact.
-
-If the issue is oncology-related but does not make a credible attempt across these qualities:
-
-1. Do not create a branch, change files, or open a pull request.
-2. Reject it using the rejection protocol below with the outcome `needs-bold-thinking`.
-3. Identify which qualities are weak, explain why the current proposal is too incremental, suggest
-   two or three concrete ways to make it more ambitious, and invite the author to revise and
-   resubmit the issue.
-
-## Rejection protocol
-
-If issue-write tools are available, apply the outcome label to the original issue, post the
-constructive feedback there, and close it as not planned.
-
-If issue-write tools are unavailable, use the existing WIP pull request created for the assigned
-issue as an automation handoff. Do not create another pull request or make code changes. Update the
-WIP pull-request body with exactly one marker:
+If you were assigned an issue **without** the `ready-for-build` label and without the exact token
+`#build_anyway` in its title or body, first apply [`.github/hackathon/guardrails.md`](hackathon/guardrails.md).
+If the outcome is `out-of-scope` or `needs-refinement`, do not change any files. Instead, update
+the body of your WIP pull request with exactly one marker and a feedback section:
 
 ```text
 <!-- health-rewired-guardrail: OUTCOME issue: #ISSUE_NUMBER -->
 ```
 
-Replace `OUTCOME` with `rejected` or `needs-bold-thinking`. Replace `ISSUE_NUMBER` with the original
-assigned issue number. Add the feedback under this exact heading:
-
 ```markdown
 ## Guardrail feedback
 
-Constructive feedback for the issue author.
+Constructive feedback for the participant, following .github/hackathon/coaching.md.
 ```
 
-The repository workflow reads this marker, applies the label, copies the feedback to the original
-issue, closes the issue as not planned, comments on the WIP pull request, and closes the WIP pull
-request. The marker and feedback must describe the actual guardrail decision; never use them for an
-issue that passes the guardrails.
+Replace `OUTCOME` with `out-of-scope` or `needs-refinement`, and `ISSUE_NUMBER` with the issue
+number. The `Copilot guardrail handoff` workflow labels the issue, posts the feedback there and
+closes the WIP pull request. Never use the marker for an issue that passes the guardrails.
 
-If the issue passes both guardrails, proceed normally.
+Do not weaken or remove guardrails unless a human repository maintainer explicitly asks for it.
 
-Additional repository guardrails may be added to this file. Apply every guardrail before starting
-implementation. Do not weaken, bypass, or remove a guardrail unless a human repository maintainer
-explicitly requests the policy change.
+## Validation
+
+From the repository root:
+
+```bash
+npm run setup   # uv sync + npm install
+npm run lint    # ruff + TypeScript type check
+npm test        # backend pytest
+npm run build   # frontend production build
+```

@@ -1,0 +1,55 @@
+name: 💡 Oncology idea
+description: Share an idea for the Oncology Hackathon 2026 Munich. No technical knowledge needed.
+title: "[Idea] "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea! Describe it in your own words – no technical details needed.
+        An AI coach will reply within a few minutes to help sharpen it. Once it is ready,
+        GitHub Copilot builds a working prototype and posts a live link here.
+
+        **Please use synthetic examples only. Never include real patient data.**
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem or opportunity do you see?
+      placeholder: "e.g. Before the weekly tumour board, the coordinator spends hours collecting pathology, imaging and history from four systems, and cases still arrive with missing information."
+    validations:
+      required: true
+  - type: textarea
+    id: who
+    attributes:
+      label: Who experiences this problem?
+      placeholder: "e.g. MDT coordinators and the oncologists presenting cases; indirectly the patient, whose decision gets postponed."
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What happens today?
+      placeholder: "e.g. Manual copy-paste into a slide deck. Missing receptor status is often only noticed during the meeting."
+  - type: textarea
+    id: wish
+    attributes:
+      label: What would you like the application to do?
+      placeholder: "e.g. Prepare each case automatically, show what is missing or contradictory, and let the coordinator fix gaps before the meeting."
+    validations:
+      required: true
+  - type: textarea
+    id: ai
+    attributes:
+      label: Where could AI make this fundamentally better?
+      description: Think beyond chat and summaries – could an agent act, notice, reconcile or adapt the screen?
+      placeholder: "e.g. An agent that notices the HER2 result is pending and drafts a request to pathology."
+  - type: textarea
+    id: human
+    attributes:
+      label: What should remain a human judgment?
+      placeholder: "e.g. The treatment recommendation always stays with the MDT."
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else we should know?
+      placeholder: "Team name, related ideas, links to public guidelines…"

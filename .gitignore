@@ -1,13 +1,18 @@
 # Python
 backend/.venv/
-backend/__pycache__/
-backend/**/*.pyc
-backend/.python-version
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.ruff_cache/
 
 # Node
-frontend/node_modules/
+node_modules/
 frontend/dist/
 frontend/.vite/
+*.tsbuildinfo
+
+# Built SPA copied next to the backend for local single-process runs
+backend/static/
 
 # OS
 .DS_Store
@@ -17,7 +22,8 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Local environment files
+# Local environment and bootstrap output
 .env
 .env.*
 !.env.example
+.azure-bootstrap.env

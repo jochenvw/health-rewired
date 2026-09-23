@@ -1,0 +1,23 @@
+{
+  "name": "oncology-hackathon-munich",
+  "private": true,
+  "description": "Oncology Hackathon 2026 Munich starter – root scripts for backend (uv) and frontend (npm workspace).",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "setup": "cd backend && uv sync && cd .. && npm install",
+    "dev": "concurrently -k -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "cd backend && uv run uvicorn app.main:app --reload --port 8000",
+    "dev:web": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace frontend",
+    "lint": "cd backend && uv run ruff check . && uv run ruff format --check . && cd .. && npm run lint --workspace frontend",
+    "format": "cd backend && uv run ruff format . && uv run ruff check --fix .",
+    "test": "cd backend && uv run pytest -q",
+    "docker:build": "docker build -t oncology-hackathon .",
+    "docker:run": "docker run --rm -p 8000:8000 --env-file .env oncology-hackathon"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

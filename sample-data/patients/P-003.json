@@ -1,0 +1,33 @@
+{
+  "synthetic": true,
+  "id": "P-003",
+  "name": "Leyla Demir",
+  "age": 44,
+  "sex": "female",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Adenocarcinoma of the sigmoid colon",
+    "date": "2024-06-03",
+    "stage": "pT3 pN1a M0 (stage IIIB), resected",
+    "biomarkers": { "MMR": "proficient (pMMR)", "KRAS": "G12D", "BRAF": "wild-type" }
+  },
+  "comorbidities": [],
+  "medications": [],
+  "treatments": [
+    { "type": "Surgery", "regimen": "Laparoscopic sigmoid resection", "start": "2024-06-20", "status": "completed" },
+    { "type": "Adjuvant chemotherapy", "regimen": "CAPOX x4 (3 months)", "start": "2024-07-22", "status": "completed" }
+  ],
+  "labs": [
+    { "date": "2025-06-10", "test": "CEA", "value": 2.1, "unit": "ng/mL", "ref": "<5.0" },
+    { "date": "2025-12-08", "test": "CEA", "value": 4.6, "unit": "ng/mL", "ref": "<5.0" },
+    { "date": "2026-02-23", "test": "CEA", "value": 8.3, "unit": "ng/mL", "ref": "<5.0", "flag": "high" }
+  ],
+  "timeline": [
+    { "date": "2024-06-03", "event": "Colonoscopy biopsy: adenocarcinoma" },
+    { "date": "2024-06-20", "event": "Sigmoid resection" },
+    { "date": "2024-10-21", "event": "Adjuvant CAPOX completed" },
+    { "date": "2025-06-10", "event": "Surveillance CT: no evidence of disease" },
+    { "date": "2026-02-23", "event": "CEA rising (8.3); surveillance CT due in 4 months" }
+  ],
+  "open_questions": ["Rising CEA over two measurements – bring surveillance imaging forward?"]
+}

@@ -1,0 +1,38 @@
+{
+  "synthetic": true,
+  "id": "P-001",
+  "name": "Anna Berger",
+  "age": 58,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Invasive ductal carcinoma, left breast",
+    "date": "2025-11-04",
+    "stage": "cT2 cN1 M0 (stage IIB)",
+    "grade": 3,
+    "biomarkers": { "ER": "positive (90%)", "PR": "positive (40%)", "HER2": "pending (IHC 2+, ISH requested)", "Ki-67": "35%" }
+  },
+  "comorbidities": ["Type 2 diabetes (metformin)", "Mild peripheral neuropathy (baseline)"],
+  "medications": ["Metformin 1000 mg BID", "Ramipril 5 mg QD"],
+  "treatments": [
+    { "type": "Neoadjuvant chemotherapy", "regimen": "EC x4 then paclitaxel x12", "start": "2025-12-01", "status": "ongoing", "cycle": "Paclitaxel week 5 of 12" }
+  ],
+  "labs": [
+    { "date": "2026-02-02", "test": "ANC", "value": 1.9, "unit": "10^9/L", "ref": "1.8-7.5" },
+    { "date": "2026-02-16", "test": "ANC", "value": 1.4, "unit": "10^9/L", "ref": "1.8-7.5", "flag": "low" },
+    { "date": "2026-02-16", "test": "HbA1c", "value": 7.9, "unit": "%", "ref": "<7.0", "flag": "high" }
+  ],
+  "patient_reported": [
+    { "date": "2026-02-10", "symptom": "Tingling in fingertips", "grade": 1 },
+    { "date": "2026-02-17", "symptom": "Tingling in fingertips and feet, difficulty with buttons", "grade": 2 }
+  ],
+  "timeline": [
+    { "date": "2025-10-20", "event": "Palpable lump noticed; GP referral" },
+    { "date": "2025-11-04", "event": "Core biopsy: IDC grade 3" },
+    { "date": "2025-11-18", "event": "MDT: neoadjuvant chemotherapy recommended; HER2 ISH outstanding" },
+    { "date": "2025-12-01", "event": "Cycle 1 EC" },
+    { "date": "2026-01-26", "event": "Switch to weekly paclitaxel" },
+    { "date": "2026-02-16", "event": "ANC 1.4 – dose delay considered" }
+  ],
+  "open_questions": ["HER2 ISH result not yet in the record – would change regimen (anti-HER2 therapy)"]
+}

@@ -1,0 +1,36 @@
+name: Copilot Setup Steps
+
+# Prepares the Copilot coding agent's environment so it can run the same checks as CI.
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v8.3.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          cd backend && uv sync --frozen && cd ..
+          npm ci
+
+      - name: Pre-download the Copilot SDK runtime
+        run: cd backend && uv run python -m copilot download-runtime

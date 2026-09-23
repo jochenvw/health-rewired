@@ -1,0 +1,179 @@
+name: Deploy
+
+# main  -> revision labelled "main" with 100 % traffic  (https://<app>.<env-domain>)
+# PR    -> revision labelled "pr-<N>" with 0 % traffic  (https://<app>---pr-<N>.<env-domain>)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE_REPOSITORY: oncology-hackathon
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to Azure Container Apps
+    needs: ci
+    # No Azure credentials for forks or Dependabot; they get CI only.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+      pull-requests: write
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check configuration
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ACA_APP_NAME: ${{ vars.ACA_APP_NAME }}
+          ACR_NAME: ${{ vars.ACR_NAME }}
+        run: |
+          if [[ -z "$AZURE_CLIENT_ID" || -z "$ACA_APP_NAME" || -z "$ACR_NAME" ]]; then
+            echo "::error::Azure is not configured. Run scripts/bootstrap-azure.sh and scripts/bootstrap-github.sh (see README)."
+            exit 1
+          fi
+
+      - name: Compute names
+        id: names
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          short="${SHA:0:7}"
+          if [[ -n "$PR" ]]; then
+            label="pr-$PR"; suffix="pr$PR-$short-$GITHUB_RUN_ATTEMPT"; tag="pr-$PR-$short"; min=0
+          else
+            label="main"; suffix="main-$short-$GITHUB_RUN_ATTEMPT"; tag="main-$short"; min=1
+          fi
+          {
+            echo "label=$label"
+            echo "suffix=$suffix"
+            echo "tag=$tag"
+            echo "min=$min"
+            echo "version=$short"
+          } >>"$GITHUB_OUTPUT"
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to ACR
+        id: acr
+        run: |
+          az acr login --name "${{ vars.ACR_NAME }}"
+          echo "server=$(az acr show --name '${{ vars.ACR_NAME }}' --query loginServer -o tsv)" >>"$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.acr.outputs.server }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.names.outputs.tag }}
+          build-args: APP_VERSION=${{ steps.names.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy revision
+        id: deploy
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          ACA_APP_NAME: ${{ vars.ACA_APP_NAME }}
+          IMAGE: ${{ steps.acr.outputs.server }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.names.outputs.tag }}
+          LABEL: ${{ steps.names.outputs.label }}
+          REVISION_SUFFIX: ${{ steps.names.outputs.suffix }}
+          APP_VERSION: ${{ steps.names.outputs.version }}
+          MIN_REPLICAS: ${{ steps.names.outputs.min }}
+        run: bash scripts/aca-deploy.sh
+
+      - name: Verify
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+          VERSION: ${{ steps.names.outputs.version }}
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -fsS --max-time 20 "$URL/api/status" || true)
+            if grep -q "\"version\":\"$VERSION\"" <<<"$status"; then
+              echo "Live: $URL"; echo "$status"
+              echo "### 🚀 Live at $URL" >>"$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Waiting for $URL ($i)…"; sleep 10
+          done
+          echo "::error::$URL did not serve version $VERSION"; exit 1
+
+      - name: Share preview link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+          VERSION: ${{ steps.names.outputs.version }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request.number;
+            const url = process.env.URL;
+            const marker = "<!-- oncology-hackathon-preview -->";
+
+            async function upsert(issue_number, body) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100,
+              });
+              const existing = comments.find((c) => c.body?.includes(marker));
+              if (existing) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number, body });
+              }
+            }
+
+            await upsert(pr, [
+              marker,
+              `### 🚀 Preview ready`,
+              ``,
+              `**${url}**`,
+              ``,
+              `Build \`${process.env.VERSION}\` · updates automatically on every push to this pull request.`,
+              `Synthetic data only · hackathon prototype · not for clinical use.`,
+            ].join("\n"));
+
+            const { repository } = await github.graphql(
+              `query($owner:String!,$repo:String!,$pr:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$pr){closingIssuesReferences(first:5){nodes{number}}}}}`,
+              { owner, repo, pr },
+            );
+            for (const { number } of repository.pullRequest.closingIssuesReferences.nodes) {
+              await upsert(number, [
+                marker,
+                `### 🚀 Your prototype is live`,
+                ``,
+                `**${url}**`,
+                ``,
+                `Try it and tell us what to change: comment on #${pr} starting with \`@copilot\`.`,
+                `Synthetic data only · hackathon prototype · not for clinical use.`,
+              ].join("\n"));
+              await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ["preview-ready"] });
+            }

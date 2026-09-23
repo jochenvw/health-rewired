@@ -1,0 +1,46 @@
+name: Preview cleanup
+
+on:
+  pull_request:
+    types: [closed]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: read
+
+concurrency:
+  group: preview-cleanup-${{ github.event.pull_request.number || 'sweep' }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: >-
+      vars.AZURE_CLIENT_ID != '' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      ACA_APP_NAME: ${{ vars.ACA_APP_NAME }}
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Remove preview for the closed pull request
+        if: github.event_name == 'pull_request'
+        run: bash scripts/aca-cleanup.sh "${{ github.event.pull_request.number }}"
+
+      - name: Sweep stale previews
+        if: github.event_name != 'pull_request'
+        run: bash scripts/aca-cleanup.sh --stale

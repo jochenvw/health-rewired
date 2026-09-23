@@ -1,178 +1,185 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
+import { api, type AgentResult, type PatientSummary, type Status } from './api';
+import { RenderBlock } from './blocks/registry';
 
-type CoachWidget = {
-  kind?: string;
-  title?: string;
-  body?: string;
-  meta?: string;
-};
+const roles = ['Oncologist', 'Oncology nurse', 'MDT coordinator', 'Pharmacist', 'Patient'];
 
-type CoachResponse = {
-  status?: string;
-  title?: string;
-  summary?: string;
-  next_steps?: string[];
-  evidence?: string[];
-  widgets?: CoachWidget[];
-  sdk_status?: string;
-};
-
-const starterIdeas = [
-  'A decision-support tool that matches cancer patients to the most relevant clinical trials based on tumor biology, comorbidities, and access constraints.',
-  'A patient navigation assistant that helps oncology teams spot treatment delays, side-effect risk, and care coordination gaps early.',
-  'A research workspace that turns fragmented evidence into a structured oncology timeline for new treatment options.',
+const exampleTasks = [
+  "Prepare this case for tomorrow's tumour board. What is missing?",
+  'What changed since the last visit, and what needs attention now?',
+  'Which synthetic trials could fit, and what data is still needed to check eligibility?',
 ];
 
-const defaultResponse: CoachResponse = {
-  status: 'idle',
-  title: 'Idea brief',
-  summary: 'Describe an oncology concept and the app will turn it into a sharper, more actionable problem statement.',
-  next_steps: ['Clarify the user problem.', 'Surface the clinical context.', 'Define a prototype with measurable value.'],
-  evidence: ['This is a starting canvas, not a solved problem.', 'The goal is to produce a clear next step for a hackathon prototype.'],
-  sdk_status: 'ready to coach',
-};
+const steps = [
+  { title: 'Open an issue', body: 'Describe your oncology idea in plain language. No code, no jargon.' },
+  { title: 'Get coached', body: 'An AI coach helps sharpen the clinical insight and stretch the ambition.' },
+  { title: 'Copilot builds', body: 'Once ready, GitHub Copilot implements your idea on top of this canvas.' },
+  { title: 'Click the link', body: 'A live prototype appears at its own URL, right in your issue.' },
+];
 
 export default function App() {
-  const [idea, setIdea] = useState(starterIdeas[0]);
-  const [feedback, setFeedback] = useState<CoachResponse>(defaultResponse);
+  const [status, setStatus] = useState<Status | null>(null);
+  const [patients, setPatients] = useState<PatientSummary[]>([]);
+  const [patientId, setPatientId] = useState('P-001');
+  const [role, setRole] = useState(roles[2]);
+  const [task, setTask] = useState(exampleTasks[0]);
+  const [result, setResult] = useState<AgentResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const widgetCards = feedback.widgets && feedback.widgets.length > 0 ? feedback.widgets : [
-    { kind: 'summary', title: 'Summary', body: feedback.summary || '', meta: 'Coach' },
-    { kind: 'action', title: 'Next steps', body: (feedback.next_steps || [])[0] || '', meta: 'Workflow' },
-    { kind: 'alert', title: 'Evidence', body: (feedback.evidence || [])[0] || '', meta: 'Relevance' },
-  ];
+  useEffect(() => {
+    api.status().then(setStatus).catch(() => setStatus(null));
+    api.patients().then(setPatients).catch(() => setPatients([]));
+  }, []);
 
-  const handleSubmit = async (event: FormEvent) => {
+  const run = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
-
+    setError(null);
     try {
-      const response = await fetch('/api/coach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea }),
-      });
-
-      const data = (await response.json()) as CoachResponse;
-      setFeedback(data || defaultResponse);
-    } catch {
-      setFeedback({
-        ...defaultResponse,
-        status: 'fallback',
-        summary: 'The backend could not be reached. Use the starter brief and refine the idea locally.',
-        sdk_status: 'offline',
-      });
+      setResult(await api.runAgent({ task, patient_id: patientId, role }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'The agent could not be reached.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page-shell">
+    <div className="page">
+      <div className="disclaimer" role="note">
+        Hackathon prototype · synthetic data only · not for clinical use
+        {status?.preview_label && <span className="preview-pill">Preview {status.preview_label}</span>}
+      </div>
+
       <header className="topbar">
-        <div className="brand-block">
-          <span className="eyebrow">Health Rewired</span>
-          <h1>Munich 2026</h1>
+        <div className="brand">
+          <span className="brand-mark" aria-hidden>
+            ✦
+          </span>
+          <div>
+            <strong>Health Rewired</strong>
+            <span>Oncology Hackathon 2026 · Munich</span>
+          </div>
         </div>
-        <nav className="topnav" aria-label="Main navigation">
-          <a href="#concept">Concept</a>
-          <a href="#workflow">Workflow</a>
-          <a href="#agent">Agent</a>
+        <nav aria-label="Main">
+          <a href="#how">How it works</a>
+          <a href="#canvas">Agent canvas</a>
         </nav>
       </header>
 
-      <main className="hero-grid">
-        <section className="hero-copy" id="concept">
-          <p className="kicker">Starting canvas for bold oncology ideas</p>
-          <h2>Turn promising concepts into prototypes that move the field.</h2>
-          <p className="lede">
-            This repository is not a finished medical product. It is the clean beginning for the
-            Health Rewired Munich 2026 hackathon teams to turn early oncology ideas into testable,
-            ambitious prototypes.
+      <section className="hero">
+        <p className="eyebrow">Oncology Hackathon 2026 · Munich</p>
+        <h1>
+          Where oncology ideas become <span className="accent">agentic prototypes</span>.
+        </h1>
+        <p className="lede">
+          This is the blank canvas every hackathon idea starts from. Clinicians bring the insight; AI agents coach,
+          build and deploy. Pursue the impossible. Cross boundaries. Move from discovery to impact.
+        </p>
+        <div className="cta-row">
+          <a className="button primary" href="#canvas">
+            Try the agent
+          </a>
+          <a className="button ghost" href="#how">
+            Start with an idea
+          </a>
+        </div>
+      </section>
+
+      <section id="how" className="steps">
+        {steps.map((step, index) => (
+          <article key={step.title} className="step">
+            <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+          </article>
+        ))}
+      </section>
+
+      <section id="canvas" className="canvas">
+        <div className="canvas-intro">
+          <p className="eyebrow">Agent canvas</p>
+          <h2>Not a chatbot: an agent that looks things up and chooses what to show.</h2>
+          <p>
+            The GitHub Copilot SDK agent reads synthetic records with tools, reasons over them, and assembles the
+            screen below from UI blocks. Proposed actions always wait for a human.
           </p>
-          <div className="cta-row">
-            <a href="#agent" className="primary-button">Explore the agent</a>
-            <a href="#workflow" className="secondary-button">See the workflow</a>
+        </div>
+
+        <form className="agent-form" onSubmit={run}>
+          <div className="field-row">
+            <label>
+              Synthetic patient
+              <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
+                {(patients.length ? patients : [{ id: 'P-001', name: 'P-001', age: 0, diagnosis: '' }]).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.id} · {p.name}
+                    {p.diagnosis ? ` · ${p.diagnosis}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Your role
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                {roles.map((r) => (
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
+            </label>
           </div>
-        </section>
-
-        <aside className="hero-panel" id="agent">
-          <div className="panel-header">
-            <span className="status-dot" />
-            <span>Idea coach</span>
+          <label>
+            Task for the agent
+            <textarea value={task} onChange={(e) => setTask(e.target.value)} rows={3} />
+          </label>
+          <div className="chip-row">
+            {exampleTasks.map((example) => (
+              <button key={example} type="button" className="chip" onClick={() => setTask(example)}>
+                {example}
+              </button>
+            ))}
           </div>
+          <button className="button primary" type="submit" disabled={loading || task.trim().length < 3}>
+            {loading ? 'Agent is working…' : 'Run agent'}
+          </button>
+        </form>
 
-          <form onSubmit={handleSubmit} className="idea-form">
-            <label htmlFor="idea-input">Describe your oncology concept</label>
-            <textarea
-              id="idea-input"
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              rows={8}
-            />
+        {error && <p className="error">{error}</p>}
 
-            <div className="chip-row" aria-label="Example ideas">
-              {starterIdeas.map((example) => (
-                <button
-                  key={example}
-                  type="button"
-                  className="chip"
-                  onClick={() => setIdea(example)}
-                >
-                  Example
-                </button>
+        {result && (
+          <div className="result" aria-live="polite">
+            <div className="result-header">
+              <h3>{result.headline}</h3>
+              <span className={`mode mode-${result.mode}`}>
+                {result.mode === 'copilot' ? 'Live Copilot SDK agent' : 'Deterministic demo'}
+              </span>
+            </div>
+            {result.note && <p className="note">{result.note}</p>}
+            {result.trace.length > 0 && (
+              <ol className="trace" aria-label="What the agent did">
+                {result.trace.map((step, index) => (
+                  <li key={index} title={step.arguments ?? undefined}>
+                    {step.tool}
+                  </li>
+                ))}
+              </ol>
+            )}
+            <div className="blocks">
+              {result.blocks.map((block, index) => (
+                <RenderBlock key={index} block={block} />
               ))}
             </div>
-
-            <button className="submit-button" type="submit" disabled={loading}>
-              {loading ? 'Coaching…' : 'Generate brief'}
-            </button>
-          </form>
-        </aside>
-      </main>
-
-      <section className="output-panel" aria-live="polite">
-        <div className="panel-heading">
-          <span className="eyebrow soft">Agent output</span>
-          <h3>{feedback.title || 'Idea brief'}</h3>
-        </div>
-
-        <div className="result-grid">
-          {widgetCards.map((widget) => (
-            <div key={`${widget.kind}-${widget.title}-${widget.meta}`} className={`result-card ${widget.kind || 'summary'}`}>
-              <span className="widget-tag">{widget.meta || 'Layer'}</span>
-              <h4>{widget.title}</h4>
-              <p>{widget.body}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="meta-row">
-          <span className="meta-pill">Status: {feedback.status || 'idle'}</span>
-          <span className="meta-pill">SDK: {feedback.sdk_status || 'unknown'}</span>
-        </div>
+          </div>
+        )}
       </section>
 
-      <section className="feature-grid" id="workflow">
-        <article className="feature-card">
-          <span className="feature-index">01</span>
-          <h3>Issue-first</h3>
-          <p>Participants begin with a GitHub issue, not a stack of assumptions.</p>
-        </article>
-
-        <article className="feature-card">
-          <span className="feature-index">02</span>
-          <h3>Agentic coaching</h3>
-          <p>The app encourages better framing, risk spotting, and next-step articulation.</p>
-        </article>
-
-        <article className="feature-card">
-          <span className="feature-index">03</span>
-          <h3>Prototype-ready</h3>
-          <p>Teams can move quickly from concept to a testable prototype and preview URL.</p>
-        </article>
-      </section>
+      <footer className="footer">
+        <span>Health Rewired · Oncology Hackathon 2026 · Munich</span>
+        <span>
+          v{status?.version ?? '–'} · Copilot: {status?.copilot.auth_mode ?? 'unknown'}
+        </span>
+      </footer>
     </div>
   );
 }

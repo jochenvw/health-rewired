@@ -1,0 +1,35 @@
+{
+  "synthetic": true,
+  "id": "P-002",
+  "name": "Markus Huber",
+  "age": 67,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Adenocarcinoma of the lung, right upper lobe",
+    "date": "2025-09-12",
+    "stage": "cT3 cN2 M1b (stage IVA, single adrenal metastasis)",
+    "biomarkers": { "EGFR": "exon 19 deletion", "ALK": "negative", "PD-L1": "TPS 10%" }
+  },
+  "comorbidities": ["COPD GOLD 2", "Former smoker, 40 pack-years"],
+  "medications": ["Tiotropium inhaler", "Atorvastatin 20 mg"],
+  "treatments": [
+    { "type": "Targeted therapy", "regimen": "Osimertinib 80 mg daily", "start": "2025-10-01", "status": "ongoing" }
+  ],
+  "labs": [
+    { "date": "2026-01-05", "test": "ALT", "value": 38, "unit": "U/L", "ref": "<50" },
+    { "date": "2026-02-09", "test": "ALT", "value": 71, "unit": "U/L", "ref": "<50", "flag": "high" }
+  ],
+  "imaging": [
+    { "date": "2025-12-15", "modality": "CT chest/abdomen", "result": "Partial response; adrenal lesion 18 → 11 mm" },
+    { "date": "2026-02-20", "modality": "CT chest/abdomen", "result": "Stable primary; new 6 mm nodule left lower lobe, indeterminate" }
+  ],
+  "timeline": [
+    { "date": "2025-09-12", "event": "Bronchoscopy biopsy: adenocarcinoma" },
+    { "date": "2025-09-26", "event": "NGS: EGFR exon 19 deletion" },
+    { "date": "2025-10-01", "event": "Osimertinib started" },
+    { "date": "2025-12-15", "event": "CT: partial response" },
+    { "date": "2026-02-20", "event": "CT: new indeterminate nodule" }
+  ],
+  "open_questions": ["Is the new nodule progression? Consider liquid biopsy for resistance mutations before MDT."]
+}

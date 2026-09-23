@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Apply guardrail result to original issue
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const pullRequest = context.payload.pull_request;
@@ -39,7 +39,7 @@ jobs:
 
             const body = pullRequest.body || "";
             const marker = body.match(
-              /<!--\s*health-rewired-guardrail:\s*(rejected|needs-bold-thinking)\s+issue:\s*#(\d+)\s*-->/i,
+              /<!--\s*health-rewired-guardrail:\s*(out-of-scope|needs-refinement|rejected|needs-bold-thinking)\s+issue:\s*#(\d+)\s*-->/i,
             );
 
             if (!marker) {
@@ -47,7 +47,9 @@ jobs:
               return;
             }
 
-            const outcome = marker[1].toLowerCase();
+            const legacyOutcomes = { rejected: "out-of-scope", "needs-bold-thinking": "needs-refinement" };
+            const rawOutcome = marker[1].toLowerCase();
+            const outcome = legacyOutcomes[rawOutcome] || rawOutcome;
             const issueNumber = Number(marker[2]);
             const feedbackHeading = body
               .split(/\r?\n/)
@@ -90,13 +92,13 @@ jobs:
             }
 
             const labelDefinitions = {
-              rejected: {
-                color: "CF222E",
-                description: "Outside repository guardrails; closed without implementation",
+              "out-of-scope": {
+                color: "D93F0B",
+                description: "Not an oncology use case yet - see coaching feedback",
               },
-              "needs-bold-thinking": {
-                color: "F9D0C4",
-                description: "Oncology use case needs a more progressive and ambitious approach",
+              "needs-refinement": {
+                color: "FBCA04",
+                description: "Idea is being coached towards a bolder, buildable version",
               },
             };
 
@@ -112,15 +114,18 @@ jobs:
               });
             }
 
-            const otherOutcome =
-              outcome === "rejected" ? "needs-bold-thinking" : "rejected";
-            if (issue.data.labels.some((label) => label.name === otherOutcome)) {
-              await github.rest.issues.removeLabel({
-                owner,
-                repo,
-                issue_number: issueNumber,
-                name: otherOutcome,
-              });
+            const staleLabels = ["out-of-scope", "needs-refinement", "ready-for-build"].filter(
+              (name) => name !== outcome,
+            );
+            for (const label of issue.data.labels) {
+              if (staleLabels.includes(label.name)) {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  name: label.name,
+                });
+              }
             }
 
             await github.rest.issues.addLabels({
@@ -129,7 +134,6 @@ jobs:
               issue_number: issueNumber,
               labels: [outcome],
             });
-
             const commentMarker =
               `<!-- health-rewired-guardrail-result pr:#${pullRequest.number} -->`;
             const issueComment = [
@@ -138,8 +142,8 @@ jobs:
               "",
               feedback,
               "",
-              `Outcome: \`${outcome}\`. This issue was closed as not planned. ` +
-                "Revise and reopen it, or use `#build_anyway` for a deliberate exception.",
+              `Outcome: \`${outcome}\`. The issue stays open: edit it or reply here and the ` +
+                "idea coach will pick it up again. Maintainers can add `#build_anyway` for a deliberate exception.",
             ].join("\n");
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner,
@@ -167,21 +171,13 @@ jobs:
               });
             }
 
-            await github.rest.issues.update({
-              owner,
-              repo,
-              issue_number: issueNumber,
-              state: "closed",
-              state_reason: "not_planned",
-            });
-
             await github.rest.issues.createComment({
               owner,
               repo,
               issue_number: pullRequest.number,
               body:
                 `Guardrail handoff completed for #${issueNumber}: ` +
-                `applied \`${outcome}\`, posted feedback, and closed the issue.`,
+                `applied \`${outcome}\` and posted feedback. The issue stays open for coaching.`,
             });
             await github.rest.pulls.update({
               owner,
