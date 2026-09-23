@@ -62,9 +62,9 @@ jobs:
         run: |
           short="${SHA:0:7}"
           if [[ -n "$PR" ]]; then
-            label="pr-$PR"; suffix="pr$PR-$short-$GITHUB_RUN_ATTEMPT"; tag="pr-$PR-$short"; min=0
+            label="pr-$PR"; suffix="pr$PR-$short-r$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"; tag="pr-$PR-$short"; min=0
           else
-            label="main"; suffix="main-$short-$GITHUB_RUN_ATTEMPT"; tag="main-$short"; min=1
+            label="main"; suffix="main-$short-r$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"; tag="main-$short"; min=1
           fi
           {
             echo "label=$label"

@@ -151,7 +151,7 @@ One Azure Container App (`healthrewired-munich`) in **multiple-revision mode**:
 
 ## 9. Preview environments
 
-Each PR build creates an immutable revision `…--pr<N>-<sha7>-<attempt>` with label **`pr-<N>`** and
+Each PR build creates an immutable revision `…--pr<N>-<sha7>-r<run>-<attempt>` with label **`pr-<N>`** and
 0 % weight, so it never receives production traffic but has a stable URL:
 
 ```text
