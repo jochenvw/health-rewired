@@ -1,0 +1,48 @@
+name: Deploy Health Rewired
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Register Azure Container Apps provider
+        shell: bash
+        run: |
+          az provider register --namespace Microsoft.App --wait
+
+      - name: Deploy to Azure Container Apps
+        shell: bash
+        run: |
+          az extension add --name containerapp --upgrade --allow-preview true
+          az containerapp up \
+            --name healthrewired-munich \
+            --resource-group rg-health-rewired-munich \
+            --location westeurope \
+            --environment healthrewired-env \
+            --ingress external \
+            --target-port 8000 \
+            --source .
+
+      - name: Show app endpoint
+        shell: bash
+        run: |
+          az containerapp show \
+            --name healthrewired-munich \
+            --resource-group rg-health-rewired-munich \
+            --query properties.configuration.ingress.fqdn \
+            -o tsv
