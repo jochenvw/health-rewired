@@ -50,7 +50,7 @@ jobs:
           ACR_NAME: ${{ vars.ACR_NAME }}
         run: |
           if [[ -z "$AZURE_CLIENT_ID" || -z "$ACA_APP_NAME" || -z "$ACR_NAME" ]]; then
-            echo "::error::Azure is not configured. Run scripts/bootstrap-azure.sh and scripts/bootstrap-github.sh (see README)."
+            echo "::error::Azure is not configured. Run scripts/bootstrap-azure.sh and scripts/bootstrap-github.sh (see docs/organizers.md)."
             exit 1
           fi
 
