@@ -1,15 +1,21 @@
-# Operating system files
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/.python-version
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS
 .DS_Store
 Thumbs.db
 
 # Editor settings
 .idea/
 .vscode/
-
-# Dependencies and build output
-node_modules/
-dist/
-build/
 
 # Local environment files
 .env
