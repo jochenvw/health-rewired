@@ -55,3 +55,9 @@ def test_runner_uses_fallback_when_not_configured(monkeypatch):
 
     result = asyncio.run(runner.run_agent(runner.AgentRequest(task="Check P-003")))
     assert result.mode == "fallback"
+
+
+def test_unescape_restores_double_escaped_unicode():
+    from app.agent.runner import _unescape
+
+    assert _unescape({"a": ["CEA 2.1\\u21924.6"], "b": 1}) == {"a": ["CEA 2.1\u21924.6"], "b": 1}

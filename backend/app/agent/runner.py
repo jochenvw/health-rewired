@@ -8,7 +8,9 @@ Flow: user task → Copilot session with our tools → model calls data tools �
 import asyncio
 import json
 import logging
+import re
 import tempfile
+from typing import Any
 
 from copilot import CopilotClient
 from copilot.session import PermissionHandler
@@ -102,3 +104,17 @@ async def run_agent(request: AgentRequest) -> AgentResult:
         trace=trace,
         note="The agent answered in text instead of calling render_ui.",
     )
+
+
+_UNICODE_ESCAPE = re.compile(r"\\u([0-9a-fA-F]{4})")
+
+
+def _unescape(value: Any) -> Any:
+    """Models occasionally double-escape non-ASCII text (literal ``\u2192``); restore the characters."""
+    if isinstance(value, str):
+        return _UNICODE_ESCAPE.sub(lambda m: chr(int(m.group(1), 16)), value)
+    if isinstance(value, list):
+        return [_unescape(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _unescape(v) for k, v in value.items()}
+    return value
