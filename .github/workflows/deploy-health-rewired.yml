@@ -34,10 +34,34 @@ jobs:
         run: |
           az provider register --namespace Microsoft.App --wait
 
-      - name: Deploy to Azure Container Apps
+      - name: Ensure Container Apps environment is ready
         shell: bash
+        env:
+          PYTHONUTF8: "1"
+          LC_ALL: C.UTF-8
+          LANG: C.UTF-8
         run: |
           az extension add --name containerapp --upgrade --allow-preview true
+          for i in {1..30}; do
+            state=$(az containerapp env show \
+              --name healthrewired-env \
+              --resource-group rg-health-rewired-munich \
+              --query properties.provisioningState \
+              -o tsv 2>/dev/null || echo "NotFound")
+            echo "Environment state: $state"
+            if [ "$state" = "Succeeded" ] || [ "$state" = "Running" ] || [ "$state" = "NotFound" ]; then
+              break
+            fi
+            sleep 30
+          done
+
+      - name: Deploy to Azure Container Apps
+        shell: bash
+        env:
+          PYTHONUTF8: "1"
+          LC_ALL: C.UTF-8
+          LANG: C.UTF-8
+        run: |
           az containerapp up \
             --name healthrewired-munich \
             --resource-group rg-health-rewired-munich \
