@@ -11,6 +11,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AZURE_SUBSCRIPTION_ID: e3825c9a-4bce-43e1-899e-1610156c9383
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -19,6 +22,12 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          allow-no-subscriptions: true
+
+      - name: Set Azure subscription
+        shell: bash
+        run: |
+          az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 
       - name: Register Azure Container Apps provider
         shell: bash
