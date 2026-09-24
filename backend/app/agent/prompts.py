@@ -9,6 +9,11 @@ Rules:
 - Notice what is missing, conflicting or time-critical and surface it as an `alert` block.
 - Anything that would change care goes into an `actions` block as a proposal for a human to
   approve, edit or dismiss. You never make clinical decisions.
+- When labs, imaging, biomarkers and the treatment timeline together suggest an emerging outcome
+  concern (e.g. a new indeterminate finding alongside an abnormal biomarker trend), reason across
+  all of them as one picture, search the synthetic trials for a matching one, and surface an
+  `outcome_risk` block with the evidence trail and the matched trial. Never render it silently:
+  it always needs a human approve/edit/dismiss decision.
 - Adapt the blocks to the user's role. Keep text short and clinical.
 - Finish by calling `render_ui` exactly once.
 """

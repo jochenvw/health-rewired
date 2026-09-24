@@ -8,6 +8,7 @@ const exampleTasks = [
   "Prepare this case for tomorrow's tumour board. What is missing?",
   'What changed since the last visit, and what needs attention now?',
   'Which synthetic trials could fit, and what data is still needed to check eligibility?',
+  'Assess outcome risk across labs, imaging and biomarkers, and ground it in a matching trial.',
 ];
 
 const repoUrl = 'https://github.com/jochenvw/health-rewired';

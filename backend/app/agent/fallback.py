@@ -16,6 +16,77 @@ def _cancer_type(primary: str) -> str:
     return ""
 
 
+_CONCERN_KEYWORDS = ("new", "indeterminate", "progress")
+
+
+def _match_trial(record: dict, trials: list[dict]) -> dict | None:
+    """Score synthetic trials by overlap with this patient's regimen and biomarkers."""
+    text = " ".join(t.get("regimen", "") for t in record.get("treatments", []))
+    text += " " + " ".join(f"{k} {v}" for k, v in record.get("diagnosis", {}).get("biomarkers", {}).items())
+    words = {w.lower() for w in text.split() if len(w) > 3}
+
+    def score(trial: dict) -> int:
+        inclusion = trial.get("key_inclusion", "").lower()
+        return sum(1 for word in words if word in inclusion)
+
+    scored = sorted(trials, key=score, reverse=True)
+    if scored and score(scored[0]) > 0:
+        return scored[0]
+    return None
+
+
+def _build_outcome_risk(record: dict, source: str, trials: list[dict]) -> UIBlock | None:
+    """Reason across imaging, labs and biomarkers together and ground any concern in a trial."""
+    imaging_concerns = [
+        img for img in record.get("imaging", []) if any(k in img["result"].lower() for k in _CONCERN_KEYWORDS)
+    ]
+    lab_concerns = [lab for lab in record.get("labs", []) if lab.get("flag")]
+    if not imaging_concerns and not lab_concerns:
+        return None
+
+    items = [
+        UIItem(
+            label=f"Imaging: {img['modality']}",
+            detail=img["result"],
+            date=img["date"],
+            source=source,
+            severity="warning",
+        )
+        for img in imaging_concerns
+    ] + [
+        UIItem(
+            label=f"Lab: {lab['test']} {lab['value']} {lab['unit']}",
+            detail=f"{lab['flag']} (ref {lab['ref']}) on {lab['date']}",
+            date=lab["date"],
+            source=source,
+            severity="warning",
+        )
+        for lab in lab_concerns
+    ]
+    biomarkers = record.get("diagnosis", {}).get("biomarkers", {})
+    if biomarkers:
+        items.append(
+            UIItem(label="Biomarkers", detail=", ".join(f"{k} {v}" for k, v in biomarkers.items()), source=source)
+        )
+
+    trial = _match_trial(record, trials)
+    if trial:
+        items.append(
+            UIItem(
+                label=f"Matching trial {trial['trial_id']}: {trial['title']}",
+                detail=f"Inclusion: {trial['key_inclusion']}",
+                source="trials.csv",
+            )
+        )
+
+    severity = "critical" if imaging_concerns and lab_concerns else "warning"
+    narrative = (
+        "Imaging, labs and biomarkers together suggest a possible outcome concern for "
+        f"{record.get('name')}. Review before the next decision point."
+    )
+    return UIBlock(type="outcome_risk", title="Outcome risk", severity=severity, body=narrative, items=items)
+
+
 def build_fallback(request: AgentRequest, note: str) -> AgentResult:
     patients = sample_data.list_patients()
     patient_id = request.patient_id or (patients[0]["id"] if patients else None)
@@ -68,7 +139,12 @@ def build_fallback(request: AgentRequest, note: str) -> AgentResult:
     ]
     if alerts:
         blocks.append(UIBlock(type="alert", title="Needs attention", severity="warning", items=alerts))
-    if trials:
+
+    outcome_risk = _build_outcome_risk(record, source, trials)
+    if outcome_risk:
+        blocks.append(outcome_risk)
+        trace.append(TraceStep(tool="predict_outcome_risk", arguments=patient_id))
+    elif trials:
         blocks.append(
             UIBlock(
                 type="evidence",

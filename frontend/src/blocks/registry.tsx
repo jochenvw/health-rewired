@@ -3,6 +3,7 @@ import type { UIBlock } from '../api';
 import { ActionsBlock } from './ActionsBlock';
 import { AlertBlock } from './AlertBlock';
 import { EvidenceBlock } from './EvidenceBlock';
+import { OutcomeRiskBlock } from './OutcomeRiskBlock';
 import { PatientCardBlock } from './PatientCardBlock';
 import { SummaryBlock } from './SummaryBlock';
 import { TimelineBlock } from './TimelineBlock';
@@ -20,6 +21,7 @@ const registry: Record<string, ComponentType<BlockProps>> = {
   evidence: EvidenceBlock,
   alert: AlertBlock,
   actions: ActionsBlock,
+  outcome_risk: OutcomeRiskBlock,
 };
 
 export function RenderBlock({ block }: BlockProps) {

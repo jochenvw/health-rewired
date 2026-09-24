@@ -503,6 +503,69 @@ select option {
   opacity: 0.5;
 }
 
+.block-outcome_risk {
+  grid-column: 1 / -1;
+}
+
+.risk-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 194, 87, 0.18);
+  color: var(--warning);
+  margin-bottom: 10px;
+}
+
+.risk-badge[data-severity='critical'] {
+  background: rgba(255, 90, 110, 0.18);
+  color: var(--critical);
+}
+
+.risk-badge[data-severity='info'] {
+  background: rgba(139, 123, 255, 0.18);
+  color: var(--accent-2);
+}
+
+.risk-note-edit {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  resize: vertical;
+}
+
+.risk-trail {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.risk-trail li {
+  border-left: 3px solid var(--warning);
+  background: var(--surface-strong);
+  border-radius: 0 12px 12px 0;
+  padding: 8px 12px;
+}
+
+.risk-trail li[data-severity='critical'] {
+  border-color: var(--critical);
+}
+
+.risk-trail li p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .decision-buttons {
   display: flex;
   gap: 6px;

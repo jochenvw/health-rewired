@@ -41,6 +41,26 @@ def test_agent_falls_back_without_token(client):
     assert any(step["tool"] == "get_patient" for step in body["trace"])
 
 
+def test_outcome_risk_grounds_concern_in_matching_trial(client):
+    response = client.post("/api/agent/run", json={"task": "Assess outcome risk", "patient_id": "P-002"})
+    body = response.json()
+    outcome_risk = next(block for block in body["blocks"] if block["type"] == "outcome_risk")
+    assert outcome_risk["severity"] == "critical"
+    labels = [item["label"] for item in outcome_risk["items"]]
+    assert any("Imaging" in label for label in labels)
+    assert any("Lab" in label for label in labels)
+    assert any("SYN-LU-310" in label for label in labels)
+    assert any(step["tool"] == "predict_outcome_risk" for step in body["trace"])
+
+
+def test_outcome_risk_uses_warning_severity_for_labs_only(client):
+    response = client.post("/api/agent/run", json={"task": "Give me a case overview", "patient_id": "P-001"})
+    body = response.json()
+    outcome_risk = next(block for block in body["blocks"] if block["type"] == "outcome_risk")
+    # P-001 has flagged labs but no imaging concern, so severity should stay at warning, not critical.
+    assert outcome_risk["severity"] == "warning"
+
+
 def test_render_ui_tool_schema_is_self_contained():
     captured = []
     tool = build_render_ui_tool(captured.append)
