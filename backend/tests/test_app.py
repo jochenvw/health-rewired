@@ -68,8 +68,19 @@ def test_idea_routers_are_discovered_and_mounted(client):
 
     from app.ideas import routers
 
+    def _all_paths(routes) -> set[str]:
+        paths: set[str] = set()
+        for route in routes:
+            path = getattr(route, "path", None)
+            if path:
+                paths.add(path)
+            nested = getattr(route, "routes", None) or getattr(getattr(route, "original_router", None), "routes", None)
+            if nested:
+                paths |= _all_paths(nested)
+        return paths
+
     found = routers()
     assert all(isinstance(r, APIRouter) for r in found)
-    mounted = {route.path for route in app.routes}
+    mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
