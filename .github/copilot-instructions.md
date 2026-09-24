@@ -20,6 +20,8 @@ before implementing anything. It overrides generic habits.
 8. Preserve the participant's clinical insight – it is the point of the idea.
 9. Prefer agentic behaviour (tools, multi-step work, generative UI, human-in-the-loop) over a generic chatbot.
 10. Never add complexity merely to appear "agentic".
+11. Bias to action: build fast, clickable prototypes that non-technical clinicians can iterate on.
+    Security hardening, instrumentation and other non-functional requirements are not a priority.
 
 Detailed build rules: [`.github/hackathon/implementation-guidelines.md`](hackathon/implementation-guidelines.md).
 

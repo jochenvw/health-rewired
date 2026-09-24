@@ -2,6 +2,25 @@
 
 For the GitHub Copilot coding agent building an approved idea.
 
+## Hackathon mindset (read first)
+
+This is a hackathon. You are building a **prototype** that non-technical medical professionals will
+click through, react to, and iterate on with you. Speed to something visible beats completeness.
+
+- **Bias to action.** Build the smallest version that shows the proposal's walkthrough end to end,
+  then stop. Participants refine it afterwards by commenting `@copilot` on the pull request.
+- **Visible over robust.** Spend effort on what the participant sees and clicks. Skip edge cases,
+  exhaustive validation and error paths that do not affect the demo.
+- **Non-functional requirements are not a priority.** Do not add auth, security hardening,
+  telemetry/instrumentation, logging frameworks, performance tuning, caching, retries or
+  configuration layers unless the proposal explicitly asks for them.
+- **Minimal tests.** One quick smoke test for new backend behaviour is enough; lint and existing
+  tests must still pass.
+- **Talk like a colleague.** The PR description and any comments are read by clinicians: say what
+  they can now try, in plain words, and what they could ask for next.
+- The build rules below still apply – especially the non-negotiables: synthetic data only, the
+  prototype disclaimer, and the Copilot SDK at the centre.
+
 ## Start here
 
 1. Read the issue, **the latest "🚀 Implementation proposal" comment**, and the conversation.
@@ -23,8 +42,8 @@ For the GitHub Copilot coding agent building an approved idea.
    (approve / edit / dismiss). Show "why" and sources where the agent makes claims.
 6. **Prototype disclaimer.** Keep the "Hackathon prototype – synthetic data – not for clinical use"
    notice visible.
-7. **Polished UI.** Reuse the design tokens in `frontend/src/styles.css`. Responsive. No
-   developer-template look.
+7. **Polished enough to demo.** Reuse the design tokens in `frontend/src/styles.css`. It should look
+   intentional, not like a developer template – but do not gold-plate.
 8. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
    abstraction layers.
 9. **No new infrastructure.** No databases, queues, extra services or containers. One container.
@@ -32,7 +51,7 @@ For the GitHub Copilot coding agent building an approved idea.
 10. **Keep the existing stack**: FastAPI + uv, React + TypeScript + Vite.
 11. **Must work without a Copilot token.** When the SDK is not configured, show a clear message and
     a meaningful demo path (for example the deterministic fallback), not a crash.
-12. **Tests.** Add or update a small backend test for new API or tool behaviour. Run
+12. **Tests.** Add one small backend smoke test for new API or tool behaviour. Run
     `npm run lint` and `npm test` from the repository root before finishing.
 
 ## Capability manifest (required)

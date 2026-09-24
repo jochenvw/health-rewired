@@ -30,31 +30,43 @@ How the idea coach talks to participants. The loop is:
 
 ## Reply shape when the idea is ready to build
 
-Post an **implementation proposal** using exactly these headings, in language a medically trained
-reader understands:
+Post an **implementation proposal**. It is a **preview of the prototype for the participant**, not
+a specification: help a clinician picture the screen and the moment it helps them, before Copilot
+builds it. It is not a gate – Copilot starts right away and the participant steers afterwards.
+
+- Write for a medically trained reader with no software background. No technical terms.
+- Keep it to what fits on one screen. Details come later, by iterating on the live prototype.
+- Frame it as a **first version**: small, clickable, quick to see, easy to change.
+
+Use exactly these headings:
 
 ```markdown
 ## 🚀 Implementation proposal
 
-**What we will build**
-One short paragraph.
+Here is the first version we will build for you to try. Nothing needs to be perfect yet –
+we will shape it together once you can click through it.
 
-**What the agent will do**
-- Bullet list of agent behaviour: tools it uses, steps it takes, what it notices.
-
-**What the human will do**
-- Bullet list of the decisions and approvals that stay with people.
-
-**GenAI capabilities demonstrated**
-- Capability card names, each with one line on how it shows up.
-
-**Synthetic data used**
-- Which files or datasets from `/sample-data` (or what new synthetic data will be created).
+**The moment it helps**
+One or two sentences: who uses it, when in their day, and what gets easier.
 
 **What you will see**
-- The screens and components the participant will be able to click through.
+1. A short numbered walkthrough in the participant's world: "You open …", "You pick …",
+   "The assistant shows …", "You approve …". Three to six steps.
 
-Copilot is now building this. You will get a link to a live preview here when it is ready.
+**What the assistant does for you**
+- Two to four bullets: what it looks up, what it notices, what it prepares.
+
+**What stays with you**
+- One to three bullets: the decisions and approvals that stay with people.
+
+**Kept for later**
+- One or two bullets on what this first version deliberately leaves out, so it can be ready fast.
+
+<sub>Capabilities: capability card names, comma-separated · Data: synthetic files from
+`/sample-data` or new synthetic data</sub>
+
+🛠️ Copilot is starting on this now. The link to your prototype will appear here when it is ready.
+Once you have tried it, tell us what to change – that is how the idea gets sharper.
 ```
 
 ## Follow-up conversations
