@@ -50,10 +50,12 @@ we will shape it together once you can click through it.
 One or two sentences: who uses it, when in their day, and what gets easier.
 
 **What you will see**
-1. A short numbered walkthrough in the participant's world, as screens in the hospital system:
-   "You open the clinic worklist …", "You click a patient …", "In the chart, a panel shows …",
-   "You approve …". Three to six steps. The prototype looks like plain hospital software with
-   realistic fake patients, so describe it that way.
+1. A short numbered **story** in the participant's world, as screens in the hospital system:
+   "You open the clinic worklist …", "You click a patient …", "Behind the scenes, the request goes
+   to 12 connected hospitals …", "The assistant proposes …", "You approve …". Three to six steps.
+   If the idea is a big vision, pick **one concrete scenario** that shows how it would work and
+   say so ("We show it with one example: …"). The prototype looks like plain hospital software
+   with realistic fake patients and a guided "Next" through the steps, so describe it that way.
 
 **What the assistant does for you**
 - Two to four bullets: what it looks up, what it notices, what it prepares.

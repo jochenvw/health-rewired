@@ -15,6 +15,8 @@ applyTo: "frontend/**"
   `src/hospital/HospitalShell.tsx` and use its `Panel`, `DataTable`, `Tabs`, `Pill` and `hx-btn`
   styles. Inside `.hx` the design tokens switch to a light clinical theme, so existing blocks adapt.
   Fill screens with plenty of synthetic data and working interactions (local state is fine).
+- Tell the idea's story with `StoryGuide` (guided steps, pass as `guide` to `HospitalShell`) and
+  `Backstage` (simulated behind-the-scenes stages) from `src/hospital/Story.tsx`.
 - The landing page keeps its own visual language: CSS variables from `src/styles.css`.
   No UI framework or CSS framework is needed; add one only with a strong reason.
 - Keep the "Hackathon prototype – synthetic data – not for clinical use" notice visible.

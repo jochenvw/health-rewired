@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AgentResult, type PatientRecord, type PatientSummary } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
+import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 
 export const meta: IdeaMeta = {
@@ -31,12 +32,45 @@ const exampleTasks = [
 
 type Section = 'worklist' | 'chart' | 'assistant';
 
+// The story this example tells, one step per screen. Every idea should have one like it.
+const story: StoryStep[] = [
+  {
+    id: 'worklist',
+    title: 'Morning worklist',
+    explain: "Today's oncology clinic, as it appears in the hospital system. Click Anna Berger to open her chart.",
+  },
+  {
+    id: 'chart',
+    title: 'Review the chart',
+    explain: 'Two results are flagged. Look through the tabs as you would today – then let the assistant prepare the case.',
+  },
+  {
+    id: 'assistant',
+    title: 'Ask the assistant',
+    explain: 'The assistant reads the record, the MDT note and the trial list, then drafts a summary. Watch it work below.',
+  },
+  {
+    id: 'file',
+    title: 'Review & file',
+    explain: 'Nothing enters the chart until you approve it. Check the draft, then file it to the chart.',
+  },
+];
+
+const assistantStages: Stage[] = [
+  { label: 'Opening the patient record', detail: 'Diagnosis, biomarkers, labs, medication, timeline', ms: 700 },
+  { label: 'Reading the last MDT note', detail: 'notes/P-001-mdt-note.md', ms: 700 },
+  { label: 'Checking results against reference ranges', detail: '2 values out of range', ms: 800 },
+  { label: 'Screening the trial list', detail: 'trials.csv – eligibility criteria vs. this patient', ms: 900 },
+  { label: 'Drafting the case summary for the chart', detail: 'Choosing how to show it: key facts, timeline, open questions' },
+];
+
 export default function StarterAgent() {
   const [section, setSection] = useState<Section>('worklist');
   const [patients, setPatients] = useState<PatientSummary[]>([]);
   const [patientId, setPatientId] = useState('P-001');
   const [record, setRecord] = useState<PatientRecord | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
 
   useEffect(() => {
     api.patients().then(setPatients).catch(() => setPatients([]));
@@ -65,10 +99,22 @@ export default function StarterAgent() {
   };
 
   const flagged = record?.labs.filter((l) => l.flag).length ?? 0;
+  const storyStep = section === 'assistant' && hasDraft ? 'file' : section;
 
   return (
     <HospitalShell
       module="Oncology clinic"
+      guide={
+        <StoryGuide
+          steps={story}
+          current={storyStep}
+          onGo={(id) => {
+            if (id === 'file' && !hasDraft) setNotice('Click "Ask assistant" first – the draft appears on the right.');
+            setSection(id === 'file' ? 'assistant' : (id as Section));
+          }}
+          nextLabel={section === 'worklist' ? 'Open Anna Berger' : undefined}
+        />
+      }
       nav={[
         { id: 'worklist', label: 'Clinic worklist', badge: worklist.length },
         { id: 'chart', label: 'Patient chart', badge: flagged || undefined },
@@ -137,7 +183,7 @@ export default function StarterAgent() {
         </Panel>
       )}
       {section === 'chart' && (record ? <Chart record={record} /> : <Panel title="Patient chart">Loading record…</Panel>)}
-      {section === 'assistant' && <Assistant patientId={patientId} />}
+      {section === 'assistant' && <Assistant patientId={patientId} onResult={setHasDraft} />}
     </HospitalShell>
   );
 }
@@ -288,21 +334,28 @@ function Chart({ record }: { record: PatientRecord }) {
   );
 }
 
-function Assistant({ patientId }: { patientId: string }) {
+function Assistant({ patientId, onResult }: { patientId: string; onResult: (has: boolean) => void }) {
   const [role, setRole] = useState(roles[0]);
   const [task, setTask] = useState(exampleTasks[0]);
   const [result, setResult] = useState<AgentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [runs, setRuns] = useState(0);
   const [signed, setSigned] = useState(false);
 
   const run = async (event: FormEvent) => {
     event.preventDefault();
+    setRuns((n) => n + 1);
+    setResult(null);
+    onResult(false);
     setLoading(true);
+    setStarted(true);
     setError(null);
     setSigned(false);
     try {
       setResult(await api.runAgent({ task, patient_id: patientId, role }));
+      onResult(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The assistant could not be reached.');
     } finally {
@@ -354,7 +407,18 @@ function Assistant({ patientId }: { patientId: string }) {
         }
       >
         {error && <p className="error">{error}</p>}
-        {!result && !error && <span className="hx-empty">Ask a question to see a draft. Nothing is filed until you approve it.</span>}
+        <Backstage
+          key={runs}
+          title="Behind the scenes – what the assistant is doing"
+          stages={assistantStages}
+          running={started}
+          holdLast
+          release={!loading}
+          note="In this prototype the steps are shown for explanation; the assistant is the real Copilot SDK agent (or a demo fallback)."
+        />
+        {!result && !error && !started && (
+          <span className="hx-empty">Ask a question to see a draft. Nothing is filed until you approve it.</span>
+        )}
         {result && (
           <div className="result" aria-live="polite">
             {result.note && <p className="note">{result.note}</p>}
