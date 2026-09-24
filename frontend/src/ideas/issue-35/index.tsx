@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { api, type AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './issue-35.css';
@@ -17,6 +16,7 @@ type Section = 'launch' | 'sites' | 'screening' | 'actions' | 'payoff';
 type Status = 'pending' | 'approved' | 'dismissed';
 type SiteStatus = 'on track' | 'lagging';
 type SignalPhase = 'queried' | 'responding' | 'patients found' | 'investigator review';
+type Tone = 'neutral' | 'ok' | 'warn' | 'crit' | 'info';
 type Site = {
   id: string;
   name: string;
@@ -54,6 +54,8 @@ type BalanceRow = {
   action: string;
 };
 
+type Readiness = { label: string; tone: Tone };
+
 const DEFAULT_SITE_ID = 'MIL';
 const FORECAST_GAIN_PER_APPROVED_MATCH = 3;
 const OUTREACH_FORECAST_BONUS = 5;
@@ -61,12 +63,12 @@ const OUTREACH_FORECAST_BONUS = 5;
 const story: StoryStep[] = [
   {
     id: 'launch',
-    title: 'Operations room',
-    explain: 'The coordinator opens a Europe-wide launch board rather than a patient chart: site signals, funnel and forecast are already visible.',
+    title: 'Mission control',
+    explain: 'The coordinator opens a European clinical-research command centre: live site signals, funnel and forecast are visible immediately.',
   },
   {
     id: 'sites',
-    title: 'Watch sites respond',
+    title: 'Watch Europe respond',
     explain: 'Hospitals pulse through queried, responding, patients found and investigator review; country counts update as signals arrive.',
   },
   {
@@ -114,8 +116,8 @@ const sites: Site[] = [
     approached: 7,
     status: 'on track',
     bottleneck: 'screening list refreshed this morning',
-    x: 55,
-    y: 57,
+    x: 56,
+    y: 55,
   },
   {
     id: 'MIL',
@@ -131,8 +133,8 @@ const sites: Site[] = [
     approached: 3,
     status: 'lagging',
     bottleneck: 'prior-treatment fields missing in three records',
-    x: 50,
-    y: 69,
+    x: 49,
+    y: 70,
   },
   {
     id: 'AMS',
@@ -148,8 +150,8 @@ const sites: Site[] = [
     approached: 5,
     status: 'on track',
     bottleneck: 'awaiting two patient discussions',
-    x: 44,
-    y: 38,
+    x: 42,
+    y: 35,
   },
   {
     id: 'BCN',
@@ -165,8 +167,8 @@ const sites: Site[] = [
     approached: 2,
     status: 'lagging',
     bottleneck: 'pathology addendum delayed',
-    x: 36,
-    y: 80,
+    x: 34,
+    y: 81,
   },
 ];
 
@@ -246,34 +248,10 @@ const candidates: Candidate[] = [
 ];
 
 const balanceRows: BalanceRow[] = [
-  {
-    characteristic: 'EGFR L858R mutation',
-    trial: '38%',
-    control: '24%',
-    balance: 'gap',
-    action: 'Need more L858R comparators from Barcelona/Milan',
-  },
-  {
-    characteristic: 'ECOG 0–1',
-    trial: '100%',
-    control: '93%',
-    balance: 'watch',
-    action: 'Exclude ECOG 2 rows before statistician review',
-  },
-  {
-    characteristic: 'Age 65+',
-    trial: '46%',
-    control: '43%',
-    balance: 'good',
-    action: 'Balanced for current synthetic sample',
-  },
-  {
-    characteristic: 'Prior adjuvant osimertinib',
-    trial: 'allowed if stopped',
-    control: 'unknown in 3 rows',
-    balance: 'watch',
-    action: 'Confirm stop dates before readiness sign-off',
-  },
+  { characteristic: 'EGFR L858R mutation', trial: '38%', control: '24%', balance: 'gap', action: 'Need more L858R comparators from Barcelona/Milan' },
+  { characteristic: 'ECOG 0–1', trial: '100%', control: '93%', balance: 'watch', action: 'Exclude ECOG 2 rows before statistician review' },
+  { characteristic: 'Age 65+', trial: '46%', control: '43%', balance: 'good', action: 'Balanced for current synthetic sample' },
+  { characteristic: 'Prior adjuvant osimertinib', trial: 'allowed if stopped', control: 'unknown in 3 rows', balance: 'watch', action: 'Confirm stop dates before readiness sign-off' },
 ];
 
 const trial = {
@@ -312,9 +290,8 @@ export default function TrialEngineIdea() {
 
   const go = (id: string) => {
     setSection(id as Section);
-    if (id === 'sites') setQueried(true);
+    if (id === 'sites' || id === 'launch') setQueried(true);
     const currentSite = sites.find((item) => item.id === selectedSite);
-    // Keep the guided story on a lagging site with patient rows; other sites remain selectable from the toolbar.
     if (id === 'screening' && (!currentSite || currentSite.status === 'on track')) setSelectedSite(DEFAULT_SITE_ID);
   };
 
@@ -334,49 +311,13 @@ export default function TrialEngineIdea() {
   };
 
   return (
-    <HospitalShell
-      module="European trial operations"
-      guide={<StoryGuide steps={story} current={section} onGo={go} nextLabel={nextLabel(section)} />}
-      nav={[
-        { id: 'launch', label: 'Operations room', badge: trial.id },
-        { id: 'sites', label: 'Site network', badge: sites.length },
-        { id: 'screening', label: 'Lagging signal', badge: sitePatients.length },
-        { id: 'actions', label: 'Approvals & controls', badge: pendingCount(candidateStatus, sitePatients) },
-        { id: 'payoff', label: 'Payoff dashboard', badge: readiness.label },
-      ]}
-      active={section}
-      onNav={go}
-      patient={{
-        id: trial.id,
-        name: 'EU Trial Network',
-        diagnosis: `${trial.title} · cross-Europe operations`,
-        ward: 'Research operations control room · synthetic launch',
-        allergies: 'Prototype – synthetic data – not for clinical use',
-      }}
-      toolbar={
-        <>
-          <label>
-            Trial{' '}
-            <select value={trial.id} disabled>
-              <option>{trial.id} · EGFR-mutant NSCLC</option>
-            </select>
-          </label>
-          <label>
-            Focus site{' '}
-            <select value={selectedSite} onChange={(event) => setSelectedSite(event.target.value)}>
-              {sites.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.city} · {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className="hx-spacer" />
-          <button type="button" className="hx-btn" onClick={() => setSection('payoff')}>
-            Open operations payoff
-          </button>
-        </>
-      }
+    <MissionShell
+      section={section}
+      onGo={go}
+      selectedSite={selectedSite}
+      onSelectedSite={setSelectedSite}
+      readiness={readiness}
+      approvedControls={approvedControls}
     >
       {section === 'launch' && (
         <OperationsRoom
@@ -439,7 +380,82 @@ export default function TrialEngineIdea() {
           funnel={funnel}
         />
       )}
-    </HospitalShell>
+    </MissionShell>
+  );
+}
+
+function MissionShell({
+  section,
+  onGo,
+  selectedSite,
+  onSelectedSite,
+  readiness,
+  approvedControls,
+  children,
+}: {
+  section: Section;
+  onGo: (id: string) => void;
+  selectedSite: string;
+  onSelectedSite: (id: string) => void;
+  readiness: Readiness;
+  approvedControls: number;
+  children: ReactNode;
+}) {
+  const currentIndex = Math.max(0, story.findIndex((step) => step.id === section));
+  return (
+    <div className="mission-control">
+      <header className="mission-hero">
+        <div className="mission-kicker">European clinical-research mission control · synthetic data</div>
+        <div className="mission-title-row">
+          <div>
+            <h1>EU-LUNG-17 trial launch</h1>
+            <p>Live orchestration for EGFR-mutant NSCLC recruitment, site bottlenecks and external-control readiness.</p>
+          </div>
+          <div className="mission-disclaimer">Hackathon prototype · synthetic data · not for clinical use</div>
+        </div>
+        <div className="mission-command-strip" aria-label="Trial status summary">
+          <Metric label="Forecast" value={`${trial.forecast} / ${trial.target}`} />
+          <Metric label="Connected sites" value={sites.length} />
+          <Metric label="Control cohort" value={readiness.label} />
+          <Metric label="Approved controls" value={approvedControls} />
+        </div>
+      </header>
+
+      <section className="mission-guide" aria-label="Guided five-step story">
+        <StoryGuide steps={story} current={section} onGo={onGo} nextLabel={nextLabel(section)} />
+      </section>
+
+      <nav className="mission-nav" aria-label="Mission sections">
+        {story.map((step, index) => (
+          <button key={step.id} type="button" className={step.id === section ? 'active' : undefined} onClick={() => onGo(step.id)}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            {step.title}
+          </button>
+        ))}
+      </nav>
+
+      <div className="mission-toolbar">
+        <label>
+          Active trial
+          <select value={trial.id} disabled>
+            <option>{trial.id} · EGFR-mutant NSCLC</option>
+          </select>
+        </label>
+        <label>
+          Focus signal
+          <select value={selectedSite} onChange={(event) => onSelectedSite(event.target.value)}>
+            {sites.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.city} · {site.country} · {site.status}
+              </option>
+            ))}
+          </select>
+        </label>
+        <span className="mission-step-marker">Step {currentIndex + 1} / {story.length}</span>
+      </div>
+
+      <main className="mission-stage">{children}</main>
+    </div>
   );
 }
 
@@ -459,24 +475,26 @@ function OperationsRoom({
   focusedSite: Site;
 }) {
   return (
-    <div className="trial-ops-layout">
-      <Panel
-        title="European site network · live trial operations"
-        actions={
-          <button type="button" className="hx-btn primary" onClick={onStart}>
-            {queried ? 'Refresh site signals →' : 'Broadcast launch query →'}
+    <div className="mission-main-grid">
+      <MissionPanel
+        className="network-panel"
+        title="Edge-to-edge European site canvas"
+        eyebrow="Mission network"
+        action={
+          <button type="button" className="mission-button primary" onClick={onStart}>
+            {queried ? 'Refresh live signals' : 'Broadcast launch query'}
           </button>
         }
       >
         <SiteNetwork queried={queried} selectedSite={selectedSite} onSelect={onSelectSite} />
-      </Panel>
-      <div className="trial-engine-stack">
-        <Panel title="Live recruitment funnel">
+      </MissionPanel>
+      <div className="mission-side-stack">
+        <MissionPanel title="Integrated recruitment funnel" eyebrow="Live forecast">
           <RecruitmentFunnel funnel={funnel} />
-        </Panel>
-        <Panel title={`Lagging site cause · ${focusedSite.city}`}>
+        </MissionPanel>
+        <MissionPanel title={`Lagging signal · ${focusedSite.city}`} eyebrow="Immediate cause">
           <LaggingCause site={focusedSite} />
-        </Panel>
+        </MissionPanel>
       </div>
     </div>
   );
@@ -494,25 +512,25 @@ function Sites({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="trial-ops-layout">
-      <div className="trial-engine-stack">
+    <div className="mission-main-grid">
+      <div className="mission-side-stack wide">
         <Backstage
           title="Behind the scenes – European launch signal"
           stages={siteStages}
           running={queried}
           note="Simulated federation: site counts and bottleneck signals move; patient-level data stays synthetic for this demo."
         />
-        <Panel title="Geographic signal grid">
+        <MissionPanel className="network-panel" title="Europe responding in sequence" eyebrow="Signal canvas">
           <SiteNetwork queried={queried} selectedSite={selectedSite} onSelect={onSelect} />
-        </Panel>
+        </MissionPanel>
       </div>
-      <div className="trial-engine-stack">
-        <Panel title="Country counts updating">
-          <CountryCounts queried={queried} />
-        </Panel>
-        <Panel title="Forecast after site responses">
+      <div className="mission-side-stack">
+        <MissionPanel title="Country/site counts updating" eyebrow="Signal ledger">
+          <CountryCounts queried={queried} selectedSite={selectedSite} onSelect={onSelect} />
+        </MissionPanel>
+        <MissionPanel title="Forecast after site response" eyebrow="Funnel">
           <RecruitmentFunnel funnel={funnel} />
-        </Panel>
+        </MissionPanel>
       </div>
     </div>
   );
@@ -536,8 +554,8 @@ function Screening({
   funnel: ReturnType<typeof buildFunnel>;
 }) {
   return (
-    <div className="trial-engine-stack">
-      <Tabs
+    <div className="mission-flow">
+      <MissionTabs
         active={tab}
         onChange={onTab}
         tabs={[
@@ -547,44 +565,24 @@ function Screening({
         ]}
       />
       {tab === 'signal' && (
-        <div className="trial-ops-layout compact">
-          <Panel title={`${site.name} · operational bottleneck`}>
+        <div className="mission-two-column">
+          <MissionPanel title={`${site.name} · operational bottleneck`} eyebrow="Lagging signal">
             <LaggingCause site={site} />
-          </Panel>
-          <Panel title="Site signal board">
+          </MissionPanel>
+          <MissionPanel title="Site signal board" eyebrow="Cross-Europe context">
             <SiteSignalRows selectedSite={site.id} onSelect={() => undefined} />
-          </Panel>
+          </MissionPanel>
         </div>
       )}
       {tab === 'patients' && (
-        <Panel title={`${site.name} · investigator review queue, not patient chart`}>
-          <DataTable
-            rowKey={(patient) => patient.id}
-            rows={patients}
-            rowTone={(patient) => (patient.status === 'exclude' ? 'crit' : patient.status === 'needs data' ? 'warn' : undefined)}
-            columns={[
-              { key: 'id', label: 'Site record', width: '90px' },
-              { key: 'profile', label: 'Synthetic profile' },
-              {
-                key: 'status',
-                label: 'Screening state',
-                render: (patient) => <Pill tone={patient.status === 'match' ? 'ok' : patient.status === 'needs data' ? 'warn' : 'crit'}>{patient.status}</Pill>,
-              },
-              { key: 'reason', label: 'Reason' },
-              { key: 'missing', label: 'Operational blocker', render: (patient) => patient.missing || '—' },
-              {
-                key: 'decision',
-                label: 'Investigator action',
-                render: (patient) => <DecisionButtons value={status[patient.id] ?? 'pending'} onChange={(value) => onStatus(patient.id, value)} />,
-              },
-            ]}
-          />
-        </Panel>
+        <MissionPanel title={`${site.name} · investigator review queue`} eyebrow="Not a patient chart">
+          <CandidateQueue rows={patients} status={status} onStatus={onStatus} />
+        </MissionPanel>
       )}
       {tab === 'funnel' && (
-        <Panel title="Funnel impact from this lagging site">
+        <MissionPanel title="Funnel impact from this lagging site" eyebrow="Forecast sensitivity">
           <RecruitmentFunnel funnel={funnel} highlightSite={site} />
-        </Panel>
+        </MissionPanel>
       )}
     </div>
   );
@@ -621,19 +619,20 @@ function Actions({
   assistantRuns: number;
   assistantResult: AgentResult | null;
   assistantError: string | null;
-  readiness: { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' };
+  readiness: Readiness;
 }) {
   const cohortRows = patients.filter((patient) => patient.comparator);
   return (
-    <div className="trial-ops-layout">
-      <div className="trial-engine-stack">
-        <Panel
-          title="Approved outreach lane · recruitment operations"
-          actions={
-            <button type="button" className="hx-btn primary" onClick={runAssistant} disabled={assistantLoading}>
+    <div className="mission-main-grid">
+      <div className="mission-side-stack">
+        <MissionPanel
+          title="Approved outreach lane"
+          eyebrow="Recruitment operations"
+          action={
+            <button type="button" className="mission-button primary" onClick={runAssistant} disabled={assistantLoading}>
               {assistantLoading ? (
                 <>
-                  <span className="hx-spinner" aria-hidden /> Assistant drafting…
+                  <span className="mission-spinner" aria-hidden /> Assistant drafting…
                 </>
               ) : (
                 'Ask assistant to draft'
@@ -641,19 +640,19 @@ function Actions({
             </button>
           }
         >
-          <pre className="trial-engine-letter">{`To: ${site.name} research coordinator
+          <pre className="mission-letter">{`To: ${site.name} research coordinator
 Subject: EU-LUNG-17 site signal follow-up
 
 Signal status: ${site.city} is ${site.status}; cause: ${site.bottleneck}.
 Please clear missing-data fields, move eligible rows to investigator review, and report which patients can be approached this week.
 
 This is a hackathon prototype using synthetic data only.`}</pre>
-          <div className="trial-engine-actions">
+          <div className="mission-actions">
             <span>Coordinator outreach:</span>
             <DecisionButtons value={outreachStatus} onChange={setOutreachStatus} />
           </div>
-        </Panel>
-        <Panel title="External-control cohort lane · kept separate from recruitment">
+        </MissionPanel>
+        <MissionPanel title="External-control cohort lane" eyebrow="Separate evidence track">
           <ControlCohortPanel
             rows={cohortRows}
             comparatorStatus={comparatorStatus}
@@ -662,10 +661,10 @@ This is a hackathon prototype using synthetic data only.`}</pre>
             setCohortStatus={setCohortStatus}
             readiness={readiness}
           />
-        </Panel>
+        </MissionPanel>
       </div>
-      <Panel title={assistantResult ? assistantResult.headline : 'Assistant reasoning'}>
-        {assistantError && <p className="error">{assistantError}</p>}
+      <MissionPanel title={assistantResult ? assistantResult.headline : 'Assistant reasoning'} eyebrow="Copilot SDK path">
+        {assistantError && <p className="mission-error">{assistantError}</p>}
         <Backstage
           key={assistantRuns}
           title="Behind the scenes – trial operations engine"
@@ -675,17 +674,17 @@ This is a hackathon prototype using synthetic data only.`}</pre>
           release={!assistantLoading}
           note="The backend route calls the Copilot SDK agent when configured; otherwise this shows a deterministic demo path."
         />
-        {!assistantStarted && <span className="hx-empty">Click “Ask assistant to draft” to see the tool-backed operations proposal.</span>}
+        {!assistantStarted && <span className="mission-empty">Click “Ask assistant to draft” to see the tool-backed operations proposal.</span>}
         {assistantLoading && <Working label="Waiting for assistant output" hint="AI answers can take up to a minute" />}
         {assistantResult && (
-          <div className="blocks">
-            {assistantResult.note && <p className="note">{assistantResult.note}</p>}
+          <div className="mission-agent-blocks">
+            {assistantResult.note && <p className="mission-note">{assistantResult.note}</p>}
             {assistantResult.blocks.map((block, index) => (
               <RenderBlock key={index} block={block} />
             ))}
           </div>
         )}
-      </Panel>
+      </MissionPanel>
     </div>
   );
 }
@@ -702,59 +701,96 @@ function Payoff({
   approvedControls: number;
   outreachStatus: Status;
   cohortStatus: Status;
-  readiness: { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' };
+  readiness: Readiness;
   funnel: ReturnType<typeof buildFunnel>;
 }) {
   const expectedDate = forecast >= 90 ? '18 Nov 2026' : forecast >= 82 ? '02 Dec 2026' : '19 Dec 2026';
   const sitesNeedingAction = sites.filter((site) => site.status === 'lagging');
   return (
-    <div className="trial-ops-layout">
-      <Panel title="Operations payoff dashboard">
-        <div className="trial-engine-metrics wide">
+    <div className="mission-main-grid">
+      <MissionPanel title="Operations payoff dashboard" eyebrow="Final command view">
+        <div className="payoff-metrics">
           <Metric label="Expected recruitment date" value={expectedDate} />
           <Metric label="Forecast after approvals" value={`${forecast} / ${trial.target}`} />
           <Metric label="Sites needing action" value={sitesNeedingAction.length} />
           <Metric label="Control readiness" value={readiness.label} />
         </div>
-        <div className="ops-dashboard-grid">
+        <div className="payoff-grid">
           <section>
             <h4>Sites needing action</h4>
             {sitesNeedingAction.map((site) => (
               <p key={site.id}>
-                <Pill tone="warn">{site.city}</Pill> {site.bottleneck}
+                <Badge tone="warn">{site.city}</Badge> {site.bottleneck}
               </p>
             ))}
           </section>
           <section>
             <h4>Approved operations</h4>
             <p>
-              Outreach:{' '}
-              <Pill tone={outreachStatus === 'approved' ? 'ok' : outreachStatus === 'dismissed' ? 'crit' : 'neutral'}>{outreachStatus}</Pill>
+              Outreach: <Badge tone={outreachStatus === 'approved' ? 'ok' : outreachStatus === 'dismissed' ? 'crit' : 'neutral'}>{outreachStatus}</Badge>
             </p>
             <p>
-              Control cohort:{' '}
-              <Pill tone={cohortStatus === 'approved' ? 'ok' : cohortStatus === 'dismissed' ? 'crit' : 'neutral'}>{cohortStatus}</Pill>
+              Control cohort: <Badge tone={cohortStatus === 'approved' ? 'ok' : cohortStatus === 'dismissed' ? 'crit' : 'neutral'}>{cohortStatus}</Badge>
             </p>
             <p>
-              Comparator entries approved: <Pill tone={approvedControls > 0 ? 'ok' : 'neutral'}>{approvedControls}</Pill>
+              Comparator entries approved: <Badge tone={approvedControls > 0 ? 'ok' : 'neutral'}>{approvedControls}</Badge>
             </p>
           </section>
         </div>
-        <p className="note">
+        <p className="mission-note">
           Nothing here enrols a patient. Investigators confirm eligibility, patients and clinicians decide on participation, and statisticians approve the real-world evidence design.
         </p>
-      </Panel>
-      <div className="trial-engine-stack">
-        <Panel title="Final recruitment funnel">
+      </MissionPanel>
+      <div className="mission-side-stack">
+        <MissionPanel title="Final recruitment funnel" eyebrow="Forecast state">
           <RecruitmentFunnel funnel={funnel} />
-        </Panel>
-        <Panel title="External-control balance readiness">
+        </MissionPanel>
+        <MissionPanel title="External-control balance readiness" eyebrow="Evidence state">
           <BalanceIndicators />
           <p>
-            Readiness: <Pill tone={readiness.tone}>{readiness.label}</Pill>
+            Readiness: <Badge tone={readiness.tone}>{readiness.label}</Badge>
           </p>
-        </Panel>
+        </MissionPanel>
       </div>
+    </div>
+  );
+}
+
+function MissionPanel({
+  title,
+  eyebrow,
+  action,
+  className = '',
+  children,
+}: {
+  title: string;
+  eyebrow?: string;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={`mission-panel ${className}`.trim()}>
+      <header>
+        <div>
+          {eyebrow && <span>{eyebrow}</span>}
+          <h2>{title}</h2>
+        </div>
+        {action}
+      </header>
+      <div className="mission-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function MissionTabs({ tabs, active, onChange }: { tabs: { id: string; label: string }[]; active: string; onChange: (id: string) => void }) {
+  return (
+    <div className="mission-tabs" role="tablist">
+      {tabs.map((tab) => (
+        <button key={tab.id} type="button" role="tab" aria-selected={active === tab.id} className={active === tab.id ? 'active' : undefined} onClick={() => onChange(tab.id)}>
+          {tab.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -763,6 +799,8 @@ function SiteNetwork({ queried, selectedSite, onSelect }: { queried: boolean; se
   return (
     <div className="site-network-shell">
       <div className="site-network-map" aria-label="Synthetic European trial site network">
+        <div className="map-wash wash-west" />
+        <div className="map-wash wash-east" />
         <div className="map-label north">North Sea</div>
         <div className="map-label south">Mediterranean</div>
         <div className="map-route route-1" />
@@ -774,9 +812,10 @@ function SiteNetwork({ queried, selectedSite, onSelect }: { queried: boolean; se
             <button
               key={site.id}
               type="button"
-              className={`site-node ${phaseClass(phase)} ${site.status} ${site.id === selectedSite ? 'selected' : ''}`}
+              className={`site-node ${phaseClass(phase)} ${site.status.replace(' ', '-')} ${site.id === selectedSite ? 'selected' : ''}`}
               style={{ left: `${site.x}%`, top: `${site.y}%` }}
               onClick={() => onSelect(site.id)}
+              aria-label={`${site.city}, ${site.country}: ${phase}, ${site.status}`}
             >
               <span className="node-pulse" />
               <strong>{site.country}</strong>
@@ -791,15 +830,7 @@ function SiteNetwork({ queried, selectedSite, onSelect }: { queried: boolean; se
   );
 }
 
-function SiteSignalRows({
-  selectedSite,
-  onSelect,
-  queried = true,
-}: {
-  selectedSite: string;
-  onSelect: (id: string) => void;
-  queried?: boolean;
-}) {
+function SiteSignalRows({ selectedSite, onSelect, queried = true }: { selectedSite: string; onSelect: (id: string) => void; queried?: boolean }) {
   return (
     <div className="site-signal-rows">
       {sites.map((site, index) => {
@@ -809,7 +840,7 @@ function SiteSignalRows({
             <span className={`signal-dot ${phaseClass(phase)}`} />
             <strong>{site.city}</strong>
             <span>{phase}</span>
-            <Pill tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Pill>
+            <Badge tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Badge>
           </button>
         );
       })}
@@ -817,22 +848,22 @@ function SiteSignalRows({
   );
 }
 
-function CountryCounts({ queried }: { queried: boolean }) {
+function CountryCounts({ queried, selectedSite, onSelect }: { queried: boolean; selectedSite: string; onSelect: (id: string) => void }) {
   return (
-    <DataTable
-      rowKey={(site) => site.id}
-      rows={sites}
-      rowTone={(site) => (site.status === 'lagging' ? 'warn' : undefined)}
-      columns={[
-        { key: 'country', label: 'Country' },
-        { key: 'city', label: 'Site' },
-        { key: 'signal', label: 'Signal', render: (site) => signalPhase(site, queried, sites.indexOf(site)) },
-        { key: 'potential', label: 'Potentially eligible' },
-        { key: 'missingData', label: 'Missing data' },
-        { key: 'review', label: 'Review' },
-        { key: 'enrolled', label: 'Enrolled' },
-      ]}
-    />
+    <div className="country-ledger">
+      {sites.map((site, index) => (
+        <button key={site.id} type="button" className={site.id === selectedSite ? 'active' : undefined} onClick={() => onSelect(site.id)}>
+          <span className="country-code">{site.country}</span>
+          <span>
+            <strong>{site.city}</strong>
+            <small>{signalPhase(site, queried, index)}</small>
+          </span>
+          <span>{site.potential} potential</span>
+          <span>{site.missingData} missing</span>
+          <span>{site.enrolled} enrolled</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -840,11 +871,12 @@ function RecruitmentFunnel({ funnel, highlightSite }: { funnel: ReturnType<typeo
   const max = Math.max(...funnel.map((step) => step.value));
   return (
     <div className="funnel-board">
-      {funnel.map((step) => (
+      {funnel.map((step, index) => (
         <div key={step.label} className="funnel-step">
           <div className="funnel-head">
+            <span>{String(index + 1).padStart(2, '0')}</span>
             <strong>{step.label}</strong>
-            <span>{step.value}</span>
+            <em>{step.value}</em>
           </div>
           <div className="funnel-track">
             <span style={{ width: `${Math.max(8, (step.value / max) * 100)}%` }} />
@@ -853,7 +885,7 @@ function RecruitmentFunnel({ funnel, highlightSite }: { funnel: ReturnType<typeo
         </div>
       ))}
       {highlightSite && (
-        <p className="note">
+        <p className="mission-note">
           {highlightSite.city} contributes {highlightSite.potential} potentially eligible records, but {highlightSite.missingData} are still blocked by missing data.
         </p>
       )}
@@ -865,17 +897,34 @@ function LaggingCause({ site }: { site: Site }) {
   return (
     <div className="lagging-cause">
       <div className="cause-primary">
-        <Pill tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Pill>
+        <Badge tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Badge>
         <strong>{site.bottleneck}</strong>
       </div>
-      <div className="trial-engine-metrics">
+      <div className="metric-grid three">
         <Metric label="Potential" value={site.potential} />
         <Metric label="Missing data" value={site.missingData} />
         <Metric label="Review queue" value={site.review} />
       </div>
-      <p>
-        Immediate action: clear missing fields, move confirmed matches to investigator review, then approve coordinator outreach.
-      </p>
+      <p>Immediate action: clear missing fields, move confirmed matches to investigator review, then approve coordinator outreach.</p>
+    </div>
+  );
+}
+
+function CandidateQueue({ rows, status, onStatus }: { rows: Candidate[]; status: Record<string, Status>; onStatus: (id: string, value: Status) => void }) {
+  return (
+    <div className="candidate-grid">
+      {rows.map((patient) => (
+        <article key={patient.id} className={`candidate-card ${patient.status.replace(' ', '-')}`}>
+          <header>
+            <span>{patient.id}</span>
+            <Badge tone={patient.status === 'match' ? 'ok' : patient.status === 'needs data' ? 'warn' : 'crit'}>{patient.status}</Badge>
+          </header>
+          <strong>{patient.profile}</strong>
+          <p>{patient.reason}</p>
+          <small>Blocker: {patient.missing || 'none'}</small>
+          <DecisionButtons value={status[patient.id] ?? 'pending'} onChange={(value) => onStatus(patient.id, value)} />
+        </article>
+      ))}
     </div>
   );
 }
@@ -893,31 +942,28 @@ function ControlCohortPanel({
   onComparatorStatus: (id: string, value: Status) => void;
   cohortStatus: Status;
   setCohortStatus: (value: Status) => void;
-  readiness: { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' };
+  readiness: Readiness;
 }) {
   return (
-    <div className="trial-engine-stack">
+    <div className="control-lane">
       <BalanceIndicators />
-      <DataTable
-        rowKey={(patient) => patient.id}
-        rows={rows}
-        columns={[
-          { key: 'id', label: 'Control record' },
-          { key: 'profile', label: 'Comparable profile' },
-          { key: 'controlGap', label: 'Balance contribution' },
-          {
-            key: 'decision',
-            label: 'Statistician queue',
-            render: (patient) => (
-              <DecisionButtons value={comparatorStatus[patient.id] ?? 'pending'} onChange={(value) => onComparatorStatus(patient.id, value)} />
-            ),
-          },
-        ]}
-      />
-      <div className="trial-engine-actions">
+      <div className="control-card-grid">
+        {rows.map((patient) => (
+          <article key={patient.id}>
+            <header>
+              <span>{patient.id}</span>
+              <Badge tone="info">control candidate</Badge>
+            </header>
+            <strong>{patient.profile}</strong>
+            <p>{patient.controlGap}</p>
+            <DecisionButtons value={comparatorStatus[patient.id] ?? 'pending'} onChange={(value) => onComparatorStatus(patient.id, value)} />
+          </article>
+        ))}
+      </div>
+      <div className="mission-actions">
         <span>Evidence-design approval:</span>
         <DecisionButtons value={cohortStatus} onChange={setCohortStatus} />
-        <Pill tone={readiness.tone}>{readiness.label}</Pill>
+        <Badge tone={readiness.tone}>{readiness.label}</Badge>
       </div>
     </div>
   );
@@ -930,7 +976,7 @@ function BalanceIndicators() {
         <div key={row.characteristic} className={`balance-card ${row.balance}`}>
           <div>
             <strong>{row.characteristic}</strong>
-            <Pill tone={row.balance === 'good' ? 'ok' : row.balance === 'gap' ? 'crit' : 'warn'}>{row.balance}</Pill>
+            <Badge tone={row.balance === 'good' ? 'ok' : row.balance === 'gap' ? 'crit' : 'warn'}>{row.balance}</Badge>
           </div>
           <span>Trial {row.trial} · control {row.control}</span>
           <small>{row.action}</small>
@@ -943,29 +989,33 @@ function BalanceIndicators() {
 function DecisionButtons({ value, onChange }: { value: Status; onChange: (value: Status) => void }) {
   if (value !== 'pending') {
     return (
-      <span className="trial-engine-actions">
-        <Pill tone={value === 'approved' ? 'ok' : 'crit'}>{value}</Pill>
-        <button type="button" className="hx-btn" onClick={() => onChange('pending')}>
+      <span className="decision-controls">
+        <Badge tone={value === 'approved' ? 'ok' : 'crit'}>{value}</Badge>
+        <button type="button" className="mission-button" onClick={() => onChange('pending')}>
           Undo
         </button>
       </span>
     );
   }
   return (
-    <span className="trial-engine-actions">
-      <button type="button" className="hx-btn primary" onClick={() => onChange('approved')}>
+    <span className="decision-controls">
+      <button type="button" className="mission-button primary" onClick={() => onChange('approved')}>
         Approve
       </button>
-      <button type="button" className="hx-btn" onClick={() => onChange('dismissed')}>
+      <button type="button" className="mission-button" onClick={() => onChange('dismissed')}>
         Dismiss
       </button>
     </span>
   );
 }
 
+function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
+  return <span className={`mission-badge ${tone}`}>{children}</span>;
+}
+
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="trial-engine-metric">
+    <div className="mission-metric">
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -986,39 +1036,23 @@ function buildFunnel(forecast: number, candidateStatus: Record<string, Status>, 
   const approved = Object.values(candidateStatus).filter((value) => value === 'approved').length;
   const approachedBonus = outreachStatus === 'approved' ? 5 : 0;
   return [
-    {
-      label: 'Potentially eligible',
-      value: sites.reduce((sum, site) => sum + site.potential, 0),
-      detail: 'Synthetic records surfaced across connected sites',
-    },
+    { label: 'Potentially eligible', value: sites.reduce((sum, site) => sum + site.potential, 0), detail: 'Synthetic records surfaced across connected sites' },
     {
       label: 'Missing data',
       value: Math.max(0, sites.reduce((sum, site) => sum + site.missingData, 0) - approved),
       detail: 'Mutation, prior-treatment or document gaps blocking confirmation',
     },
-    {
-      label: 'Investigator review',
-      value: sites.reduce((sum, site) => sum + site.review, 0) + approved,
-      detail: 'Human eligibility confirmation queue',
-    },
-    {
-      label: 'Approached',
-      value: sites.reduce((sum, site) => sum + site.approached, 0) + approachedBonus,
-      detail: 'Coordinator outreach approved or ready to send',
-    },
+    { label: 'Investigator review', value: sites.reduce((sum, site) => sum + site.review, 0) + approved, detail: 'Human eligibility confirmation queue' },
+    { label: 'Approached', value: sites.reduce((sum, site) => sum + site.approached, 0) + approachedBonus, detail: 'Coordinator outreach approved or ready to send' },
     { label: 'Enrolled', value: Math.min(trial.target, forecast), detail: 'Forecasted enrolment after approved operations' },
   ];
 }
 
-function controlReadiness(approvedControls: number, cohortStatus: Status): { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' } {
+function controlReadiness(approvedControls: number, cohortStatus: Status): Readiness {
   if (cohortStatus === 'dismissed') return { label: 'paused', tone: 'crit' };
   if (cohortStatus === 'approved' && approvedControls >= 2) return { label: 'ready', tone: 'ok' };
   if (approvedControls > 0) return { label: 'partial', tone: 'warn' };
   return { label: 'not ready', tone: 'neutral' };
-}
-
-function pendingCount(status: Record<string, Status>, rows: Candidate[]) {
-  return rows.filter((row) => (status[row.id] ?? 'pending') === 'pending').length;
 }
 
 function nextLabel(section: Section) {
