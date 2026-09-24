@@ -12,11 +12,10 @@ flags for human review, per the hackathon proposal for issue #27.
 """
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any
 
 from app import sample_data
-
-EligibilityStatus = Literal["eligible", "ineligible", "unknown"]
+from app.agent.ui import EligibilityStatus
 
 
 @dataclass
@@ -103,7 +102,13 @@ def classify_patient(record: dict[str, Any], trial: dict[str, Any]) -> tuple[Eli
     if ecog_max:
         structured_clauses += 1
         ecog = record.get("ecog")
-        if ecog is not None and ecog > int(ecog_max):
+        if ecog is None:
+            return "unknown", ["ECOG not recorded in this record"]
+        try:
+            max_allowed = int(ecog_max)
+        except ValueError:
+            max_allowed = None
+        if max_allowed is not None and ecog > max_allowed:
             return "ineligible", [f"ECOG {ecog} exceeds trial maximum {ecog_max}"]
         reasons.append(f"ECOG {ecog} within trial maximum {ecog_max}")
 
@@ -115,7 +120,9 @@ def classify_patient(record: dict[str, Any], trial: dict[str, Any]) -> tuple[Eli
             return "unknown", [f"{require_biomarker} not tested in this record"]
         if "pending" in value.lower():
             return "unknown", [f"{require_biomarker} result pending ({value})"]
-        required = trial["require_value"].lower()
+        required = (trial.get("require_value") or "").lower()
+        if not required:
+            return "unknown", [f"No required value on file for {require_biomarker}"]
         if required not in value.lower():
             return "ineligible", [f"{require_biomarker} is '{value}', trial requires '{trial['require_value']}'"]
         reasons.append(f"{require_biomarker} is '{value}', matching trial requirement")
@@ -124,7 +131,8 @@ def classify_patient(record: dict[str, Any], trial: dict[str, Any]) -> tuple[Eli
     if exclude_biomarker:
         structured_clauses += 1
         value = _biomarker_value(record, exclude_biomarker)
-        if value and trial["exclude_value"].lower() in value.lower():
+        exclude_value = (trial.get("exclude_value") or "").lower()
+        if value and exclude_value and exclude_value in value.lower():
             return "ineligible", [f"{exclude_biomarker} is '{value}', which the trial excludes"]
 
     regimen_keyword = trial.get("requires_regimen_keyword")
