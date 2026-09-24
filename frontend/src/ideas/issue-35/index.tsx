@@ -38,6 +38,8 @@ type Candidate = {
 };
 
 const DEFAULT_SITE_ID = 'MIL';
+const FORECAST_GAIN_PER_APPROVED_MATCH = 3;
+const OUTREACH_FORECAST_BONUS = 5;
 
 const story: StoryStep[] = [
   {
@@ -221,12 +223,15 @@ export default function TrialEngineIdea() {
   const sitePatients = useMemo(() => candidates.filter((candidate) => candidate.site === selectedSite), [selectedSite]);
   const approvedMatches = sitePatients.filter((candidate) => candidateStatus[candidate.id] === 'approved').length;
   const approvedControls = candidates.filter((candidate) => candidate.comparator && comparatorStatus[candidate.id] === 'approved').length;
-  const forecastAfterActions = trial.forecast + approvedMatches * 3 + (outreachStatus === 'approved' ? 5 : 0);
+  const forecastAfterActions =
+    trial.forecast + approvedMatches * FORECAST_GAIN_PER_APPROVED_MATCH + (outreachStatus === 'approved' ? OUTREACH_FORECAST_BONUS : 0);
 
   const go = (id: string) => {
     setSection(id as Section);
     if (id === 'sites') setQueried(true);
-    if (id === 'screening' && selectedSite === 'MUC') setSelectedSite(DEFAULT_SITE_ID);
+    const currentSite = sites.find((item) => item.id === selectedSite);
+    // Keep the guided story on a lagging site with patient rows; other sites remain selectable from the toolbar.
+    if (id === 'screening' && (!currentSite || currentSite.status === 'on track')) setSelectedSite(DEFAULT_SITE_ID);
   };
 
   const runAssistant = async () => {
@@ -268,7 +273,7 @@ export default function TrialEngineIdea() {
         <>
           <label>
             Trial{' '}
-            <select value={trial.id} onChange={() => undefined}>
+            <select value={trial.id} disabled>
               <option>{trial.id} · EGFR-mutant NSCLC</option>
             </select>
           </label>
