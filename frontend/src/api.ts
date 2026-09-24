@@ -52,7 +52,14 @@ export type PatientRecord = {
 };
 
 /** Idea #36 – cancer digital twin: one simulated point on a treatment-path trajectory. */
-export type TrajectoryPoint = { month: number; response_pct: number; progression_risk_pct: number; toxicity_grade: number };
+export type TrajectoryPoint = {
+  month: number;
+  response_pct: number;
+  progression_risk_pct: number;
+  toxicity_grade: number;
+  note?: string | null;
+  note_kind?: 'assumption' | 'evidence' | null;
+};
 
 /** Idea #36 – cancer digital twin: one of the three simulated next-treatment paths. */
 export type TreatmentPath = {
@@ -64,6 +71,11 @@ export type TreatmentPath = {
   evidence: string[];
 };
 
+/** Idea #36 – cancer digital twin: clinician-controlled what-if inputs that recompute the simulation. */
+export type BiopsyResult = 'unknown' | 'met_amplification' | 't790m' | 'no_mechanism_found';
+export type Priority = 'balanced' | 'minimize_toxicity' | 'maximize_response';
+export type WhatIf = { biopsy_result: BiopsyResult; priority: Priority };
+
 /** Idea #36 – cancer digital twin: the full simulation for one patient. */
 export type TwinSimulation = {
   patient_id: string;
@@ -72,6 +84,8 @@ export type TwinSimulation = {
   informative_test: string;
   informative_test_reason: string;
   note: string;
+  what_if: WhatIf;
+  what_if_explanation: string;
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -91,7 +105,8 @@ export const api = {
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
   // Idea #36 – cancer digital twin.
-  twin: (patientId: string) => request<TwinSimulation>(`/api/ideas/36/twin/${patientId}`),
+  twin: (patientId: string, whatIf?: Partial<WhatIf>) =>
+    request<TwinSimulation>(`/api/ideas/36/twin/${patientId}?${new URLSearchParams(whatIf as Record<string, string>)}`),
   askTwin: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/ideas/36/ask', { method: 'POST', body: JSON.stringify(body) }),
 };

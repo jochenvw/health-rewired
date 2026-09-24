@@ -21,7 +21,37 @@ def test_twin_simulation_for_maria_lopez(client):
         assert len(path["trajectory"]) == 4
         assert path["assumptions"]
         assert path["evidence"]
+        assert any(point["note"] for point in path["trajectory"])
     assert "biopsy" in body["informative_test"].lower()
+    assert body["what_if"] == {"biopsy_result": "unknown", "priority": "balanced"}
+
+
+def test_twin_what_if_biopsy_result_shifts_trajectories(client):
+    baseline = client.get("/api/ideas/36/twin/P-004").json()
+    met = client.get("/api/ideas/36/twin/P-004", params={"biopsy_result": "met_amplification"}).json()
+
+    def by_id(body, path_id):
+        return next(p for p in body["paths"] if p["id"] == path_id)
+
+    baseline_continue = by_id(baseline, "continue_osimertinib_plus_sbrt")["trajectory"][-1]["progression_risk_pct"]
+    met_continue = by_id(met, "continue_osimertinib_plus_sbrt")["trajectory"][-1]["progression_risk_pct"]
+    assert met_continue > baseline_continue
+    assert met["what_if"]["biopsy_result"] == "met_amplification"
+    assert "MET amplification" in met["what_if_explanation"]
+    # Chemotherapy does not depend on the resistance mechanism.
+    assert by_id(baseline, "platinum_doublet_chemo")["trajectory"] == by_id(met, "platinum_doublet_chemo")["trajectory"]
+
+
+def test_twin_what_if_priority_changes_chemo_toxicity(client):
+    balanced = client.get("/api/ideas/36/twin/P-004").json()
+    gentle = client.get("/api/ideas/36/twin/P-004", params={"priority": "minimize_toxicity"}).json()
+
+    def chemo_toxicity(body):
+        path = next(p for p in body["paths"] if p["id"] == "platinum_doublet_chemo")
+        return max(point["toxicity_grade"] for point in path["trajectory"])
+
+    assert chemo_toxicity(gentle) < chemo_toxicity(balanced)
+    assert gentle["what_if"]["priority"] == "minimize_toxicity"
 
 
 def test_twin_simulation_unknown_patient_returns_404(client):

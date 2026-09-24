@@ -23,10 +23,12 @@ standard path.
 
 ## Capability
 A continuously updated digital twin simulates three next-treatment paths - switch chemotherapy,
-continue targeted therapy plus local therapy, or enrol in a molecular-matched trial - each shown
-as a trajectory of simulated response, progression risk and toxicity, grounded in comparable
-synthetic patients and trial data, with the single future test that would most reduce uncertainty
-between them.
+continue targeted therapy plus local therapy, or enrol in a molecular-matched trial - plotted on a
+shared six-month timeline so response, progression risk and toxicity visibly diverge, grounded in
+comparable synthetic patients and trial data, with the single future test that would most reduce
+uncertainty between them. Clinician-controlled what-if inputs (repeat-biopsy result, response vs.
+toxicity priority) recompute the trajectories and their point-level assumptions/evidence
+immediately, so the twin supports counterfactual exploration rather than a fixed comparison.
 
 ## Agent behaviour
 - A deterministic simulation engine (`backend/app/ideas/issue_36.py: simulate_paths`) builds the
@@ -40,8 +42,10 @@ between them.
 (synthetic cohort of similar cases and outcomes), `sample-data/trials.csv` (trial SYN-LU-310).
 
 ## Outputs
-Three path cards (trajectory bars, assumptions, evidence), a callout naming the most informative
-future test, and generative-UI blocks (evidence/alert/actions) from the assistant's answers.
+A shared timeline chart per path (response, progression risk, toxicity ladder) with assumptions
+and evidence attached at the specific month they apply, a side-by-side trade-off table across the
+three paths, a callout naming the most informative future test, and generative-UI blocks
+(evidence/alert/actions) from the assistant's answers.
 
 ## Human decisions
 The clinician (with the patient) chooses one path via an explicit radio selection and records it

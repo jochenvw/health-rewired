@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { api, type AgentResult, type TreatmentPath, type TwinSimulation } from '../../api';
+import { api, type AgentResult, type BiopsyResult, type Priority, type TreatmentPath, type TwinSimulation, type WhatIf } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
@@ -38,7 +38,8 @@ const story: StoryStep[] = [
   {
     id: 'compare',
     title: 'Compare three paths',
-    explain: 'Simulated response, progression risk and toxicity for each path, with the evidence and assumptions behind it.',
+    explain:
+      'A shared six-month timeline shows response, progression risk and toxicity diverging by path. Try the what-if inputs, then compare the trade-off.',
   },
   {
     id: 'decide',
@@ -65,6 +66,7 @@ export default function CancerDigitalTwin() {
   const [notice, setNotice] = useState<string | null>(null);
   const [simulation, setSimulation] = useState<TwinSimulation | null>(null);
   const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [started, setStarted] = useState(false);
   const [runs, setRuns] = useState(0);
   const [chosenPathId, setChosenPathId] = useState<string | null>(null);
@@ -97,6 +99,19 @@ export default function CancerDigitalTwin() {
       setNotice('The digital twin could not be reached.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateWhatIf = async (patch: Partial<WhatIf>) => {
+    if (!simulation) return;
+    const nextWhatIf = { ...simulation.what_if, ...patch };
+    setUpdating(true);
+    try {
+      setSimulation(await api.twin('P-004', nextWhatIf));
+    } catch {
+      setNotice('The digital twin could not recompute the what-if scenario.');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -203,8 +218,10 @@ export default function CancerDigitalTwin() {
         <CompareAndDecide
           key={runs}
           loading={loading}
+          updating={updating}
           started={started}
           simulation={simulation}
+          onWhatIfChange={updateWhatIf}
           chosenPathId={chosenPathId}
           onChoose={setChosenPathId}
           testOrdered={testOrdered}
@@ -261,78 +278,240 @@ function TwinOverview() {
   );
 }
 
-function TrajectoryBars({ path }: { path: TreatmentPath }) {
+const PATH_COLORS = ['#1f5c99', '#b26a00', '#6a3fb2'];
+
+function pathColor(index: number): string {
+  return PATH_COLORS[index % PATH_COLORS.length];
+}
+
+function toxicityTone(grade: number): 'crit' | 'warn' | 'ok' {
+  return grade >= 3 ? 'crit' : grade >= 2 ? 'warn' : 'ok';
+}
+
+const CHART = { width: 460, height: 130, left: 34, right: 10, top: 10, bottom: 20, maxMonth: 6 };
+
+function chartX(month: number): number {
+  const plotW = CHART.width - CHART.left - CHART.right;
+  return CHART.left + (month / CHART.maxMonth) * plotW;
+}
+
+function chartY(value: number): number {
+  const plotH = CHART.height - CHART.top - CHART.bottom;
+  return CHART.top + (1 - value / 100) * plotH;
+}
+
+/** Shared six-month timeline: every path is plotted on the same axes so divergence is visible at a glance. */
+function TwinTimeline({ paths }: { paths: TreatmentPath[] }) {
+  const months = [0, 1, 3, 6];
   return (
-    <div>
-      <div className="twin-bars">
-        {path.trajectory.map((point) => (
-          <div className="twin-bar-col" key={point.month}>
-            <div className="twin-bar-track">
-              <div className="twin-bar" style={{ height: `${Math.max(point.response_pct, 2)}%` }} title={`Response ${point.response_pct}%`} />
-              <div
-                className="twin-bar risk"
-                style={{ height: `${Math.max(point.progression_risk_pct, 2)}%` }}
-                title={`Progression risk ${point.progression_risk_pct}%`}
-              />
-            </div>
-            <span>M{point.month}</span>
-          </div>
+    <div className="twin-timeline">
+      <TimelineChart title="Simulated response (%)" paths={paths} field="response_pct" />
+      <TimelineChart title="Progression risk (%)" paths={paths} field="progression_risk_pct" />
+      <div className="twin-legend">
+        {paths.map((path, i) => (
+          <span key={path.id} style={{ color: pathColor(i) }}>
+            {path.name}
+          </span>
         ))}
       </div>
-      <div className="twin-legend">
-        <span className="response">Response</span>
-        <span className="risk">Progression risk</span>
+      <div className="twin-toxicity-ladder">
+        <span className="twin-ladder-label">Simulated toxicity grade</span>
+        <div className="twin-ladder-rows">
+          {paths.map((path, i) => (
+            <div className="twin-ladder-row" key={path.id}>
+              <span className="twin-ladder-swatch" style={{ background: pathColor(i) }} />
+              {months.map((month) => {
+                const point = path.trajectory.find((p) => p.month === month);
+                const grade = point?.toxicity_grade ?? 0;
+                return (
+                  <span key={month} className={`twin-ladder-cell tone-${toxicityTone(grade)}`} title={`Month ${month}: grade ${grade}`}>
+                    {grade}
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="twin-ladder-axis">
+          {months.map((m) => (
+            <span key={m}>M{m}</span>
+          ))}
+        </div>
       </div>
+      <ul className="twin-annotations" aria-label="What changes the simulation at each point">
+        {paths.flatMap((path, i) =>
+          path.trajectory
+            .filter((point) => point.note)
+            .map((point) => (
+              <li key={`${path.id}-${point.month}`}>
+                <span className="twin-annotation-dot" style={{ background: pathColor(i) }} />
+                <strong>M{point.month} · {path.name}:</strong> {point.note}
+              </li>
+            ))
+        )}
+      </ul>
     </div>
   );
 }
 
-function PathCard({
-  path,
-  chosen,
+function TimelineChart({
+  title,
+  paths,
+  field,
+}: {
+  title: string;
+  paths: TreatmentPath[];
+  field: 'response_pct' | 'progression_risk_pct';
+}) {
+  const months = [0, 1, 3, 6];
+  return (
+    <div className="twin-chart">
+      <span className="twin-chart-title">{title}</span>
+      <svg viewBox={`0 0 ${CHART.width} ${CHART.height}`} role="img" aria-label={`${title} over six months, one line per path`}>
+        {[0, 25, 50, 75, 100].map((gridValue) => (
+          <line
+            key={gridValue}
+            x1={CHART.left}
+            x2={CHART.width - CHART.right}
+            y1={chartY(gridValue)}
+            y2={chartY(gridValue)}
+            className="twin-chart-grid"
+          />
+        ))}
+        {months.map((month) => (
+          <text key={month} x={chartX(month)} y={CHART.height - 4} className="twin-chart-axis">
+            M{month}
+          </text>
+        ))}
+        {paths.map((path, i) => {
+          const points = path.trajectory.map((p) => `${chartX(p.month)},${chartY(p[field])}`).join(' ');
+          return (
+            <g key={path.id}>
+              <polyline points={points} fill="none" stroke={pathColor(i)} strokeWidth={2} />
+              {path.trajectory.map((p) => (
+                <circle
+                  key={p.month}
+                  cx={chartX(p.month)}
+                  cy={chartY(p[field])}
+                  r={p.note ? 5 : 3}
+                  fill={pathColor(i)}
+                  stroke={p.note_kind === 'evidence' ? 'var(--ok)' : p.note_kind === 'assumption' ? 'var(--warning)' : 'none'}
+                  strokeWidth={p.note ? 2 : 0}
+                >
+                  <title>
+                    {path.name} · M{p.month}: {p[field]}%{p.note ? ` — ${p.note}` : ''}
+                  </title>
+                </circle>
+              ))}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+/** Clinician-controlled what-if inputs: changing either one recomputes every trajectory immediately. */
+function WhatIfControls({
+  whatIf,
+  updating,
+  onChange,
+}: {
+  whatIf: WhatIf;
+  updating: boolean;
+  onChange: (patch: Partial<WhatIf>) => void;
+}) {
+  return (
+    <div className="twin-whatif">
+      <label>
+        Repeat-biopsy result
+        <select
+          value={whatIf.biopsy_result}
+          disabled={updating}
+          onChange={(e) => onChange({ biopsy_result: e.target.value as BiopsyResult })}
+        >
+          <option value="unknown">Not yet done</option>
+          <option value="met_amplification">MET amplification</option>
+          <option value="t790m">T790M</option>
+          <option value="no_mechanism_found">No mechanism found</option>
+        </select>
+      </label>
+      <label>
+        Priority
+        <select value={whatIf.priority} disabled={updating} onChange={(e) => onChange({ priority: e.target.value as Priority })}>
+          <option value="balanced">Balanced</option>
+          <option value="minimize_toxicity">Minimise toxicity</option>
+          <option value="maximize_response">Maximise response</option>
+        </select>
+      </label>
+      {updating && (
+        <span className="twin-recalculating">
+          <span className="hx-spinner" aria-hidden /> Recalculating…
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The consultation payoff: every path's headline trade-offs side by side, feeding the human decision below. */
+function TradeoffTable({
+  paths,
+  chosenPathId,
   onChoose,
 }: {
-  path: TreatmentPath;
-  chosen: boolean;
-  onChoose: () => void;
+  paths: TreatmentPath[];
+  chosenPathId: string | null;
+  onChoose: (id: string) => void;
 }) {
-  const maxToxicity = path.trajectory.length ? Math.max(...path.trajectory.map((p) => p.toxicity_grade)) : 0;
   return (
-    <div className={`twin-path-card${chosen ? ' chosen' : ''}`}>
-      <h4>{path.name}</h4>
-      <p>{path.description}</p>
-      <TrajectoryBars path={path} />
-      <p>
-        Worst simulated toxicity: <Pill tone={maxToxicity >= 3 ? 'crit' : maxToxicity >= 2 ? 'warn' : 'ok'}>Grade {maxToxicity}</Pill>
-      </p>
-      <div>
-        <strong>Assumptions</strong>
-        <ul className="twin-assumptions">
-          {path.assumptions.map((a) => (
-            <li key={a}>{a}</li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <strong>Evidence</strong>
-        <ul className="twin-evidence">
-          {path.evidence.map((e) => (
-            <li key={e}>{e}</li>
-          ))}
-        </ul>
-      </div>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <input type="radio" name="chosen-path" checked={chosen} onChange={onChoose} />
-        Choose this path to discuss with Maria
-      </label>
-    </div>
+    <table className="hx-table twin-tradeoff">
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Response @6mo</th>
+          <th>Progression risk @6mo</th>
+          <th>Worst toxicity</th>
+          <th>Key assumption</th>
+          <th>Discuss with Maria</th>
+        </tr>
+      </thead>
+      <tbody>
+        {paths.map((path, i) => {
+          const last = path.trajectory[path.trajectory.length - 1];
+          const maxToxicity = path.trajectory.length ? Math.max(...path.trajectory.map((p) => p.toxicity_grade)) : 0;
+          const chosen = path.id === chosenPathId;
+          return (
+            <tr key={path.id} className={chosen ? 'chosen' : undefined}>
+              <td>
+                <span className="twin-ladder-swatch" style={{ background: pathColor(i) }} /> <strong>{path.name}</strong>
+                <div className="twin-tradeoff-desc">{path.description}</div>
+              </td>
+              <td>{last?.response_pct ?? 0}%</td>
+              <td>{last?.progression_risk_pct ?? 0}%</td>
+              <td>
+                <Pill tone={toxicityTone(maxToxicity)}>Grade {maxToxicity}</Pill>
+              </td>
+              <td>{path.assumptions[0]}</td>
+              <td>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="radio" name="chosen-path" checked={chosen} onChange={() => onChoose(path.id)} />
+                  Choose
+                </label>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 
 function CompareAndDecide({
   loading,
+  updating,
   started,
   simulation,
+  onWhatIfChange,
   chosenPathId,
   onChoose,
   testOrdered,
@@ -343,8 +522,10 @@ function CompareAndDecide({
   onRecord,
 }: {
   loading: boolean;
+  updating: boolean;
   started: boolean;
   simulation: TwinSimulation | null;
+  onWhatIfChange: (patch: Partial<WhatIf>) => void;
   chosenPathId: string | null;
   onChoose: (id: string) => void;
   testOrdered: boolean;
@@ -369,11 +550,12 @@ function CompareAndDecide({
         <>
           <Panel title={simulation.headline}>
             <p className="note">{simulation.note}</p>
-            <div className="twin-paths">
-              {simulation.paths.map((path) => (
-                <PathCard key={path.id} path={path} chosen={path.id === chosenPathId} onChoose={() => onChoose(path.id)} />
-              ))}
-            </div>
+            <WhatIfControls whatIf={simulation.what_if} updating={updating} onChange={onWhatIfChange} />
+            <p className="note">{simulation.what_if_explanation}</p>
+            <TwinTimeline paths={simulation.paths} />
+          </Panel>
+          <Panel title="Side-by-side trade-off for the consultation">
+            <TradeoffTable paths={simulation.paths} chosenPathId={chosenPathId} onChoose={onChoose} />
           </Panel>
           <Panel
             title="Which future observation would most reduce uncertainty?"
