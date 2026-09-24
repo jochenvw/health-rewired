@@ -5,3 +5,219 @@
   color: var(--muted);
   font-style: italic;
 }
+
+/* --- Network map ------------------------------------------------------- */
+
+.eu-map {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+  margin: 8px auto 4px;
+}
+
+.eu-link {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  opacity: 0.35;
+}
+
+.eu-map-querying .eu-link {
+  animation: eu-link-pulse 1.1s ease-in-out infinite;
+}
+
+.eu-map-responded .eu-link {
+  opacity: 0.6;
+  stroke-dasharray: none;
+}
+
+.eu-map-pulse .eu-link {
+  stroke: var(--accent);
+  opacity: 0.9;
+  animation: eu-link-feed 0.9s ease-out;
+}
+
+.eu-node circle {
+  fill: #fff;
+  stroke: var(--accent);
+  stroke-width: 2;
+  transition: r 0.25s ease;
+}
+
+.eu-node-home circle {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.eu-node-home text {
+  fill: #fff;
+  font-weight: 700;
+}
+
+.eu-map-querying .eu-node:not(.eu-node-home) circle {
+  animation: eu-node-search 1.1s ease-in-out infinite;
+}
+
+.eu-node-flagged circle {
+  stroke: var(--warning);
+  stroke-width: 3;
+}
+
+.eu-node text {
+  font-size: 10px;
+  fill: var(--muted);
+  text-anchor: middle;
+  font-family: inherit;
+}
+
+.eu-node-sub {
+  font-size: 8px;
+}
+
+.eu-node-count {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--accent);
+}
+
+.eu-privacy-note {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+.eu-fedback-note {
+  color: var(--ok);
+  font-style: italic;
+}
+
+@keyframes eu-link-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes eu-node-search {
+  0%, 100% { r: 14; }
+  50% { r: 18; }
+}
+
+@keyframes eu-link-feed {
+  0% { stroke-width: 1.5; opacity: 0.2; }
+  40% { stroke-width: 3; opacity: 1; }
+  100% { stroke-width: 1.5; opacity: 0.6; }
+}
+
+/* --- Country mix bar (geographic bias) ---------------------------------- */
+
+.eu-country-mix {
+  margin: 10px 0;
+}
+
+.eu-country-bar {
+  display: flex;
+  width: 100%;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--muted);
+}
+
+.eu-country-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #fff;
+  background: var(--accent);
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.eu-country-seg:nth-child(odd) {
+  filter: brightness(0.85);
+}
+
+.eu-country-flag {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--warning);
+  font-size: 0.85rem;
+}
+
+.eu-flags {
+  margin: 6px 0 12px;
+  padding-left: 0;
+  list-style: none;
+  color: var(--warning);
+}
+
+.eu-flags li {
+  margin-bottom: 2px;
+}
+
+/* --- Cohort landscape --------------------------------------------------- */
+
+.eu-landscape-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.eu-landscape-note {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.eu-lane {
+  border-top: 1px solid var(--muted);
+  padding: 8px 0;
+}
+
+.eu-lane-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.eu-lane-meta {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.eu-lane-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 18px;
+}
+
+.eu-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.eu-dot-ok {
+  background: var(--ok);
+}
+
+.eu-dot-crit {
+  background: var(--critical);
+}
+
+.eu-dot-warn {
+  background: var(--warning);
+}
+
+.eu-dot-neutral {
+  background: var(--muted);
+}

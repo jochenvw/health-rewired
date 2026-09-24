@@ -73,6 +73,22 @@ def test_query_endpoint_falls_back_without_token(client):
     assert response.json()["mode"] == "fallback"
 
 
+def test_network_snapshot_endpoint_returns_structured_cases_and_hospitals(client):
+    response = client.get("/api/ideas/37/network/P-002")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["matched_total"] > 0
+    assert len(body["hospitals"]) == 9
+    assert all({"id", "name", "country", "matched"} <= h.keys() for h in body["hospitals"])
+    assert len(body["cases"]) == body["matched_total"]
+    assert all({"hospital_name", "country", "approach_category", "outcome_category"} <= c.keys() for c in body["cases"])
+
+
+def test_network_snapshot_endpoint_404s_for_unknown_patient(client):
+    response = client.get("/api/ideas/37/network/NOT-A-PATIENT")
+    assert response.status_code == 404
+
+
 def test_feedback_is_only_recorded_on_explicit_call(client):
     assert client.get("/api/ideas/37/log").json() == []
     response = client.post(

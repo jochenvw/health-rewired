@@ -62,6 +62,45 @@ export type NetworkFeedbackEntry = {
   recorded_at: string;
 };
 
+/** One hospital node in the simulated European network (issue #37). */
+export type NetworkHospital = { id: string; name: string; country: string; matched: number };
+
+/** One comparable case returned by the federated query, already joined with its hospital (issue #37). */
+export type NetworkCase = {
+  id: string;
+  hospital_id: string;
+  hospital_name: string;
+  country: string;
+  approach_category: string;
+  outcome_category: string;
+  outcome_detail: string;
+  pfs_months: number | null;
+  followup_months: number | null;
+};
+
+export type NetworkApproach = {
+  category: string;
+  approach: string;
+  n: number;
+  outcomes: Record<string, number>;
+  median_pfs_months: number | null;
+  hospitals: { name: string; n: number }[];
+  examples: string[];
+};
+
+/** Structured, deterministic federated-query result (issue #37) – drives the network map and cohort landscape. */
+export type NetworkSnapshot = {
+  network_hospitals_queried: number;
+  matched_total: number;
+  comparability_criteria: string;
+  hospitals: NetworkHospital[];
+  hospitals_with_matches: { name: string; n: number }[];
+  approaches: NetworkApproach[];
+  cases: NetworkCase[];
+  evidence_flags: string[];
+  privacy_note: string;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -81,6 +120,7 @@ export const api = {
   // Issue #37 – A Europe-wide learning treatment system.
   queryEuNetwork: (body: { task: string; patient_id: string }) =>
     request<AgentResult>('/api/ideas/37/query', { method: 'POST', body: JSON.stringify(body) }),
+  networkSnapshot: (patientId: string) => request<NetworkSnapshot>(`/api/ideas/37/network/${patientId}`),
   recordNetworkFeedback: (body: {
     patient_id: string;
     approach_category: string;

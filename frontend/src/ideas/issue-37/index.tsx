@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { api, type AgentResult, type PatientRecord } from '../../api';
+import { api, type AgentResult, type NetworkSnapshot, type PatientRecord } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
+import { CohortLandscape } from './CohortLandscape';
+import { CountryMixBar, NetworkMap, type NetworkPhase } from './NetworkMap';
 import './issue-37.css';
 
 export const meta: IdeaMeta = {
@@ -48,22 +50,32 @@ const story: StoryStep[] = [
 ];
 
 const networkStages: Stage[] = [
-  { label: 'Turning the profile into a comparability query', detail: 'Lung adenocarcinoma · EGFR exon 19 deletion · oligometastatic', ms: 700 },
-  { label: 'Querying the network — each hospital searches locally', detail: 'Only counts and summaries leave each site, never raw records', ms: 900 },
-  { label: 'Charité Berlin · AKH Wien · Gustave Roussy · 6 more sites responding', ms: 900 },
-  { label: 'Grouping comparable patients by the approach they received', ms: 800 },
-  { label: 'Checking whether the evidence is strong enough to lean on', detail: 'Cohort size, hospital spread, follow-up length' },
+  { label: 'Turning the profile into a comparability query', detail: 'Lung adenocarcinoma · EGFR exon 19 deletion · oligometastatic', ms: 500 },
+  { label: 'Querying the network — each hospital searches locally', detail: 'Only counts and summaries leave each site, never raw records', ms: 700 },
+  { label: 'Charité Berlin · AKH Wien · Gustave Roussy · 6 more sites responding', ms: 700 },
+  { label: 'Grouping comparable patients by the approach they received', ms: 600 },
+  { label: 'Checking whether the evidence is strong enough to lean on', detail: 'Cohort size, hospital spread, follow-up length', ms: 500 },
 ];
+
+function dominantCountry(cases: { country: string }[]): string | null {
+  if (cases.length < 2) return null;
+  const counts = new Map<string, number>();
+  for (const c of cases) counts.set(c.country, (counts.get(c.country) ?? 0) + 1);
+  const [country, n] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  return n / cases.length > 0.6 ? country : null;
+}
 
 export default function EuropeanLearningNetwork() {
   const [section, setSection] = useState<Section>('worklist');
   const [record, setRecord] = useState<PatientRecord | null>(null);
+  const [snapshot, setSnapshot] = useState<NetworkSnapshot | null>(null);
   const [result, setResult] = useState<AgentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const [runs, setRuns] = useState(0);
   const [logCount, setLogCount] = useState(0);
+  const [justFedBack, setJustFedBack] = useState(false);
 
   useEffect(() => {
     api.patient(PATIENT_ID).then(setRecord).catch(() => setRecord(null));
@@ -79,17 +91,26 @@ export default function EuropeanLearningNetwork() {
 
   const askNetwork = async () => {
     setRuns((n) => n + 1);
+    setSnapshot(null);
     setResult(null);
     setError(null);
     setLoading(true);
     setStarted(true);
     try {
-      setResult(
-        await api.queryEuNetwork({
+      const [snap] = await Promise.all([
+        api.networkSnapshot(PATIENT_ID),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
+      setSnapshot(snap);
+      // The narrative read of the same evidence follows once the visual query has landed –
+      // it explains the map, it doesn't replace it.
+      api
+        .queryEuNetwork({
           task: 'Find patients like mine across the European network, show the treatment approaches taken and what happened, and flag weak evidence.',
           patient_id: PATIENT_ID,
-        }),
-      );
+        })
+        .then(setResult)
+        .catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The network query could not be reached.');
     } finally {
@@ -98,6 +119,7 @@ export default function EuropeanLearningNetwork() {
   };
 
   const flagged = record?.labs.filter((l) => l.flag).length ?? 0;
+  const phase: NetworkPhase = !started ? 'idle' : snapshot ? 'responded' : 'querying';
 
   return (
     <HospitalShell
@@ -161,14 +183,27 @@ export default function EuropeanLearningNetwork() {
       {section === 'network' && (
         <NetworkPanel
           key={runs}
+          phase={phase}
           started={started}
           loading={loading}
           error={error}
+          snapshot={snapshot}
           result={result}
           onAsk={askNetwork}
         />
       )}
-      {section === 'decide' && <DecidePanel onRecorded={refreshLog} logCount={logCount} />}
+      {section === 'decide' && (
+        <DecidePanel
+          snapshot={snapshot}
+          logCount={logCount}
+          justFedBack={justFedBack}
+          onRecorded={() => {
+            refreshLog();
+            setJustFedBack(true);
+            setTimeout(() => setJustFedBack(false), 1600);
+          }}
+        />
+      )}
     </HospitalShell>
   );
 }
@@ -260,60 +295,113 @@ function Chart({ record }: { record: PatientRecord }) {
 }
 
 function NetworkPanel({
+  phase,
   started,
   loading,
   error,
+  snapshot,
   result,
   onAsk,
 }: {
+  phase: NetworkPhase;
   started: boolean;
   loading: boolean;
   error: string | null;
+  snapshot: NetworkSnapshot | null;
   result: AgentResult | null;
   onAsk: () => void;
 }) {
+  const flaggedCountry = snapshot ? dominantCountry(snapshot.cases) : null;
   return (
-    <Panel
-      title={result ? result.headline : 'Patients like mine, across the European network'}
-      actions={
-        <button type="button" className="hx-btn primary" disabled={loading} onClick={onAsk}>
-          {loading ? (
-            <>
-              <span className="hx-spinner" aria-hidden /> Querying the network…
-            </>
-          ) : (
-            'Find patients like mine'
+    <>
+      <Panel
+        title="Live query — simulated European hospital network"
+        actions={
+          <button type="button" className="hx-btn primary" disabled={loading} onClick={onAsk}>
+            {loading ? (
+              <>
+                <span className="hx-spinner" aria-hidden /> Querying the network…
+              </>
+            ) : (
+              'Find patients like mine'
+            )}
+          </button>
+        }
+      >
+        {error && <p className="error">{error}</p>}
+        {!started && (
+          <span className="hx-empty">Click "Find patients like mine" to send a privacy-preserving query to the network below.</span>
+        )}
+        {started && (
+          <>
+            <NetworkMap
+              hospitals={
+                snapshot?.hospitals ?? [
+                  { id: 'DE-01', name: 'This hospital', country: 'DE', matched: 0 },
+                ]
+              }
+              phase={phase}
+              flaggedCountry={flaggedCountry}
+            />
+            <p className="eu-privacy-note">
+              🔒 Each node searches its own records locally. Only aggregated counts and outcome summaries travel back
+              here — never a raw patient record.
+            </p>
+          </>
+        )}
+      </Panel>
+      {snapshot && (
+        <Panel title={`Comparable cohort — ${snapshot.matched_total} matched patient(s) across ${snapshot.network_hospitals_queried} hospitals`}>
+          <p className="prose">{snapshot.comparability_criteria}</p>
+          <CountryMixBar cases={snapshot.cases} />
+          {snapshot.evidence_flags.length > 0 && (
+            <ul className="eu-flags">
+              {snapshot.evidence_flags.map((f) => (
+                <li key={f}>⚠ {f}</li>
+              ))}
+            </ul>
           )}
-        </button>
-      }
-    >
-      {error && <p className="error">{error}</p>}
-      <Backstage
-        title="Behind the scenes – the simulated European network"
-        stages={networkStages}
-        running={started}
-        holdLast
-        release={!loading}
-        note="No raw patient record leaves a hospital – each site only ever returns counts and summaries."
-      />
-      {!result && !error && !started && (
-        <span className="hx-empty">Click "Find patients like mine" to query the simulated network.</span>
+          <CohortLandscape approaches={snapshot.approaches} cases={snapshot.cases} />
+          <p className="eu-privacy-note">{snapshot.privacy_note}</p>
+        </Panel>
       )}
-      {result && (
-        <div className="result" aria-live="polite">
-          {result.note && <p className="note">{result.note}</p>}
-          <div className="blocks">
-            {result.blocks.map((block, index) => (
-              <RenderBlock key={index} block={block} />
-            ))}
-          </div>
-        </div>
+      {started && (
+        <Panel title="Assistant's read of the same evidence">
+          <Backstage
+            title="Behind the scenes – the simulated European network"
+            stages={networkStages}
+            running={started}
+            holdLast
+            release={!loading}
+            note="No raw patient record leaves a hospital – each site only ever returns counts and summaries."
+          />
+          {result && (
+            <div className="result" aria-live="polite">
+              {result.note && <p className="note">{result.note}</p>}
+              <div className="blocks">
+                {result.blocks.map((block, index) => (
+                  <RenderBlock key={index} block={block} />
+                ))}
+              </div>
+            </div>
+          )}
+        </Panel>
       )}
-    </Panel>
+    </>
   );
 }
 
-function DecidePanel({ onRecorded, logCount }: { onRecorded: () => void; logCount: number }) {
+function DecidePanel({
+  onRecorded,
+  logCount,
+  snapshot,
+  justFedBack,
+}: {
+  onRecorded: () => void;
+  logCount: number;
+  snapshot: NetworkSnapshot | null;
+  justFedBack: boolean;
+}) {
   const [approach, setApproach] = useState<(typeof APPROACHES)[number]['id']>('biopsy_or_liquid_first');
   const [treatment, setTreatment] = useState('Liquid biopsy for resistance mutations; continue osimertinib pending results.');
   const [outcome, setOutcome] = useState('Outcome not yet known – following up at 8 weeks.');
@@ -374,9 +462,13 @@ function DecidePanel({ onRecorded, logCount }: { onRecorded: () => void; logCoun
           network just queried – so the next clinician who sees a patient like Markus benefits from what happened to
           him.
         </p>
+        {snapshot && (
+          <NetworkMap hospitals={snapshot.hospitals} phase="responded" pulseHome={justFedBack} />
+        )}
         <p className="prose">
           <strong>{logCount}</strong> outcome{logCount === 1 ? '' : 's'} recorded to the simulated network learning
           system so far in this session.
+          {justFedBack && <span className="eu-fedback-note"> ↩ just fed back into the network above</span>}
         </p>
       </Panel>
     </div>

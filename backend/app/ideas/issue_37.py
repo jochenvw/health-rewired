@@ -81,11 +81,17 @@ APPROACH_LABELS = {
 }
 
 
-def _query_eu_network(params: PatientIdParams) -> str:
+def _build_network_snapshot(patient_id: str) -> dict[str, Any]:
+    """Deterministic, reusable result of the federated comparability query.
+
+    Used both by the agent tool (as text, for the narrative explanation) and by a plain REST
+    endpoint that the frontend calls directly to draw the network map and cohort landscape, so
+    that visualization does not depend on how the model chooses to format its answer.
+    """
     try:
-        patient = sample_data.get_patient(params.patient_id)
+        patient = sample_data.get_patient(patient_id)
     except FileNotFoundError:
-        return json.dumps({"error": "unknown patient", "known": sample_data.list_patients()})
+        return {"error": "unknown patient", "known": sample_data.list_patients()}
 
     hospitals, cases = _network()
     matched = [c for c in cases if _is_comparable(patient, c)]
@@ -94,9 +100,8 @@ def _query_eu_network(params: PatientIdParams) -> str:
     by_country: dict[str, int] = {}
     for case in matched:
         hospital = hospitals.get(case["hospital_id"], {})
-        by_hospital[hospital.get("name", case["hospital_id"])] = (
-            by_hospital.get(hospital.get("name", case["hospital_id"]), 0) + 1
-        )
+        name = hospital.get("name", case["hospital_id"])
+        by_hospital[name] = by_hospital.get(name, 0) + 1
         by_country[hospital.get("country", "?")] = by_country.get(hospital.get("country", "?"), 0) + 1
 
     approaches = []
@@ -114,6 +119,7 @@ def _query_eu_network(params: PatientIdParams) -> str:
             group_hospitals[name] = group_hospitals.get(name, 0) + 1
         approaches.append(
             {
+                "category": category,
                 "approach": label,
                 "n": len(group),
                 "outcomes": outcomes,
@@ -142,23 +148,52 @@ def _query_eu_network(params: PatientIdParams) -> str:
             )
         if a["outcomes"].get("too_early", 0) == a["n"]:
             flags.append(f"'{a['approach']}' has no mature outcomes yet – too early to judge.")
+    short_followup = [c for c in matched if (c.get("followup_months") or 0) < 6]
+    if short_followup:
+        flags.append(
+            f"{len(short_followup)} of {len(matched)} matches have less than 6 months of follow-up – "
+            "outcomes there could still change."
+        )
 
-    return json.dumps(
-        {
-            "network_hospitals_queried": len(hospitals),
-            "matched_total": len(matched),
-            "comparability_criteria": "Lung adenocarcinoma, EGFR-mutant, oligometastatic stage IV",
-            "hospitals_with_matches": [
-                {"name": n, "n": c} for n, c in sorted(by_hospital.items(), key=lambda kv: -kv[1])
-            ],
-            "approaches": approaches,
-            "evidence_flags": flags,
-            "privacy_note": (
-                "Each hospital ran the query locally and returned only counts and summaries – "
-                "no raw patient records crossed hospital boundaries."
-            ),
-        }
-    )
+    return {
+        "network_hospitals_queried": len(hospitals),
+        "matched_total": len(matched),
+        "comparability_criteria": "Lung adenocarcinoma, EGFR-mutant, oligometastatic stage IV",
+        "hospitals": [
+            {
+                "id": hid,
+                "name": h["name"],
+                "country": h["country"],
+                "matched": by_hospital.get(h["name"], 0),
+            }
+            for hid, h in hospitals.items()
+        ],
+        "hospitals_with_matches": [{"name": n, "n": c} for n, c in sorted(by_hospital.items(), key=lambda kv: -kv[1])],
+        "approaches": approaches,
+        "cases": [
+            {
+                "id": c["id"],
+                "hospital_id": c["hospital_id"],
+                "hospital_name": hospitals.get(c["hospital_id"], {}).get("name", c["hospital_id"]),
+                "country": hospitals.get(c["hospital_id"], {}).get("country", "?"),
+                "approach_category": c["approach_category"],
+                "outcome_category": c["outcome_category"],
+                "outcome_detail": c["outcome_detail"],
+                "pfs_months": c.get("pfs_months"),
+                "followup_months": c.get("followup_months"),
+            }
+            for c in matched
+        ],
+        "evidence_flags": flags,
+        "privacy_note": (
+            "Each hospital ran the query locally and returned only counts and summaries – "
+            "no raw patient records crossed hospital boundaries."
+        ),
+    }
+
+
+def _query_eu_network(params: PatientIdParams) -> str:
+    return json.dumps(_build_network_snapshot(params.patient_id))
 
 
 def _prepare_outcome_feedback(params: PrepareFeedbackParams) -> str:
@@ -218,6 +253,19 @@ class FeedbackOut(BaseModel):
 @router.post("/query")
 async def query(request: AgentRequest) -> AgentResult:
     return await run_agent(request, system_prompt=SYSTEM_PROMPT, extra_tools=EXTRA_TOOLS)
+
+
+@router.get("/network/{patient_id}")
+async def network_snapshot(patient_id: str) -> dict[str, Any]:
+    """Structured, deterministic federated-query result for the network map and cohort landscape.
+
+    Independent of the AI call, so the visualization always renders the same underlying data the
+    agent reasons over, regardless of how the model phrases its answer.
+    """
+    snapshot = _build_network_snapshot(patient_id)
+    if "error" in snapshot:
+        raise HTTPException(status_code=404, detail="Unknown patient")
+    return snapshot
 
 
 @router.get("/log")
