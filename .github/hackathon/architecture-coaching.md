@@ -50,6 +50,10 @@ services and the simplest design that satisfies the stated constraints. Be expli
 stays at each hospital/site, what crosses organizational boundaries, and where people approve or
 govern actions.
 
+The prototype uses synthetic data, but the architecture describes a possible real implementation.
+Do not label future hospital records or production flows as synthetic. Instead, describe the real
+data boundary, legal basis, pseudonymisation, consent/governance and validation required before use.
+
 Use current official Microsoft guidance:
 
 - [Azure Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/)
@@ -65,6 +69,9 @@ Start final architecture comments with:
 ```text
 <!-- health-rewired-architecture-coach: final -->
 ```
+
+The visible `architecture-ready` label is the authoritative completion state. The marker helps
+humans and future automation but must not be the only way completion is detected.
 
 Use these headings:
 
@@ -120,7 +127,8 @@ tool a prerequisite for understanding the proposal.
 
 ### Review
 
-Invite the participant to correct assumptions on the same issue. The architecture is a starting
+Tell the participant to record corrections on the same issue for the future delivery team, while
+making clear that automatic architecture generation is complete. The architecture is a starting
 point for discovery, threat modeling, privacy/compliance review, clinical safety work, cost
 modeling and the formal [Azure Well-Architected Review](https://learn.microsoft.com/assessments/azure-architecture-review/).
 It is not production approval or a substitute for those activities.
