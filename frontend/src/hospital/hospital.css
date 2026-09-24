@@ -563,6 +563,23 @@
   font-size: 12px;
 }
 
+.hx-working {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.hx-working-time,
+.hx-working-hint {
+  color: var(--muted);
+}
+
+.hx-btn .hx-spinner {
+  border-color: rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+}
+
 .hx-spinner {
   display: inline-block;
   width: 12px;
