@@ -225,8 +225,8 @@ jobs:
                 `**${url}/#/idea/${issue_number}**`,
                 ``,
                 minor === 0
-                  ? `Try it and reply on this issue with what you want changed. We will pass your feedback to Copilot automatically.`
-                  : `Copilot has updated your prototype. Reload the page to see the changes, then reply on this issue with any further feedback.`,
+                  ? `Try it and reply on this issue with the most important change. We can make up to two quick revision rounds.`
+                  : `Copilot has updated your prototype. Reload the page, then reply here if another focused revision is needed (maximum two rounds).`,
                 `Synthetic data only · hackathon prototype · not for clinical use.`,
               ].join("\n");
 

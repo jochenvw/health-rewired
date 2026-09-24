@@ -86,10 +86,21 @@ jobs:
               return;
             }
 
+            const pullComments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: pullRequest.number,
+              per_page: 100,
+            });
+            const priorParticipantRevisions = pullComments.filter((comment) =>
+              comment.body?.includes("<!-- health-rewired-participant-feedback "),
+            ).length;
             core.setOutput("pull-request", String(pullRequest.number));
+            core.setOutput("revision-count", String(priorParticipantRevisions));
+            core.setOutput("relay", priorParticipantRevisions < 2 ? "true" : "false");
 
       - name: Relay feedback to Copilot
-        if: steps.build.outputs.pull-request != ''
+        if: steps.build.outputs.relay == 'true'
         uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GH_AW_AGENT_TOKEN }}
@@ -130,7 +141,7 @@ jobs:
             }
 
       - name: Acknowledge feedback on the idea
-        if: steps.build.outputs.pull-request != ''
+        if: steps.build.outputs.relay == 'true'
         uses: actions/github-script@v9
         with:
           script: |
@@ -158,3 +169,35 @@ jobs:
                 ].join("\n"),
               });
             }
+
+      - name: Explain the iteration limit
+        if: steps.build.outputs.pull-request != '' && steps.build.outputs.relay == 'false'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const participantComment = context.payload.comment;
+            const marker =
+              `<!-- health-rewired-feedback-limit comment:${participantComment.id} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issue.number,
+              per_page: 100,
+            });
+            if (comments.some((comment) => comment.body?.includes(marker))) return;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issue.number,
+              body: [
+                marker,
+                `### 🧭 Two prototype revisions are complete`,
+                ``,
+                `Thanks — your latest feedback is saved here. To keep the hackathon moving,`,
+                `automatic building stops after two revision rounds. Please discuss the next`,
+                `step with a facilitator rather than repeating your comment.`,
+              ].join("\n"),
+            });

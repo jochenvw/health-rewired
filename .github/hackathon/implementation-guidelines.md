@@ -9,7 +9,7 @@ click through, react to, and iterate on with you. Speed to something visible bea
 
 - **Bias to action.** Build the smallest version that shows the proposal's walkthrough end to end,
   then stop. Participants refine it afterwards by replying on their idea issue; the feedback relay
-  passes their words to the linked Copilot pull request.
+  passes their words to the linked Copilot pull request for at most two focused revision rounds.
 - **Visible over robust.** Spend effort on what the participant sees and clicks. Skip edge cases,
   exhaustive validation and error paths that do not affect the demo.
 - **Non-functional requirements are not a priority.** Do not add auth, security hardening,

@@ -54,11 +54,14 @@ scenario, step by step, so they understand *how this could actually work*.
 | 3 | Assigned to Copilot | "🛠️ Building your prototype" comment |
 | 4 | Copilot builds a pull request | Nothing to do – silence is fine, the status comment explains |
 | 5 | Deployed preview | Comment "✅ live · v1.0" with a direct link to `/#/idea/<N>` |
-| 6 | Participant feedback | Reply on the idea issue; the feedback relay passes it to Copilot |
+| 6 | Participant feedback | Reply on the idea issue; the feedback relay passes up to two focused revision rounds to Copilot |
 | 7 | Each new build | "🆕 New version live · v1.N" comment on the issue |
 
 Rule: **the participant should never wonder whether something is happening.** Acknowledge fast,
 report progress, link straight to the result.
+
+Hackathon limit: the first preview may receive at most **two automatic revision rounds**. Further
+feedback stays on the issue for discussion with a facilitator rather than triggering more builds.
 
 ## 3. What a good prototype looks like
 
