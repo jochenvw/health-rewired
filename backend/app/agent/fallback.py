@@ -18,7 +18,7 @@ def _cancer_type(primary: str) -> str:
     return ""
 
 
-_CONCERN_KEYWORDS = ("new", "indeterminate", "progress")
+_CONCERN_KEYWORDS = {"new", "indeterminate", "progression", "progressive", "progressing"}
 _WORD_RE = re.compile(r"[a-z0-9]+")
 
 
@@ -40,9 +40,11 @@ def _match_trial(record: dict, trials: list[dict]) -> dict | None:
 
 def _build_outcome_risk(record: dict, source: str, trials: list[dict]) -> UIBlock | None:
     """Reason across imaging, labs and biomarkers together and ground any concern in a trial."""
-    imaging_concerns = [
-        img for img in record.get("imaging", []) if any(k in img["result"].lower() for k in _CONCERN_KEYWORDS)
-    ]
+
+    def _has_concern(result: str) -> bool:
+        return bool(_CONCERN_KEYWORDS & set(_WORD_RE.findall(result.lower())))
+
+    imaging_concerns = [img for img in record.get("imaging", []) if _has_concern(img["result"])]
     lab_concerns = [lab for lab in record.get("labs", []) if lab.get("flag")]
     if not imaging_concerns and not lab_concerns:
         return None
