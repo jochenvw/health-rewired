@@ -10,7 +10,8 @@ before implementing anything. It overrides generic habits. Start with
 looks like, and mistakes we have already made.
 
 **Goal in one line:** let a non-technical clinician see their idea working inside plain hospital
-software, full of fake data, within the hour – then iterate.
+software, full of fake data, within the hour – told as a guided story that shows how the vision
+would work – then iterate.
 
 ## Core principles
 
