@@ -46,9 +46,21 @@ export type PatientRecord = {
   medications: string[];
   treatments: { type: string; regimen: string; start: string; status: string; cycle?: string }[];
   labs: { date: string; test: string; value: number; unit: string; ref: string; flag?: string }[];
+  imaging?: { date: string; modality: string; result: string }[];
   patient_reported: { date: string; symptom: string; grade: number }[];
   timeline: { date: string; event: string }[];
   open_questions: string[];
+};
+
+export type Trial = {
+  trial_id: string;
+  title: string;
+  phase: string;
+  cancer_type: string;
+  key_inclusion: string;
+  key_exclusion: string;
+  site: string;
+  status: string;
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
