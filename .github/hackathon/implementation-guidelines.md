@@ -60,8 +60,18 @@ click through, react to, and iterate on with you. Speed to something visible bea
    (approve / edit / dismiss). Show "why" and sources where the agent makes claims.
 6. **Prototype disclaimer.** Keep the "Hackathon prototype – synthetic data – not for clinical use"
    notice visible.
-7. **Polished enough to demo.** Reuse the design tokens in `frontend/src/styles.css`. It should look
-   intentional, not like a developer template – but do not gold-plate.
+7. **Look like hospital software.** The participant must be able to picture the idea inside the
+   clinical system they use every day. Wrap the page in `HospitalShell` from
+   `frontend/src/hospital/HospitalShell.tsx` (hospital app bar, patient banner, left navigation,
+   status bar) and build with its `Panel`, `DataTable`, `Tabs` and `Pill` pieces. Keep it
+   deliberately plain and dense – light grey, hospital blue, tables – not a startup landing page.
+   - **Lots of fake data.** Fill worklists, results, notes and histories so the screen feels like a
+     real clinic day. Use `/sample-data` and add inline synthetic rows (names, times, wards) freely.
+   - **Real-feeling interactions.** Clickable rows that open a chart, tabs, filters, acknowledge /
+     approve / file-to-chart buttons that change state. They do not need a backend – local state is
+     fine.
+   - The AI assistant appears as one part of that screen (a panel, tab or side pane), not as the
+     whole page. `frontend/src/ideas/starter/index.tsx` shows the pattern.
 8. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
    abstraction layers.
 9. **No new infrastructure.** No databases, queues, extra services or containers. One container.

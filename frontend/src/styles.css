@@ -224,28 +224,40 @@ nav a:hover {
   margin: 0;
 }
 
-.idea-page {
-  padding-top: 24px;
+/* Idea pages: full-bleed hospital software (see src/hospital) under a thin hackathon strip. */
+.idea-shell {
+  min-height: 100vh;
+  background: #e9edf2;
 }
 
-.idea-page h1 {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  letter-spacing: -0.02em;
-  margin-top: 12px;
+.idea-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 32px;
+  padding: 0 12px;
+  background: #fff4cc;
+  border-bottom: 1px solid #e0c96a;
+  color: #4a3b00;
+  font: 12.5px 'Segoe UI', Tahoma, Arial, sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.idea-page .lede {
-  margin: 12px 0 28px;
+.idea-strip a {
+  color: #4a3b00;
+  font-weight: 600;
 }
 
-.back-link {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 0.9rem;
+.idea-strip-tagline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.8;
 }
 
-.back-link:hover {
-  color: var(--text);
+.idea-strip-note {
+  margin-left: auto;
+  opacity: 0.8;
 }
 
 .canvas {

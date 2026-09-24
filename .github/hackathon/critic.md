@@ -24,6 +24,8 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 - The idea **does not have its own page** at `/#/idea/<N>` (it was added to the landing page or
   the starter agent instead), or that page does not show the idea's main screen immediately.
   Always material – ask for a fix.
+- The page **does not look like hospital software** (no `HospitalShell`, a chat box or marketing
+  page instead of a clinical screen, or too little fake data to picture a real clinic day).
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
 

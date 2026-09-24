@@ -58,8 +58,11 @@ safe-outputs:
       The idea gets its own page: frontend/src/ideas/issue-<N>/index.tsx and
       backend/app/ideas/issue_<N>.py (rule 0 in implementation-guidelines.md). Do not edit the
       landing page (frontend/src/App.tsx) or backend/app/main.py.
+      Make it look like plain hospital software: wrap the page in HospitalShell
+      (frontend/src/hospital/), fill it with lots of synthetic data and clickable interactions
+      (rule 7; frontend/src/ideas/starter/index.tsx is the example).
       Follow .github/copilot-instructions.md and every file in .github/hackathon/ (start with
-      "Hackathon mindset" in implementation-guidelines.md). Use synthetic data from
+      purpose-and-learnings.md, then "Hackathon mindset" in implementation-guidelines.md). Use synthetic data from
       /sample-data only, keep the GitHub Copilot SDK central.
 
 concurrency:
