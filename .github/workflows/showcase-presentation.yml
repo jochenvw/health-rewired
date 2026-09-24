@@ -1,0 +1,128 @@
+name: Showcase presentation
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: showcase-presentation-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: >-
+      github.event.issue.pull_request == null &&
+      contains(github.event.issue.labels.*.name, 'architecture-ready') &&
+      (
+        (
+          github.event.sender.type != 'Bot' &&
+          !contains(github.event.comment.body, '/presentation revise') &&
+          (
+            contains(github.event.comment.body, '/presentation') ||
+            contains(github.event.comment.body, 'make a presentation') ||
+            contains(github.event.comment.body, 'presentation please')
+          )
+        ) ||
+        (
+          github.event.sender.type == 'Bot' &&
+          contains(github.event.comment.body, '### 🎨 Presentation revision plan')
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: .github/showcase/package-lock.json
+
+      - name: Install presentation generator
+        run: npm ci --prefix .github/showcase
+
+      - name: Install browser
+        run: npx --prefix .github/showcase playwright install --with-deps chromium
+
+      - name: Build PowerPoint
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node .github/showcase/generate.mjs
+
+      - name: Upload presentation
+        id: artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: idea-${{ github.event.issue.number }}-showcase-presentation
+          path: .github/showcase/output/issue-${{ github.event.issue.number }}-showcase.pptx
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Share presentation on the issue
+        uses: actions/github-script@v9
+        env:
+          ARTIFACT_ID: ${{ steps.artifact.outputs.artifact-id }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const artifactUrl =
+              `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}` +
+              `/artifacts/${process.env.ARTIFACT_ID}`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issue.number,
+              per_page: 100,
+            });
+            const revisionCount = comments.filter((comment) =>
+              comment.user?.type === "Bot" &&
+              comment.body?.includes("### 🎨 Presentation revision plan"),
+            ).length;
+            const marker =
+              `<!-- health-rewired-presentation run:${context.runId} issue:${issue.number} -->`;
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issue.number,
+              body: [
+                marker,
+                `### 🎤 Your audience presentation is ready`,
+                ``,
+                `**[Download the editable PowerPoint presentation](${artifactUrl})**`,
+                ``,
+                `It tells the complete story: idea, process, outcome, live demo, future Azure`,
+                `architecture, Well-Architected tradeoffs and the path to real-world delivery.`,
+                ``,
+                `The download is available for 30 days.`,
+                revisionCount < 2
+                  ? `For one focused change, reply \`/presentation revise\` followed by your feedback. ` +
+                    `You can make ${2 - revisionCount} more automatic revision${2 - revisionCount === 1 ? "" : "s"}.`
+                  : `Two automatic presentation revisions are complete. The PowerPoint remains editable for final local changes.`,
+              ].join("\n"),
+            });
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: "presentation-ready" });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: "presentation-ready",
+                color: "B60205",
+                description: "Audience PowerPoint presentation has been generated",
+              });
+            }
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: issue.number,
+              labels: ["presentation-ready"],
+            });

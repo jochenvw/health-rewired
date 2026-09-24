@@ -1,0 +1,13 @@
+{
+  "name": "health-rewired-showcase",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.55.0",
+    "pptxgenjs": "^4.0.1",
+    "qrcode": "^1.5.4"
+  },
+  "overrides": {
+    "image-size": "^2.0.4"
+  }
+}

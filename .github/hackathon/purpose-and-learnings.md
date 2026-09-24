@@ -58,6 +58,7 @@ scenario, step by step, so they understand *how this could actually work*.
 | 7 | Each new build | "🆕 New version live · v1.N" comment on the issue |
 | 8 | Participant finishes the prototype | Reply `/architecture`, `ready for architecture`, or `prototype is done` on the issue |
 | 9 | Architecture coach | Asks only missing real-world questions, then posts an Azure architecture diagram, five-pillar Well-Architected review and staged delivery path |
+| 10 | Audience presentation | Reply `/presentation`; receive an editable PowerPoint, then use `/presentation revise` for at most two focused audience-story revisions |
 
 Rule: **the participant should never wonder whether something is happening.** Acknowledge fast,
 report progress, link straight to the result.
@@ -66,6 +67,10 @@ Hackathon limit: the first preview may receive at most **two automatic revision 
 feedback stays on the issue rather than triggering more builds. When the prototype communicates the
 idea well enough, the participant can start the separate architecture-coaching phase; it plans a
 future implementation but does not change the demo.
+
+The same time-box applies to the final story: allow at most **two automatic presentation
+revisions**. The editor may clarify or refocus slide copy, but it cannot invent evidence, change the
+prototype, or redesign the approved future architecture.
 
 ## 3. What a good prototype looks like
 

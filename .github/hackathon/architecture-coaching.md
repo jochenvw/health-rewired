@@ -132,3 +132,7 @@ making clear that automatic architecture generation is complete. The architectur
 point for discovery, threat modeling, privacy/compliance review, clinical safety work, cost
 modeling and the formal [Azure Well-Architected Review](https://learn.microsoft.com/assessments/azure-architecture-review/).
 It is not production approval or a substitute for those activities.
+
+End with: "When the architecture tells the right story, reply `/presentation` and we will create
+an editable audience PowerPoint covering the idea, process, demo, outcome, architecture and
+real-world delivery plan."
