@@ -10,20 +10,29 @@ export const meta: IdeaMeta = {
   id: '35',
   issue: 35,
   title: 'Self-running European clinical trial engine',
-  tagline: 'Launch a lung-cancer trial across synthetic European sites, spot bottlenecks, and build the comparison cohort.',
+  tagline: 'Orchestrate trial launch across synthetic European sites, bottlenecks, and control-cohort readiness.',
 };
 
 type Section = 'launch' | 'sites' | 'screening' | 'actions' | 'payoff';
 type Status = 'pending' | 'approved' | 'dismissed';
+type SiteStatus = 'on track' | 'lagging';
+type SignalPhase = 'queried' | 'responding' | 'patients found' | 'investigator review';
 type Site = {
   id: string;
   name: string;
+  city: string;
   country: string;
   eligible: number;
   enrolled: number;
   forecast: number;
-  status: 'on track' | 'lagging';
+  potential: number;
+  missingData: number;
+  review: number;
+  approached: number;
+  status: SiteStatus;
   bottleneck: string;
+  x: number;
+  y: number;
 };
 type Candidate = {
   id: string;
@@ -35,6 +44,14 @@ type Candidate = {
   reason: string;
   missing: string;
   comparator: boolean;
+  controlGap: string;
+};
+type BalanceRow = {
+  characteristic: string;
+  trial: string;
+  control: string;
+  balance: 'good' | 'watch' | 'gap';
+  action: string;
 };
 
 const DEFAULT_SITE_ID = 'MIL';
@@ -44,84 +61,112 @@ const OUTREACH_FORECAST_BONUS = 5;
 const story: StoryStep[] = [
   {
     id: 'launch',
-    title: 'Open the trial',
-    explain: 'The coordinator opens a synthetic EGFR-mutant lung-cancer trial and sees the launch target.',
+    title: 'Operations room',
+    explain: 'The coordinator opens a Europe-wide launch board rather than a patient chart: site signals, funnel and forecast are already visible.',
   },
   {
     id: 'sites',
-    title: 'Check Europe',
-    explain: 'Connected hospitals answer with counts and a recruitment forecast. Data stays at each site in this demo story.',
+    title: 'Watch sites respond',
+    explain: 'Hospitals pulse through queried, responding, patients found and investigator review; country counts update as signals arrive.',
   },
   {
     id: 'screening',
-    title: 'Explain matches',
-    explain: 'Click a lagging site to see who fits, who is excluded, and which fields block confirmation.',
+    title: 'Open a lagging signal',
+    explain: 'Select a lagging site and see the operational cause immediately: missing data, review queue and outreach need.',
   },
   {
     id: 'actions',
-    title: 'Approve outreach',
-    explain: 'The assistant drafts coordinator outreach and synthetic control-cohort entries; people approve or dismiss each one.',
+    title: 'Approve operations',
+    explain: 'The assistant drafts site outreach and external-control entries, kept visibly separate from recruitment decisions.',
   },
   {
     id: 'payoff',
-    title: 'Updated forecast',
-    explain: 'The payoff: recruitment is clearer and the real-world comparator cohort grows alongside the trial.',
+    title: 'Payoff dashboard',
+    explain: 'The ending is an operations dashboard: expected recruitment date, sites needing action and control-cohort readiness.',
   },
 ];
 
 const siteStages: Stage[] = [
-  { label: 'Querying connected hospitals', detail: '4 synthetic European sites · data stays local', ms: 700 },
-  { label: 'Harmonising trial criteria', detail: 'EGFR mutation, metastatic stage, ECOG, prior treatment', ms: 800 },
-  { label: 'Forecasting recruitment by site', detail: 'Current enrolment + screened eligible + missing-data drag', ms: 900 },
-  { label: 'Flagging lagging sites', detail: 'Milano and Barcelona need coordinator follow-up' },
+  { label: 'Broadcasting protocol query across the synthetic network', detail: '4 European sites · federated counts only', ms: 700 },
+  { label: 'Receiving site signals', detail: 'queried → responding → patients found → investigator review', ms: 800 },
+  { label: 'Updating recruitment funnel and forecast', detail: 'Potentially eligible, missing data, review, approached, enrolled', ms: 900 },
+  { label: 'Separating external-control candidates', detail: 'Balance checks run beside recruitment, not inside it' },
 ];
 
 const assistantStages: Stage[] = [
-  { label: 'Reading site screening extracts', detail: 'Synthetic EHR rows from the selected hospital', ms: 700 },
-  { label: 'Explaining match and exclusion reasons', detail: 'Mutation, stage, ECOG and treatment history', ms: 900 },
-  { label: 'Drafting outreach and comparator entries', detail: 'Nothing is sent or filed without approval' },
+  { label: 'Reading site operations signal', detail: 'Synthetic site counts, missing fields and patient-level reasons', ms: 700 },
+  { label: 'Explaining the bottleneck', detail: 'Mutation, stage, ECOG, prior treatment and coordinator workload', ms: 900 },
+  { label: 'Drafting outreach and control-cohort actions', detail: 'Human approval required before sending or filing' },
 ];
 
 const sites: Site[] = [
   {
     id: 'MUC',
     name: 'Klinikum Rewired München',
+    city: 'Munich',
     country: 'DE',
     eligible: 9,
     enrolled: 6,
     forecast: 18,
+    potential: 24,
+    missingData: 3,
+    review: 9,
+    approached: 7,
     status: 'on track',
     bottleneck: 'screening list refreshed this morning',
+    x: 55,
+    y: 57,
   },
   {
     id: 'MIL',
     name: 'Istituto Oncologico Milano',
+    city: 'Milan',
     country: 'IT',
     eligible: 7,
     enrolled: 2,
     forecast: 11,
+    potential: 19,
+    missingData: 8,
+    review: 5,
+    approached: 3,
     status: 'lagging',
     bottleneck: 'prior-treatment fields missing in three records',
+    x: 50,
+    y: 69,
   },
   {
     id: 'AMS',
     name: 'Amsterdam Thoracic Cancer Centre',
+    city: 'Amsterdam',
     country: 'NL',
     eligible: 5,
     enrolled: 4,
     forecast: 14,
+    potential: 16,
+    missingData: 2,
+    review: 5,
+    approached: 5,
     status: 'on track',
     bottleneck: 'awaiting two patient discussions',
+    x: 44,
+    y: 38,
   },
   {
     id: 'BCN',
     name: 'Hospital del Mar Barcelona',
+    city: 'Barcelona',
     country: 'ES',
     eligible: 6,
     enrolled: 1,
     forecast: 8,
+    potential: 18,
+    missingData: 7,
+    review: 4,
+    approached: 2,
     status: 'lagging',
     bottleneck: 'pathology addendum delayed',
+    x: 36,
+    y: 80,
   },
 ];
 
@@ -136,6 +181,7 @@ const candidates: Candidate[] = [
     reason: 'Meets mutation, stage and ECOG criteria; no prior metastatic EGFR TKI recorded.',
     missing: 'Patient preference discussion',
     comparator: true,
+    controlGap: 'Adds under-represented exon 19 deletion profile to control queue',
   },
   {
     id: 'MIL-219',
@@ -147,6 +193,7 @@ const candidates: Candidate[] = [
     reason: 'ECOG 2 exceeds protocol limit.',
     missing: '',
     comparator: false,
+    controlGap: 'Not comparable: performance status outside protocol population',
   },
   {
     id: 'MIL-231',
@@ -158,6 +205,7 @@ const candidates: Candidate[] = [
     reason: 'Stage and ECOG fit, but mutation confirmation is not yet filed.',
     missing: 'EGFR result; prior TKI history',
     comparator: true,
+    controlGap: 'Potentially helps age balance if EGFR is confirmed',
   },
   {
     id: 'BCN-118',
@@ -169,6 +217,7 @@ const candidates: Candidate[] = [
     reason: 'Clear protocol fit; lives within 45 minutes of the site.',
     missing: 'Baseline CT uploaded to trial binder',
     comparator: true,
+    controlGap: 'Improves ECOG 0 control representation',
   },
   {
     id: 'BCN-144',
@@ -180,6 +229,7 @@ const candidates: Candidate[] = [
     reason: 'Locally advanced rather than metastatic disease.',
     missing: '',
     comparator: false,
+    controlGap: 'Not comparable: stage differs from metastatic trial population',
   },
   {
     id: 'BCN-166',
@@ -191,6 +241,38 @@ const candidates: Candidate[] = [
     reason: 'Likely eligible, but prior adjuvant osimertinib dates are unclear.',
     missing: 'Treatment stop date; consent language preference',
     comparator: true,
+    controlGap: 'Addresses under-represented L858R subgroup if treatment timing fits',
+  },
+];
+
+const balanceRows: BalanceRow[] = [
+  {
+    characteristic: 'EGFR L858R mutation',
+    trial: '38%',
+    control: '24%',
+    balance: 'gap',
+    action: 'Need more L858R comparators from Barcelona/Milan',
+  },
+  {
+    characteristic: 'ECOG 0–1',
+    trial: '100%',
+    control: '93%',
+    balance: 'watch',
+    action: 'Exclude ECOG 2 rows before statistician review',
+  },
+  {
+    characteristic: 'Age 65+',
+    trial: '46%',
+    control: '43%',
+    balance: 'good',
+    action: 'Balanced for current synthetic sample',
+  },
+  {
+    characteristic: 'Prior adjuvant osimertinib',
+    trial: 'allowed if stopped',
+    control: 'unknown in 3 rows',
+    balance: 'watch',
+    action: 'Confirm stop dates before readiness sign-off',
   },
 ];
 
@@ -206,7 +288,7 @@ const trial = {
 export default function TrialEngineIdea() {
   const [section, setSection] = useState<Section>('launch');
   const [selectedSite, setSelectedSite] = useState(DEFAULT_SITE_ID);
-  const [tab, setTab] = useState('patients');
+  const [tab, setTab] = useState('signal');
   const [queried, setQueried] = useState(false);
   const [assistantStarted, setAssistantStarted] = useState(false);
   const [assistantLoading, setAssistantLoading] = useState(false);
@@ -225,6 +307,8 @@ export default function TrialEngineIdea() {
   const approvedControls = candidates.filter((candidate) => candidate.comparator && comparatorStatus[candidate.id] === 'approved').length;
   const forecastAfterActions =
     trial.forecast + approvedMatches * FORECAST_GAIN_PER_APPROVED_MATCH + (outreachStatus === 'approved' ? OUTREACH_FORECAST_BONUS : 0);
+  const funnel = buildFunnel(forecastAfterActions, candidateStatus, outreachStatus);
+  const readiness = controlReadiness(approvedControls, cohortStatus);
 
   const go = (id: string) => {
     setSection(id as Section);
@@ -251,22 +335,22 @@ export default function TrialEngineIdea() {
 
   return (
     <HospitalShell
-      module="European trial launch"
+      module="European trial operations"
       guide={<StoryGuide steps={story} current={section} onGo={go} nextLabel={nextLabel(section)} />}
       nav={[
-        { id: 'launch', label: 'Trial launch', badge: trial.id },
-        { id: 'sites', label: 'European sites', badge: sites.length },
-        { id: 'screening', label: 'Eligibility screening', badge: sitePatients.length },
-        { id: 'actions', label: 'Human approvals', badge: pendingCount(candidateStatus, sitePatients) },
-        { id: 'payoff', label: 'Forecast & control cohort', badge: approvedControls || undefined },
+        { id: 'launch', label: 'Operations room', badge: trial.id },
+        { id: 'sites', label: 'Site network', badge: sites.length },
+        { id: 'screening', label: 'Lagging signal', badge: sitePatients.length },
+        { id: 'actions', label: 'Approvals & controls', badge: pendingCount(candidateStatus, sitePatients) },
+        { id: 'payoff', label: 'Payoff dashboard', badge: readiness.label },
       ]}
       active={section}
       onNav={go}
       patient={{
         id: trial.id,
-        name: 'EU Lung Trial',
-        diagnosis: trial.title,
-        ward: 'Research office · synthetic launch',
+        name: 'EU Trial Network',
+        diagnosis: `${trial.title} · cross-Europe operations`,
+        ward: 'Research operations control room · synthetic launch',
         allergies: 'Prototype – synthetic data – not for clinical use',
       }}
       toolbar={
@@ -282,23 +366,33 @@ export default function TrialEngineIdea() {
             <select value={selectedSite} onChange={(event) => setSelectedSite(event.target.value)}>
               {sites.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.name}
+                  {item.city} · {item.name}
                 </option>
               ))}
             </select>
           </label>
           <span className="hx-spacer" />
           <button type="button" className="hx-btn" onClick={() => setSection('payoff')}>
-            Open payoff view
+            Open operations payoff
           </button>
         </>
       }
     >
-      {section === 'launch' && <Launch onStart={() => go('sites')} />}
+      {section === 'launch' && (
+        <OperationsRoom
+          queried={queried}
+          selectedSite={selectedSite}
+          onSelectSite={(id) => setSelectedSite(id)}
+          onStart={() => go('sites')}
+          funnel={funnel}
+          focusedSite={site}
+        />
+      )}
       {section === 'sites' && (
         <Sites
           queried={queried}
           selectedSite={selectedSite}
+          funnel={funnel}
           onSelect={(id) => {
             setSelectedSite(id);
             setSection('screening');
@@ -313,6 +407,7 @@ export default function TrialEngineIdea() {
           onStatus={(id, value) => setCandidateStatus((current) => ({ ...current, [id]: value }))}
           tab={tab}
           onTab={setTab}
+          funnel={funnel}
         />
       )}
       {section === 'actions' && (
@@ -331,6 +426,7 @@ export default function TrialEngineIdea() {
           assistantRuns={assistantRuns}
           assistantResult={assistantResult}
           assistantError={assistantError}
+          readiness={readiness}
         />
       )}
       {section === 'payoff' && (
@@ -339,67 +435,49 @@ export default function TrialEngineIdea() {
           approvedControls={approvedControls}
           outreachStatus={outreachStatus}
           cohortStatus={cohortStatus}
+          readiness={readiness}
+          funnel={funnel}
         />
       )}
     </HospitalShell>
   );
 }
 
-function Launch({ onStart }: { onStart: () => void }) {
+function OperationsRoom({
+  queried,
+  selectedSite,
+  onSelectSite,
+  onStart,
+  funnel,
+  focusedSite,
+}: {
+  queried: boolean;
+  selectedSite: string;
+  onSelectSite: (id: string) => void;
+  onStart: () => void;
+  funnel: ReturnType<typeof buildFunnel>;
+  focusedSite: Site;
+}) {
   return (
-    <div className="trial-engine-layout">
+    <div className="trial-ops-layout">
       <Panel
-        title="Trial launch worklist"
+        title="European site network · live trial operations"
         actions={
           <button type="button" className="hx-btn primary" onClick={onStart}>
-            Send launch query to hospitals →
+            {queried ? 'Refresh site signals →' : 'Broadcast launch query →'}
           </button>
         }
       >
-        <DataTable
-          rowKey={(row) => row.id}
-          selected={trial.id}
-          rows={[
-            { id: trial.id, title: trial.title, tumour: 'NSCLC', phase: 'II', opened: 'Today 08:10', target: trial.target },
-            {
-              id: 'EU-BREAST-09',
-              title: 'HER2-low escalation registry',
-              tumour: 'Breast',
-              phase: 'Registry',
-              opened: 'Yesterday',
-              target: 140,
-            },
-            { id: 'EU-CRC-22', title: 'ctDNA-guided colorectal adjuvant study', tumour: 'CRC', phase: 'III', opened: 'Next week', target: 220 },
-          ]}
-          columns={[
-            { key: 'id', label: 'Trial' },
-            { key: 'title', label: 'Title', render: (row) => <strong>{row.title}</strong> },
-            { key: 'tumour', label: 'Tumour' },
-            { key: 'phase', label: 'Phase' },
-            { key: 'opened', label: 'Opened' },
-            { key: 'target', label: 'Target' },
-          ]}
-        />
+        <SiteNetwork queried={queried} selectedSite={selectedSite} onSelect={onSelectSite} />
       </Panel>
-      <Panel title="Eligibility criteria">
-        <dl className="hx-facts">
-          <dt>Primary endpoint</dt>
-          <dd>Progression-free survival at 12 months</dd>
-          <dt>Recruitment target</dt>
-          <dd>{trial.target} patients across Europe</dd>
-          <dt>Current enrolment</dt>
-          <dd>{trial.enrolled} patients</dd>
-          <dt>Initial forecast</dt>
-          <dd>
-            <Pill tone="warn">{trial.forecast} / {trial.target}</Pill>
-          </dd>
-        </dl>
-        <ul>
-          {trial.inclusion.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </Panel>
+      <div className="trial-engine-stack">
+        <Panel title="Live recruitment funnel">
+          <RecruitmentFunnel funnel={funnel} />
+        </Panel>
+        <Panel title={`Lagging site cause · ${focusedSite.city}`}>
+          <LaggingCause site={focusedSite} />
+        </Panel>
+      </div>
     </div>
   );
 }
@@ -407,43 +485,35 @@ function Launch({ onStart }: { onStart: () => void }) {
 function Sites({
   queried,
   selectedSite,
+  funnel,
   onSelect,
 }: {
   queried: boolean;
   selectedSite: string;
+  funnel: ReturnType<typeof buildFunnel>;
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="trial-engine-stack">
-      <Backstage
-        title="Behind the scenes – launch query"
-        stages={siteStages}
-        running={queried}
-        note="Simulated federation: only counts and match explanations return to this screen."
-      />
-      <Panel title="Partner hospitals">
-        <div className="trial-engine-site-grid">
-          {sites.map((site) => (
-            <button
-              key={site.id}
-              type="button"
-              className={`trial-engine-site ${site.id === selectedSite ? 'active' : ''}`}
-              onClick={() => onSelect(site.id)}
-            >
-              <strong>{site.name}</strong>
-              <span>{site.country} · {site.bottleneck}</span>
-              <span>
-                <Pill tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Pill>
-              </span>
-              <div className="trial-engine-metrics">
-                <Metric label="Eligible" value={site.eligible} />
-                <Metric label="Enrolled" value={site.enrolled} />
-                <Metric label="Forecast" value={site.forecast} />
-              </div>
-            </button>
-          ))}
-        </div>
-      </Panel>
+    <div className="trial-ops-layout">
+      <div className="trial-engine-stack">
+        <Backstage
+          title="Behind the scenes – European launch signal"
+          stages={siteStages}
+          running={queried}
+          note="Simulated federation: site counts and bottleneck signals move; patient-level data stays synthetic for this demo."
+        />
+        <Panel title="Geographic signal grid">
+          <SiteNetwork queried={queried} selectedSite={selectedSite} onSelect={onSelect} />
+        </Panel>
+      </div>
+      <div className="trial-engine-stack">
+        <Panel title="Country counts updating">
+          <CountryCounts queried={queried} />
+        </Panel>
+        <Panel title="Forecast after site responses">
+          <RecruitmentFunnel funnel={funnel} />
+        </Panel>
+      </div>
     </div>
   );
 }
@@ -455,6 +525,7 @@ function Screening({
   onStatus,
   tab,
   onTab,
+  funnel,
 }: {
   site: Site;
   patients: Candidate[];
@@ -462,6 +533,7 @@ function Screening({
   onStatus: (id: string, value: Status) => void;
   tab: string;
   onTab: (tab: string) => void;
+  funnel: ReturnType<typeof buildFunnel>;
 }) {
   return (
     <div className="trial-engine-stack">
@@ -469,42 +541,49 @@ function Screening({
         active={tab}
         onChange={onTab}
         tabs={[
-          { id: 'patients', label: `Patients at ${site.name}` },
-          { id: 'bottleneck', label: 'Bottleneck' },
+          { id: 'signal', label: `Signal cause · ${site.city}` },
+          { id: 'patients', label: 'Investigator review queue' },
+          { id: 'funnel', label: 'Funnel impact' },
         ]}
       />
+      {tab === 'signal' && (
+        <div className="trial-ops-layout compact">
+          <Panel title={`${site.name} · operational bottleneck`}>
+            <LaggingCause site={site} />
+          </Panel>
+          <Panel title="Site signal board">
+            <SiteSignalRows selectedSite={site.id} onSelect={() => undefined} />
+          </Panel>
+        </div>
+      )}
       {tab === 'patients' && (
-        <Panel title={`${site.name} · assistant screening explanations`}>
+        <Panel title={`${site.name} · investigator review queue, not patient chart`}>
           <DataTable
             rowKey={(patient) => patient.id}
             rows={patients}
             rowTone={(patient) => (patient.status === 'exclude' ? 'crit' : patient.status === 'needs data' ? 'warn' : undefined)}
             columns={[
-              { key: 'id', label: 'Record', width: '80px' },
-              { key: 'name', label: 'Patient', render: (patient) => <strong>{patient.name}</strong> },
-              { key: 'profile', label: 'Profile' },
+              { key: 'id', label: 'Site record', width: '90px' },
+              { key: 'profile', label: 'Synthetic profile' },
               {
                 key: 'status',
-                label: 'AI screen',
+                label: 'Screening state',
                 render: (patient) => <Pill tone={patient.status === 'match' ? 'ok' : patient.status === 'needs data' ? 'warn' : 'crit'}>{patient.status}</Pill>,
               },
-              { key: 'reason', label: 'Why' },
-              { key: 'missing', label: 'Missing data', render: (patient) => patient.missing || '—' },
+              { key: 'reason', label: 'Reason' },
+              { key: 'missing', label: 'Operational blocker', render: (patient) => patient.missing || '—' },
               {
                 key: 'decision',
-                label: 'Human decision',
+                label: 'Investigator action',
                 render: (patient) => <DecisionButtons value={status[patient.id] ?? 'pending'} onChange={(value) => onStatus(patient.id, value)} />,
               },
             ]}
           />
         </Panel>
       )}
-      {tab === 'bottleneck' && (
-        <Panel title="Why recruitment is lagging">
-          <p>
-            <Pill tone="warn">Lagging</Pill> {site.name} has {site.eligible} potentially eligible records but only {site.enrolled} enrolled.
-          </p>
-          <p>{site.bottleneck}. The next useful action is to ask the local coordinator to confirm missing data, not to auto-enrol anyone.</p>
+      {tab === 'funnel' && (
+        <Panel title="Funnel impact from this lagging site">
+          <RecruitmentFunnel funnel={funnel} highlightSite={site} />
         </Panel>
       )}
     </div>
@@ -526,6 +605,7 @@ function Actions({
   assistantRuns,
   assistantResult,
   assistantError,
+  readiness,
 }: {
   site: Site;
   patients: Candidate[];
@@ -541,13 +621,14 @@ function Actions({
   assistantRuns: number;
   assistantResult: AgentResult | null;
   assistantError: string | null;
+  readiness: { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' };
 }) {
   const cohortRows = patients.filter((patient) => patient.comparator);
   return (
-    <div className="trial-engine-layout">
+    <div className="trial-ops-layout">
       <div className="trial-engine-stack">
         <Panel
-          title="Assistant draft for the site coordinator"
+          title="Approved outreach lane · recruitment operations"
           actions={
             <button type="button" className="hx-btn primary" onClick={runAssistant} disabled={assistantLoading}>
               {assistantLoading ? (
@@ -561,55 +642,40 @@ function Actions({
           }
         >
           <pre className="trial-engine-letter">{`To: ${site.name} research coordinator
-Subject: EU-LUNG-17 screening follow-up
+Subject: EU-LUNG-17 site signal follow-up
 
-Your site has ${site.eligible} synthetic records flagged for EGFR-mutant NSCLC screening.
-Please confirm missing EGFR/prior-treatment fields for the pending patients below and tell us which patients are ready for investigator review.
+Signal status: ${site.city} is ${site.status}; cause: ${site.bottleneck}.
+Please clear missing-data fields, move eligible rows to investigator review, and report which patients can be approached this week.
 
 This is a hackathon prototype using synthetic data only.`}</pre>
           <div className="trial-engine-actions">
+            <span>Coordinator outreach:</span>
             <DecisionButtons value={outreachStatus} onChange={setOutreachStatus} />
           </div>
         </Panel>
-        <Panel title="Comparable synthetic real-world control queue">
-          <DataTable
-            rowKey={(patient) => patient.id}
+        <Panel title="External-control cohort lane · kept separate from recruitment">
+          <ControlCohortPanel
             rows={cohortRows}
-            columns={[
-              { key: 'id', label: 'Record' },
-              { key: 'name', label: 'Patient' },
-              { key: 'profile', label: 'Why comparable' },
-              { key: 'reason', label: 'Agent explanation' },
-              {
-                key: 'decision',
-                label: 'Decision',
-                render: (patient) => (
-                  <DecisionButtons
-                    value={comparatorStatus[patient.id] ?? 'pending'}
-                    onChange={(value) => onComparatorStatus(patient.id, value)}
-                  />
-                ),
-              },
-            ]}
+            comparatorStatus={comparatorStatus}
+            onComparatorStatus={onComparatorStatus}
+            cohortStatus={cohortStatus}
+            setCohortStatus={setCohortStatus}
+            readiness={readiness}
           />
-          <div className="trial-engine-actions">
-            <span>Cohort design status:</span>
-            <DecisionButtons value={cohortStatus} onChange={setCohortStatus} />
-          </div>
         </Panel>
       </div>
       <Panel title={assistantResult ? assistantResult.headline : 'Assistant reasoning'}>
         {assistantError && <p className="error">{assistantError}</p>}
         <Backstage
           key={assistantRuns}
-          title="Behind the scenes – trial engine"
+          title="Behind the scenes – trial operations engine"
           stages={assistantStages}
           running={assistantStarted}
           holdLast
           release={!assistantLoading}
           note="The backend route calls the Copilot SDK agent when configured; otherwise this shows a deterministic demo path."
         />
-        {!assistantStarted && <span className="hx-empty">Click “Ask assistant to draft” to see the tool-backed proposal.</span>}
+        {!assistantStarted && <span className="hx-empty">Click “Ask assistant to draft” to see the tool-backed operations proposal.</span>}
         {assistantLoading && <Working label="Waiting for assistant output" hint="AI answers can take up to a minute" />}
         {assistantResult && (
           <div className="blocks">
@@ -629,48 +695,247 @@ function Payoff({
   approvedControls,
   outreachStatus,
   cohortStatus,
+  readiness,
+  funnel,
 }: {
   forecast: number;
   approvedControls: number;
   outreachStatus: Status;
   cohortStatus: Status;
+  readiness: { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' };
+  funnel: ReturnType<typeof buildFunnel>;
 }) {
+  const expectedDate = forecast >= 90 ? '18 Nov 2026' : forecast >= 82 ? '02 Dec 2026' : '19 Dec 2026';
+  const sitesNeedingAction = sites.filter((site) => site.status === 'lagging');
   return (
-    <div className="trial-engine-layout">
-      <Panel title="Updated recruitment forecast">
-        <div className="trial-engine-metrics">
-          <Metric label="Original forecast" value={trial.forecast} />
-          <Metric label="After approvals" value={forecast} />
-          <Metric label="Target" value={trial.target} />
+    <div className="trial-ops-layout">
+      <Panel title="Operations payoff dashboard">
+        <div className="trial-engine-metrics wide">
+          <Metric label="Expected recruitment date" value={expectedDate} />
+          <Metric label="Forecast after approvals" value={`${forecast} / ${trial.target}`} />
+          <Metric label="Sites needing action" value={sitesNeedingAction.length} />
+          <Metric label="Control readiness" value={readiness.label} />
         </div>
-        <DataTable
-          rowKey={(site) => site.id}
-          rows={sites}
-          rowTone={(site) => (site.status === 'lagging' ? 'warn' : undefined)}
-          columns={[
-            { key: 'name', label: 'Site' },
-            { key: 'enrolled', label: 'Enrolled' },
-            { key: 'eligible', label: 'Eligible found' },
-            { key: 'forecast', label: 'Forecast' },
-            { key: 'status', label: 'Status', render: (site) => <Pill tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Pill> },
-          ]}
-        />
-      </Panel>
-      <Panel title="Payoff screen">
-        <p>
-          <Pill tone={forecast >= trial.target ? 'ok' : 'warn'}>{forecast} / {trial.target}</Pill> forecasted recruits after human-approved outreach.
-        </p>
-        <p>
-          <Pill tone={approvedControls > 0 ? 'ok' : 'neutral'}>{approvedControls}</Pill> comparable synthetic non-trial patients queued for statistician review.
-        </p>
-        <p>
-          Outreach: <Pill tone={outreachStatus === 'approved' ? 'ok' : outreachStatus === 'dismissed' ? 'crit' : 'neutral'}>{outreachStatus}</Pill>{' '}
-          · evidence design: <Pill tone={cohortStatus === 'approved' ? 'ok' : cohortStatus === 'dismissed' ? 'crit' : 'neutral'}>{cohortStatus}</Pill>
-        </p>
+        <div className="ops-dashboard-grid">
+          <section>
+            <h4>Sites needing action</h4>
+            {sitesNeedingAction.map((site) => (
+              <p key={site.id}>
+                <Pill tone="warn">{site.city}</Pill> {site.bottleneck}
+              </p>
+            ))}
+          </section>
+          <section>
+            <h4>Approved operations</h4>
+            <p>
+              Outreach:{' '}
+              <Pill tone={outreachStatus === 'approved' ? 'ok' : outreachStatus === 'dismissed' ? 'crit' : 'neutral'}>{outreachStatus}</Pill>
+            </p>
+            <p>
+              Control cohort:{' '}
+              <Pill tone={cohortStatus === 'approved' ? 'ok' : cohortStatus === 'dismissed' ? 'crit' : 'neutral'}>{cohortStatus}</Pill>
+            </p>
+            <p>
+              Comparator entries approved: <Pill tone={approvedControls > 0 ? 'ok' : 'neutral'}>{approvedControls}</Pill>
+            </p>
+          </section>
+        </div>
         <p className="note">
           Nothing here enrols a patient. Investigators confirm eligibility, patients and clinicians decide on participation, and statisticians approve the real-world evidence design.
         </p>
       </Panel>
+      <div className="trial-engine-stack">
+        <Panel title="Final recruitment funnel">
+          <RecruitmentFunnel funnel={funnel} />
+        </Panel>
+        <Panel title="External-control balance readiness">
+          <BalanceIndicators />
+          <p>
+            Readiness: <Pill tone={readiness.tone}>{readiness.label}</Pill>
+          </p>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function SiteNetwork({ queried, selectedSite, onSelect }: { queried: boolean; selectedSite: string; onSelect: (id: string) => void }) {
+  return (
+    <div className="site-network-shell">
+      <div className="site-network-map" aria-label="Synthetic European trial site network">
+        <div className="map-label north">North Sea</div>
+        <div className="map-label south">Mediterranean</div>
+        <div className="map-route route-1" />
+        <div className="map-route route-2" />
+        <div className="map-route route-3" />
+        {sites.map((site, index) => {
+          const phase = signalPhase(site, queried, index);
+          return (
+            <button
+              key={site.id}
+              type="button"
+              className={`site-node ${phaseClass(phase)} ${site.status} ${site.id === selectedSite ? 'selected' : ''}`}
+              style={{ left: `${site.x}%`, top: `${site.y}%` }}
+              onClick={() => onSelect(site.id)}
+            >
+              <span className="node-pulse" />
+              <strong>{site.country}</strong>
+              <small>{site.city}</small>
+              <span>{site.eligible} found</span>
+            </button>
+          );
+        })}
+      </div>
+      <SiteSignalRows selectedSite={selectedSite} onSelect={onSelect} queried={queried} />
+    </div>
+  );
+}
+
+function SiteSignalRows({
+  selectedSite,
+  onSelect,
+  queried = true,
+}: {
+  selectedSite: string;
+  onSelect: (id: string) => void;
+  queried?: boolean;
+}) {
+  return (
+    <div className="site-signal-rows">
+      {sites.map((site, index) => {
+        const phase = signalPhase(site, queried, index);
+        return (
+          <button key={site.id} type="button" className={site.id === selectedSite ? 'active' : undefined} onClick={() => onSelect(site.id)}>
+            <span className={`signal-dot ${phaseClass(phase)}`} />
+            <strong>{site.city}</strong>
+            <span>{phase}</span>
+            <Pill tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Pill>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CountryCounts({ queried }: { queried: boolean }) {
+  return (
+    <DataTable
+      rowKey={(site) => site.id}
+      rows={sites}
+      rowTone={(site) => (site.status === 'lagging' ? 'warn' : undefined)}
+      columns={[
+        { key: 'country', label: 'Country' },
+        { key: 'city', label: 'Site' },
+        { key: 'signal', label: 'Signal', render: (site) => signalPhase(site, queried, sites.indexOf(site)) },
+        { key: 'potential', label: 'Potentially eligible' },
+        { key: 'missingData', label: 'Missing data' },
+        { key: 'review', label: 'Review' },
+        { key: 'enrolled', label: 'Enrolled' },
+      ]}
+    />
+  );
+}
+
+function RecruitmentFunnel({ funnel, highlightSite }: { funnel: ReturnType<typeof buildFunnel>; highlightSite?: Site }) {
+  const max = Math.max(...funnel.map((step) => step.value));
+  return (
+    <div className="funnel-board">
+      {funnel.map((step) => (
+        <div key={step.label} className="funnel-step">
+          <div className="funnel-head">
+            <strong>{step.label}</strong>
+            <span>{step.value}</span>
+          </div>
+          <div className="funnel-track">
+            <span style={{ width: `${Math.max(8, (step.value / max) * 100)}%` }} />
+          </div>
+          <small>{step.detail}</small>
+        </div>
+      ))}
+      {highlightSite && (
+        <p className="note">
+          {highlightSite.city} contributes {highlightSite.potential} potentially eligible records, but {highlightSite.missingData} are still blocked by missing data.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function LaggingCause({ site }: { site: Site }) {
+  return (
+    <div className="lagging-cause">
+      <div className="cause-primary">
+        <Pill tone={site.status === 'lagging' ? 'warn' : 'ok'}>{site.status}</Pill>
+        <strong>{site.bottleneck}</strong>
+      </div>
+      <div className="trial-engine-metrics">
+        <Metric label="Potential" value={site.potential} />
+        <Metric label="Missing data" value={site.missingData} />
+        <Metric label="Review queue" value={site.review} />
+      </div>
+      <p>
+        Immediate action: clear missing fields, move confirmed matches to investigator review, then approve coordinator outreach.
+      </p>
+    </div>
+  );
+}
+
+function ControlCohortPanel({
+  rows,
+  comparatorStatus,
+  onComparatorStatus,
+  cohortStatus,
+  setCohortStatus,
+  readiness,
+}: {
+  rows: Candidate[];
+  comparatorStatus: Record<string, Status>;
+  onComparatorStatus: (id: string, value: Status) => void;
+  cohortStatus: Status;
+  setCohortStatus: (value: Status) => void;
+  readiness: { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' };
+}) {
+  return (
+    <div className="trial-engine-stack">
+      <BalanceIndicators />
+      <DataTable
+        rowKey={(patient) => patient.id}
+        rows={rows}
+        columns={[
+          { key: 'id', label: 'Control record' },
+          { key: 'profile', label: 'Comparable profile' },
+          { key: 'controlGap', label: 'Balance contribution' },
+          {
+            key: 'decision',
+            label: 'Statistician queue',
+            render: (patient) => (
+              <DecisionButtons value={comparatorStatus[patient.id] ?? 'pending'} onChange={(value) => onComparatorStatus(patient.id, value)} />
+            ),
+          },
+        ]}
+      />
+      <div className="trial-engine-actions">
+        <span>Evidence-design approval:</span>
+        <DecisionButtons value={cohortStatus} onChange={setCohortStatus} />
+        <Pill tone={readiness.tone}>{readiness.label}</Pill>
+      </div>
+    </div>
+  );
+}
+
+function BalanceIndicators() {
+  return (
+    <div className="balance-grid">
+      {balanceRows.map((row) => (
+        <div key={row.characteristic} className={`balance-card ${row.balance}`}>
+          <div>
+            <strong>{row.characteristic}</strong>
+            <Pill tone={row.balance === 'good' ? 'ok' : row.balance === 'gap' ? 'crit' : 'warn'}>{row.balance}</Pill>
+          </div>
+          <span>Trial {row.trial} · control {row.control}</span>
+          <small>{row.action}</small>
+        </div>
+      ))}
     </div>
   );
 }
@@ -707,6 +972,51 @@ function Metric({ label, value }: { label: string; value: string | number }) {
   );
 }
 
+function signalPhase(site: Site, queried: boolean, index: number): SignalPhase {
+  if (!queried) return 'queried';
+  if (site.status === 'lagging') return 'investigator review';
+  return index % 2 === 0 ? 'patients found' : 'responding';
+}
+
+function phaseClass(phase: SignalPhase) {
+  return phase.replaceAll(' ', '-');
+}
+
+function buildFunnel(forecast: number, candidateStatus: Record<string, Status>, outreachStatus: Status) {
+  const approved = Object.values(candidateStatus).filter((value) => value === 'approved').length;
+  const approachedBonus = outreachStatus === 'approved' ? 5 : 0;
+  return [
+    {
+      label: 'Potentially eligible',
+      value: sites.reduce((sum, site) => sum + site.potential, 0),
+      detail: 'Synthetic records surfaced across connected sites',
+    },
+    {
+      label: 'Missing data',
+      value: Math.max(0, sites.reduce((sum, site) => sum + site.missingData, 0) - approved),
+      detail: 'Mutation, prior-treatment or document gaps blocking confirmation',
+    },
+    {
+      label: 'Investigator review',
+      value: sites.reduce((sum, site) => sum + site.review, 0) + approved,
+      detail: 'Human eligibility confirmation queue',
+    },
+    {
+      label: 'Approached',
+      value: sites.reduce((sum, site) => sum + site.approached, 0) + approachedBonus,
+      detail: 'Coordinator outreach approved or ready to send',
+    },
+    { label: 'Enrolled', value: Math.min(trial.target, forecast), detail: 'Forecasted enrolment after approved operations' },
+  ];
+}
+
+function controlReadiness(approvedControls: number, cohortStatus: Status): { label: string; tone: 'neutral' | 'ok' | 'warn' | 'crit' | 'info' } {
+  if (cohortStatus === 'dismissed') return { label: 'paused', tone: 'crit' };
+  if (cohortStatus === 'approved' && approvedControls >= 2) return { label: 'ready', tone: 'ok' };
+  if (approvedControls > 0) return { label: 'partial', tone: 'warn' };
+  return { label: 'not ready', tone: 'neutral' };
+}
+
 function pendingCount(status: Record<string, Status>, rows: Candidate[]) {
   return rows.filter((row) => (status[row.id] ?? 'pending') === 'pending').length;
 }
@@ -714,13 +1024,13 @@ function pendingCount(status: Record<string, Status>, rows: Candidate[]) {
 function nextLabel(section: Section) {
   switch (section) {
     case 'launch':
-      return 'Send launch query';
+      return 'Broadcast launch query';
     case 'sites':
-      return 'Open lagging site';
+      return 'Open lagging signal';
     case 'screening':
-      return 'Draft outreach';
+      return 'Approve operations';
     case 'actions':
-      return 'Show payoff';
+      return 'Show payoff dashboard';
     default:
       return undefined;
   }
