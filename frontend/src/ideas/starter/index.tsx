@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AgentResult, type PatientRecord, type PatientSummary } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
-import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
+import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 
 export const meta: IdeaMeta = {
@@ -182,7 +182,8 @@ export default function StarterAgent() {
           />
         </Panel>
       )}
-      {section === 'chart' && (record ? <Chart record={record} /> : <Panel title="Patient chart">Loading record…</Panel>)}
+      {section === 'chart' &&
+        (record ? <Chart record={record} /> : <Panel title="Patient chart"><Working label="Loading the record" /></Panel>)}
       {section === 'assistant' && <Assistant patientId={patientId} onResult={setHasDraft} />}
     </HospitalShell>
   );
@@ -387,7 +388,13 @@ function Assistant({ patientId, onResult }: { patientId: string; onResult: (has:
             ))}
           </div>
           <button className="hx-btn primary" type="submit" disabled={loading || task.trim().length < 3}>
-            {loading ? 'Assistant is reading the record…' : 'Ask assistant'}
+            {loading ? (
+              <>
+                <span className="hx-spinner" aria-hidden /> Assistant is reading the record…
+              </>
+            ) : (
+              'Ask assistant'
+            )}
           </button>
         </form>
       </Panel>

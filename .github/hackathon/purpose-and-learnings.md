@@ -37,6 +37,13 @@ scenario, step by step, so they understand *how this could actually work*.
    pre-select, explain), and let the human decide at the step where that matters.
 5. **End with the payoff** – the moment the vision promised (a filled cohort, a signed letter, a
    decision at the MDT), so the story has a clear ending.
+6. **Never leave doubt that something is happening.** Every wait – an AI call (often 10–60 s),
+   a simulated hospital query, a loading record – shows a spinner and a label *immediately*,
+   in the place the user is looking: the button they clicked shows a spinner and "Working…",
+   and the result area shows `Working` (with seconds elapsed) or a running `Backstage`. Never a
+   frozen screen, never an empty panel while waiting. For long AI waits, keep the last
+   `Backstage` stage spinning until the answer arrives (`holdLast`) and say it can take up to a
+   minute.
 
 ## 2. The flow (each step must be visible to the participant)
 
@@ -93,6 +100,7 @@ Each learning states the failure we saw and the rule that prevents it.
 | Proposals were written for engineers | Proposal = plain-language walkthrough of hospital screens ("You open the worklist …") |
 | A prototype showed a working screen, but the viewer could not tell what the vision was or how it would work | Tell one storyline end to end: `StoryGuide` steps, simulated `Backstage` work with explanations, a clear payoff |
 | Big-picture issues ("Europe as one cohort") produced a generic analytics screen | Turn the vision into one concrete scenario with a user, a need and an ending; mention other scenarios as "next" |
+| AI calls took 10–60 s with only a greyed-out button; viewers thought it had hung | Every wait shows a spinner + label immediately where the user looks (`Working`, `Backstage`, spinner in the button) |
 
 ## 6. When in doubt
 

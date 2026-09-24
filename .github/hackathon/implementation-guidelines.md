@@ -77,6 +77,9 @@ click through, react to, and iterate on with you. Speed to something visible bea
      as `guide` to `HospitalShell`. Show out-of-sight work – hospitals queried, data matched,
      models trained, letters sent – with `Backstage` stages (spinners, counts, one-line
      explanations). Simulated timings and numbers are fine. End on the payoff screen.
+   - **No doubt while waiting.** Every AI call or simulated process shows a spinner and a label
+     at once – in the clicked button and in the result area (`Working` with elapsed seconds, or a
+     running `Backstage` with `holdLast` until the AI answers). Never a frozen or empty screen.
 8. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
    abstraction layers.
 9. **No new infrastructure.** No databases, queues, extra services or containers. One container.
