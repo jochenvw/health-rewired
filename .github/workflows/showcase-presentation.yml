@@ -76,16 +76,6 @@ jobs:
             const artifactUrl =
               `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}` +
               `/artifacts/${process.env.ARTIFACT_ID}`;
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number: issue.number,
-              per_page: 100,
-            });
-            const revisionCount = comments.filter((comment) =>
-              comment.user?.type === "Bot" &&
-              comment.body?.includes("### 🎨 Presentation revision plan"),
-            ).length;
             const marker =
               `<!-- health-rewired-presentation run:${context.runId} issue:${issue.number} -->`;
             await github.rest.issues.createComment({
@@ -102,10 +92,7 @@ jobs:
                 `architecture, Well-Architected tradeoffs and the path to real-world delivery.`,
                 ``,
                 `The download is available for 30 days.`,
-                revisionCount < 2
-                  ? `For one focused change, reply \`/presentation revise\` followed by your feedback. ` +
-                    `You can make ${2 - revisionCount} more automatic revision${2 - revisionCount === 1 ? "" : "s"}.`
-                  : `Two automatic presentation revisions are complete. The PowerPoint remains editable for final local changes.`,
+                `Keep replying \`/presentation revise\` followed by one focused change until the deck is done.`,
               ].join("\n"),
             });
             try {
