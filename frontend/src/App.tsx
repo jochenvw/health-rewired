@@ -11,15 +11,6 @@ const exampleTasks = [
 ];
 
 const outcomeOptions = ['lab trend', 'imaging', 'patient-reported symptoms'];
-const repoUrl = 'https://github.com/jochenvw/health-rewired';
-const newIdeaUrl = `${repoUrl}/issues/new?template=oncology-idea.yml`;
-const ideasUrl = `${repoUrl}/issues`;
-
-const steps = [
-  { title: 'Share your idea', body: 'Open a GitHub issue and describe it in plain language. No code needed.' },
-  { title: 'Get coached', body: 'An AI coach replies within minutes to help sharpen the clinical insight.' },
-  { title: 'See it live', body: 'GitHub Copilot builds it and posts a link to your working prototype.' },
-];
 
 export default function App() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -129,95 +120,25 @@ export default function App() {
           </div>
         </div>
         <nav aria-label="Main">
-          <a href="#canvas">Agent canvas</a>
           <a href="#cohort">Cohort explorer</a>
-          <a href={ideasUrl} target="_blank" rel="noreferrer">
-            Browse ideas
-          </a>
+          <a href="#canvas">Starter agent</a>
         </nav>
       </header>
 
       <section className="hero">
+        <p className="eyebrow">Cohort explorer</p>
         <h1>
-          Bring your oncology idea. <span className="accent">We'll build it.</span>
+          What actually happens to patients who <span className="accent">don't meet trial criteria?</span>
         </h1>
         <p className="lede">
-          Describe your idea in a GitHub issue. An AI coach helps you sharpen it, then GitHub Copilot turns it into a
-          working prototype.
+          Researchers today manually assemble records and reconcile eligibility across hospitals to answer that. Pick
+          a treatment, subgroup and outcome below — the agent proposes cohort rules, classifies every synthetic
+          patient with a traceable reason, and reruns as new (simulated) data arrives.
         </p>
-        <div className="cta-row">
-          <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
-            Submit your idea on GitHub →
-          </a>
-          <a className="button ghost" href={ideasUrl} target="_blank" rel="noreferrer">
-            See other ideas
-          </a>
-        </div>
-      </section>
-
-      <section className="steps">
-        {steps.map((step, index) => (
-          <article key={step.title} className="step">
-            <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </article>
-        ))}
-      </section>
-
-      <section id="canvas" className="canvas">
-        <div className="canvas-intro">
-          <p className="eyebrow">Starter agent</p>
-          <h2>Every prototype starts from this agent.</h2>
-          <p>Try it on synthetic patients to see what your idea can build on.</p>
-        </div>
-
-        <form className="agent-form" onSubmit={run}>
-          <div className="field-row">
-            <label>
-              Synthetic patient
-              <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
-                {(patients.length ? patients : [{ id: 'P-001', name: 'P-001', age: 0, diagnosis: '' }]).map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.id} · {p.name}
-                    {p.diagnosis ? ` · ${p.diagnosis}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Your role
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                {roles.map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <label>
-            Task for the agent
-            <textarea value={task} onChange={(e) => setTask(e.target.value)} rows={3} />
-          </label>
-          <div className="chip-row">
-            {exampleTasks.map((example) => (
-              <button key={example} type="button" className="chip" onClick={() => setTask(example)}>
-                {example}
-              </button>
-            ))}
-          </div>
-          <button className="button primary" type="submit" disabled={loading || task.trim().length < 3}>
-            {loading ? 'Agent is working…' : 'Run agent'}
-          </button>
-        </form>
-
-        {error && <p className="error">{error}</p>}
-
-        {result && renderResult(result)}
       </section>
 
       <section id="cohort" className="canvas">
         <div className="canvas-intro">
-          <p className="eyebrow">Cohort explorer</p>
           <h2>Turn a clinical question into a traceable, continuously-updated cohort.</h2>
           <p>
             Pick a treatment/trial, subgroup and outcome. The agent proposes explicit cohort rules, classifies every
@@ -277,6 +198,56 @@ export default function App() {
         {cohortError && <p className="error">{cohortError}</p>}
 
         {cohortResult && renderResult(cohortResult)}
+      </section>
+
+      <section id="canvas" className="canvas">
+        <div className="canvas-intro">
+          <p className="eyebrow">Starter agent</p>
+          <h2>Every prototype starts from this agent.</h2>
+          <p>Try it on synthetic patients to see what your idea can build on.</p>
+        </div>
+
+        <form className="agent-form" onSubmit={run}>
+          <div className="field-row">
+            <label>
+              Synthetic patient
+              <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
+                {(patients.length ? patients : [{ id: 'P-001', name: 'P-001', age: 0, diagnosis: '' }]).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.id} · {p.name}
+                    {p.diagnosis ? ` · ${p.diagnosis}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Your role
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                {roles.map((r) => (
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label>
+            Task for the agent
+            <textarea value={task} onChange={(e) => setTask(e.target.value)} rows={3} />
+          </label>
+          <div className="chip-row">
+            {exampleTasks.map((example) => (
+              <button key={example} type="button" className="chip" onClick={() => setTask(example)}>
+                {example}
+              </button>
+            ))}
+          </div>
+          <button className="button primary" type="submit" disabled={loading || task.trim().length < 3}>
+            {loading ? 'Agent is working…' : 'Run agent'}
+          </button>
+        </form>
+
+        {error && <p className="error">{error}</p>}
+
+        {result && renderResult(result)}
       </section>
 
       <footer className="footer">
