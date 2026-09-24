@@ -16,7 +16,7 @@ export function OutcomeRiskBlock({ block }: BlockProps) {
   const decide = (next: Decision) => setDecision((current) => (current === next ? undefined : next));
 
   return (
-    <div className="block-body outcome-risk">
+    <div className="block-body">
       <span className="risk-badge" data-severity={block.severity ?? 'info'}>
         {(block.severity ?? 'info').toUpperCase()} RISK
       </span>

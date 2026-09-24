@@ -3,6 +3,8 @@
 It follows the same UI-block contract as the live agent, so the frontend and demos keep working.
 """
 
+import re
+
 from app import sample_data
 from app.agent.models import AgentRequest, AgentResult, TraceStep
 from app.agent.ui import UIBlock, UIItem
@@ -17,17 +19,18 @@ def _cancer_type(primary: str) -> str:
 
 
 _CONCERN_KEYWORDS = ("new", "indeterminate", "progress")
+_WORD_RE = re.compile(r"[a-z0-9]+")
 
 
 def _match_trial(record: dict, trials: list[dict]) -> dict | None:
-    """Score synthetic trials by overlap with this patient's regimen and biomarkers."""
+    """Score synthetic trials by word-level overlap with this patient's regimen and biomarkers."""
     text = " ".join(t.get("regimen", "") for t in record.get("treatments", []))
     text += " " + " ".join(f"{k} {v}" for k, v in record.get("diagnosis", {}).get("biomarkers", {}).items())
-    words = {w.lower() for w in text.split() if len(w) > 3}
+    words = {w for w in _WORD_RE.findall(text.lower()) if len(w) > 3}
 
     def score(trial: dict) -> int:
-        inclusion = trial.get("key_inclusion", "").lower()
-        return sum(1 for word in words if word in inclusion)
+        inclusion_words = set(_WORD_RE.findall(trial.get("key_inclusion", "").lower()))
+        return len(words & inclusion_words)
 
     scored = sorted(trials, key=score, reverse=True)
     if scored and score(scored[0]) > 0:
