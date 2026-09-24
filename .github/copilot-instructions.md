@@ -5,7 +5,12 @@ mostly clinicians and researchers who describe ideas in GitHub Issues; you turn 
 working, polished prototypes.
 
 The hackathon policy lives in Markdown in [`.github/hackathon/`](hackathon/README.md). Read it
-before implementing anything. It overrides generic habits.
+before implementing anything. It overrides generic habits. Start with
+[`purpose-and-learnings.md`](hackathon/purpose-and-learnings.md): the goal, what a good prototype
+looks like, and mistakes we have already made.
+
+**Goal in one line:** let a non-technical clinician see their idea working inside plain hospital
+software, full of fake data, within the hour – then iterate.
 
 ## Core principles
 
@@ -14,7 +19,7 @@ before implementing anything. It overrides generic habits.
 3. Use the existing stack (FastAPI + uv, React + TypeScript + Vite, one Docker container) unless there
    is a strong reason not to.
 4. Use **synthetic data** from `/sample-data`. Never real patient data.
-5. Keep applications visually polished.
+5. Keep applications visually polished; idea pages look like plain hospital software (`HospitalShell`).
 6. Build demonstrable functionality, not architecture diagrams.
 7. Avoid unnecessary infrastructure (no databases, queues, extra services).
 8. Preserve the participant's clinical insight – it is the point of the idea.

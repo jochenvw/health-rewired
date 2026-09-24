@@ -34,6 +34,23 @@ export type Status = {
 
 export type PatientSummary = { id: string; name: string; age: number; diagnosis: string };
 
+/** Full synthetic record from /sample-data/patients/<id>.json. */
+export type PatientRecord = {
+  id: string;
+  name: string;
+  age: number;
+  sex: string;
+  ecog: number;
+  diagnosis: { primary: string; date: string; stage: string; grade?: number; biomarkers: Record<string, string> };
+  comorbidities: string[];
+  medications: string[];
+  treatments: { type: string; regimen: string; start: string; status: string; cycle?: string }[];
+  labs: { date: string; test: string; value: number; unit: string; ref: string; flag?: string }[];
+  patient_reported: { date: string; symptom: string; grade: number }[];
+  timeline: { date: string; event: string }[];
+  open_questions: string[];
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -46,6 +63,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   status: () => request<Status>('/api/status'),
   patients: () => request<PatientSummary[]>('/api/patients'),
+  patient: (id: string) => request<PatientRecord>(`/api/sample-data/patients/${id}.json`),
+  sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
 };

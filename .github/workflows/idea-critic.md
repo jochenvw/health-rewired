@@ -62,7 +62,7 @@ The GitHub Copilot coding agent has finished (a round of) work on pull request
 
 ## Step 1 – Read the policy
 
-Read `.github/hackathon/critic.md`, `.github/hackathon/guardrails.md`,
+Read `.github/hackathon/purpose-and-learnings.md`, `.github/hackathon/critic.md`, `.github/hackathon/guardrails.md`,
 `.github/hackathon/clinical-thinking.md` and `.github/hackathon/capability-cards.md` from the
 checked-out repository. `critic.md` defines your question, the failure modes and the output shape.
 
