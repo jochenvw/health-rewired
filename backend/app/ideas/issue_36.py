@@ -159,7 +159,7 @@ def simulate_paths(patient_id: str) -> TwinSimulation:
         headline = f"Digital twin: three next-treatment paths for {record.get('name')} after progression on osimertinib"
     else:
         has_renal_impairment = any(
-            lab["test"].lower() == "creatinine" and lab.get("flag") for lab in record.get("labs", [])
+            lab.get("test", "").lower() == "creatinine" and lab.get("flag") for lab in record.get("labs", [])
         )
         toxicity_bump = 1 if has_renal_impairment else 0
         paths = [
