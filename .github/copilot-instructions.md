@@ -20,7 +20,9 @@ would work – then iterate.
 3. Use the existing stack (FastAPI + uv, React + TypeScript + Vite, one Docker container) unless there
    is a strong reason not to.
 4. Use **synthetic data** from `/sample-data`. Never real patient data.
-5. Keep applications visually polished; idea pages look like plain hospital software (`HospitalShell`).
+5. Keep applications visually polished and credible for the participant's work. Use `HospitalShell`
+   for clinical workflows; use an issue-local research or operations visual language when that
+   better expresses the idea. Do not force every prototype into the same blue EHR shell.
 6. Build demonstrable functionality, not architecture diagrams.
 7. Avoid unnecessary infrastructure (no databases, queues, extra services).
 8. Preserve the participant's clinical insight – it is the point of the idea.

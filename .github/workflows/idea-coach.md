@@ -61,9 +61,11 @@ safe-outputs:
       The idea gets its own page: frontend/src/ideas/issue-<N>/index.tsx and
       backend/app/ideas/issue_<N>.py (rule 0 in implementation-guidelines.md). Do not edit the
       landing page (frontend/src/App.tsx) or backend/app/main.py.
-      Make it look like plain hospital software: wrap the page in HospitalShell
-      (frontend/src/hospital/), fill it with lots of synthetic data and clickable interactions
-      (rule 7; frontend/src/ideas/starter/index.tsx is the example).
+      Match the visual language to the participant's work (rule 7). Use HospitalShell for
+      patient-level clinical workflows. For research networks, trial operations or other
+      cross-hospital work, use a distinct issue-local workspace when it better expresses the
+      proposal. Keep either approach dense, credible, full of synthetic data and clickable
+      interactions; do not change shared shell components or other ideas.
       Tell the story of the vision: one concrete scenario, guided with StoryGuide, simulated
       behind-the-scenes work with Backstage, ending on the payoff. Every AI wait shows a
       spinner and label immediately (Working / Backstage) – never a frozen screen.

@@ -67,9 +67,11 @@ feedback stays on the issue for discussion with a facilitator rather than trigge
 
 1. **Opens straight on the idea.** The link goes to `/#/idea/<N>`; the main screen is visible
    with no scrolling, setup or configuration. A sensible synthetic patient is pre-selected.
-2. **Looks like boring hospital software.** `HospitalShell`: app bar, patient banner, left
-   navigation, dense tables, tabs. Not a startup landing page, not a chat window. Familiar beats
-   pretty – the clinician must think "this could sit in our system".
+2. **Looks credible for the work.** Patient-level clinical workflows should feel at home in
+   `HospitalShell`: app bar, patient banner, left navigation, dense tables and tabs. Research,
+   network and trial-operations ideas may need a distinct evidence workspace, European network
+   canvas or command centre. Familiarity still beats decoration, but do not make every concept a
+   variation of the same blue EHR. Never use a startup landing page or generic chat window.
 3. **Full of fake data.** Worklists, lab results, notes, histories, extra patients. An empty or
    sparse screen fails to convey a real clinic day. Inline synthetic rows are fine.
 4. **Things react when clicked.** Rows open charts, tabs switch, acknowledge / approve /
@@ -95,12 +97,17 @@ Each learning states the failure we saw and the rule that prevents it.
 | Seen | Rule |
 |---|---|
 | Coach took ~4 min; participant saw nothing and assumed it was broken | Post a status comment immediately; keep workflow steps minimal (no extra gating/detection jobs) |
+| The acknowledgement arrived quickly, but substantive coaching consistently took 3–4 min | Promise an honest 3–5 min rather than "a minute or two" |
+| A ready issue stayed unbuilt while the overall workflow was green because assignment used an unsupported agent alias | Assign exactly `copilot`; watchdog every `ready-for-build` handoff and fail visibly when no agent is assigned |
+| Participants had to leave their idea issue and understand a pull request to request changes | Keep the issue as the participant surface and relay feedback to the linked build |
+| Open-ended revision requests could consume the event while repeatedly destabilising a working demo | Allow at most two focused automatic revisions, then keep further feedback for facilitator discussion |
 | Preview link was posted while the PR held only the "Initial plan" commit | Deploy only once Copilot drops `[WIP]` from the title; say "building" first, link second |
 | Idea code was appended below the landing page; participant saw no difference | Each idea lives in `frontend/src/ideas/issue-<N>/` and `backend/app/ideas/issue_<N>.py`; never edit `App.tsx` or `main.py` |
 | The idea only appeared after typing a specific prompt into the starter agent | The idea's main screen must show immediately on `/#/idea/<N>` |
 | Internal terms ("cohort explorer") confused clinicians | Use the participant's words for titles and labels |
 | PR branches conflicted with `main` and deploys silently stopped | Keep ideas in their own files so branches merge cleanly; if conflicted, merge `main` in |
-| A generic dark "AI demo" look did not help clinicians picture the idea | Style idea pages as plain hospital software with lots of fake data |
+| A generic dark "AI demo" look did not help clinicians picture the idea | Use credible working-software patterns with lots of synthetic data, not a marketing or chat experience |
+| Four different ideas converged on nearly identical blue EHR shells; an explicit trial-operations exception produced a clearer, distinctive result without losing safety or usability | Match the shell to the role and task: `HospitalShell` for patient-level care, purpose-built issue-local research/operations workspaces where appropriate |
 | Proposals were written for engineers | Proposal = plain-language walkthrough of hospital screens ("You open the worklist …") |
 | A prototype showed a working screen, but the viewer could not tell what the vision was or how it would work | Tell one storyline end to end: `StoryGuide` steps, simulated `Backstage` work with explanations, a clear payoff |
 | Big-picture issues ("Europe as one cohort") produced a generic analytics screen | Turn the vision into one concrete scenario with a user, a need and an ending; mention other scenarios as "next" |

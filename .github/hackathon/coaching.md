@@ -54,8 +54,10 @@ One or two sentences: who uses it, when in their day, and what gets easier.
    "You open the clinic worklist …", "You click a patient …", "Behind the scenes, the request goes
    to 12 connected hospitals …", "The assistant proposes …", "You approve …". Three to six steps.
    If the idea is a big vision, pick **one concrete scenario** that shows how it would work and
-   say so ("We show it with one example: …"). The prototype looks like plain hospital software
-   with realistic fake patients and a guided "Next" through the steps, so describe it that way.
+   say so ("We show it with one example: …"). Describe a visual setting that fits the participant's
+   work: a familiar hospital screen for patient-level clinical workflows, or a distinct research,
+   network or operations workspace when that better expresses the idea. Include realistic
+   synthetic data and a guided "Next" through the steps.
 
 **What the assistant does for you**
 - Two to four bullets: what it looks up, what it notices, what it prepares.
