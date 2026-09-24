@@ -1,0 +1,7 @@
+twin_id,cancer_type,profile,path_taken,months_to_progression,toxicity_grade_max,outcome
+TWIN-014,lung,EGFR exon19del oligoprogression after 1L osimertinib CKD3,platinum_doublet_chemo,5,3,"Partial response at 2 months; grade 3 renal toxicity required dose reduction"
+TWIN-027,lung,EGFR exon19del oligoprogression after 1L osimertinib normal renal function,platinum_doublet_chemo,7,2,"Partial response; manageable toxicity"
+TWIN-041,lung,EGFR exon19del oligoprogression 1 liver lesion after 1L osimertinib,continue_osimertinib_plus_SBRT,9,1,"Local control of liver lesion; continued osimertinib benefit"
+TWIN-052,lung,EGFR exon19del oligoprogression after 1L osimertinib MET amplification confirmed,continue_osimertinib_plus_SBRT,4,1,"Early diffuse progression – resistance mechanism not targeted"
+TWIN-063,lung,EGFR exon19del molecular progression liquid-biopsy guided switch trial SYN-LU-310,clinical_trial_SYN_LU_310,11,2,"Sustained response after switching on ctDNA-confirmed resistance mechanism"
+TWIN-078,lung,EGFR exon19del oligoprogression enrolled SYN-LU-310 without confirmed mechanism,clinical_trial_SYN_LU_310,6,2,"Modest benefit; mechanism unclear at enrolment"

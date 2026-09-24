@@ -51,6 +51,29 @@ export type PatientRecord = {
   open_questions: string[];
 };
 
+/** Idea #36 – cancer digital twin: one simulated point on a treatment-path trajectory. */
+export type TrajectoryPoint = { month: number; response_pct: number; progression_risk_pct: number; toxicity_grade: number };
+
+/** Idea #36 – cancer digital twin: one of the three simulated next-treatment paths. */
+export type TreatmentPath = {
+  id: string;
+  name: string;
+  description: string;
+  trajectory: TrajectoryPoint[];
+  assumptions: string[];
+  evidence: string[];
+};
+
+/** Idea #36 – cancer digital twin: the full simulation for one patient. */
+export type TwinSimulation = {
+  patient_id: string;
+  headline: string;
+  paths: TreatmentPath[];
+  informative_test: string;
+  informative_test_reason: string;
+  note: string;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -67,4 +90,8 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  // Idea #36 – cancer digital twin.
+  twin: (patientId: string) => request<TwinSimulation>(`/api/ideas/36/twin/${patientId}`),
+  askTwin: (body: { task: string; patient_id?: string; role?: string }) =>
+    request<AgentResult>('/api/ideas/36/ask', { method: 'POST', body: JSON.stringify(body) }),
 };

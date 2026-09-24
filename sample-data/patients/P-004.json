@@ -1,0 +1,39 @@
+{
+  "synthetic": true,
+  "id": "P-004",
+  "name": "Maria López",
+  "age": 61,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "NSCLC, adenocarcinoma, right lower lobe",
+    "date": "2025-05-12",
+    "stage": "cT2 cN2 M1a (stage IVA) at diagnosis",
+    "grade": 2,
+    "biomarkers": { "EGFR": "exon 19 deletion (positive)", "PD-L1 TPS": "5%", "ALK": "negative", "ctDNA T790M (latest)": "not detected" }
+  },
+  "comorbidities": ["Chronic kidney disease stage 3 (eGFR 48)", "Hypertension"],
+  "medications": ["Osimertinib 80 mg QD", "Amlodipine 5 mg QD"],
+  "treatments": [
+    { "type": "First-line targeted therapy", "regimen": "Osimertinib 80 mg QD", "start": "2025-05-26", "status": "progression on scan", "cycle": "Month 9 of therapy" }
+  ],
+  "labs": [
+    { "date": "2026-01-12", "test": "Creatinine", "value": 1.4, "unit": "mg/dL", "ref": "0.6-1.2", "flag": "high" },
+    { "date": "2026-02-20", "test": "Creatinine", "value": 1.5, "unit": "mg/dL", "ref": "0.6-1.2", "flag": "high" },
+    { "date": "2026-02-20", "test": "CEA", "value": 8.4, "unit": "ng/mL", "ref": "<5.0", "flag": "high" }
+  ],
+  "patient_reported": [
+    { "date": "2025-08-14", "symptom": "Grade 2 diarrhoea on osimertinib (resolved with loperamide)", "grade": 2 },
+    { "date": "2026-02-18", "symptom": "New mild right-sided chest discomfort", "grade": 1 }
+  ],
+  "timeline": [
+    { "date": "2025-05-12", "event": "Diagnosed NSCLC stage IVA, EGFR exon 19 deletion" },
+    { "date": "2025-05-26", "event": "Started first-line osimertinib" },
+    { "date": "2025-08-14", "event": "Grade 2 diarrhoea, managed without dose reduction" },
+    { "date": "2025-11-10", "event": "Restaging CT: partial response, single liver lesion stable" },
+    { "date": "2026-02-20", "event": "Restaging CT: growth of right lower lobe mass + new 1.1 cm liver lesion – oligoprogression on osimertinib" }
+  ],
+  "open_questions": [
+    "Repeat tissue or ctDNA biopsy to identify the resistance mechanism (e.g. MET amplification, T790M) has not been done – it would change which targeted therapy or trial fits"
+  ]
+}
