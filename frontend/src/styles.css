@@ -372,7 +372,8 @@ select option {
 }
 
 .block-summary,
-.block-timeline {
+.block-timeline,
+.block-cohort {
   grid-column: 1 / -1;
 }
 
@@ -484,6 +485,52 @@ select option {
 .alerts li[data-severity='info'] {
   border-color: var(--accent-2);
 }
+
+.cohort-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.cohort-stat {
+  background: var(--surface-strong);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  display: grid;
+  gap: 2px;
+  border: 1px solid transparent;
+}
+
+.cohort-stat strong {
+  font-size: 1.6rem;
+}
+
+.cohort-stat span {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cohort-stat[data-status='eligible'] {
+  border-color: rgba(61, 220, 151, 0.4);
+}
+
+.cohort-stat[data-status='ineligible'] {
+  border-color: var(--border);
+}
+
+.cohort-stat[data-status='unknown'] {
+  border-color: rgba(255, 194, 87, 0.4);
+}
+
+.evidence li[data-severity='warning'] {
+  border-left: 3px solid var(--warning);
+  padding-left: 10px;
+}
+
 
 .actions li {
   display: flex;

@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { UIBlock } from '../api';
 import { ActionsBlock } from './ActionsBlock';
 import { AlertBlock } from './AlertBlock';
+import { CohortBlock } from './CohortBlock';
 import { EvidenceBlock } from './EvidenceBlock';
 import { PatientCardBlock } from './PatientCardBlock';
 import { SummaryBlock } from './SummaryBlock';
@@ -20,6 +21,7 @@ const registry: Record<string, ComponentType<BlockProps>> = {
   evidence: EvidenceBlock,
   alert: AlertBlock,
   actions: ActionsBlock,
+  cohort: CohortBlock,
 };
 
 export function RenderBlock({ block }: BlockProps) {

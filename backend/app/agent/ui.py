@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-BlockType = Literal["summary", "patient_card", "timeline", "evidence", "alert", "actions"]
+BlockType = Literal["summary", "patient_card", "timeline", "evidence", "alert", "actions", "cohort"]
 Severity = Literal["info", "warning", "critical"]
 
 
@@ -27,7 +27,9 @@ class UIBlock(BaseModel):
         description=(
             "summary: short narrative. patient_card: key facts as items. timeline: dated items. "
             "evidence: items with sources. alert: something needing attention (set severity). "
-            "actions: proposed actions a human must approve, edit or dismiss."
+            "actions: proposed actions a human must approve, edit or dismiss. "
+            "cohort: eligible/ineligible/unknown patient classification for a cohort question, "
+            "one item per patient (detail: reasons, source: the record, severity 'warning' for unknown)."
         )
     )
     title: str

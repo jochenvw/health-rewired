@@ -16,9 +16,9 @@ from copilot import CopilotClient
 from copilot.session import PermissionHandler
 from copilot.session_events import AssistantMessageData, ToolExecutionStartData
 
-from app.agent.fallback import build_fallback
+from app.agent.fallback import build_cohort_fallback, build_fallback
 from app.agent.models import AgentRequest, AgentResult, TraceStep
-from app.agent.prompts import SYSTEM_PROMPT, build_prompt
+from app.agent.prompts import SYSTEM_PROMPT, build_cohort_prompt, build_prompt
 from app.agent.tools import DATA_TOOLS, build_render_ui_tool
 from app.agent.ui import RenderUIParams, UIBlock
 from app.config import settings
@@ -56,6 +56,8 @@ async def shutdown() -> None:
 
 async def run_agent(request: AgentRequest) -> AgentResult:
     if settings.copilot_auth_mode == "not-configured":
+        if request.trial_id:
+            return build_cohort_fallback(request, "Copilot SDK not configured: set COPILOT_GITHUB_TOKEN.")
         return build_fallback(request, "Copilot SDK not configured: set COPILOT_GITHUB_TOKEN.")
 
     rendered: list[RenderUIParams] = []
@@ -71,6 +73,19 @@ async def run_agent(request: AgentRequest) -> AgentResult:
             case AssistantMessageData() as data if data.content:
                 messages.append(data.content)
 
+    if request.trial_id:
+        prompt = build_cohort_prompt(
+            request.task,
+            request.trial_id,
+            request.treatment or "",
+            request.subgroup or "",
+            request.outcome or "lab trend",
+            request.role,
+            request.simulate,
+        )
+    else:
+        prompt = build_prompt(request.task, request.patient_id, request.role)
+
     try:
         client = await _get_client()
         async with await client.create_session(
@@ -85,12 +100,15 @@ async def run_agent(request: AgentRequest) -> AgentResult:
         ) as session:
             session.on(on_event)
             await session.send_and_wait(
-                build_prompt(request.task, request.patient_id, request.role),
+                prompt,
                 timeout=settings.agent_timeout_seconds,
             )
     except Exception as exc:  # noqa: BLE001 - any SDK/auth/network failure degrades to the demo path
         logger.warning("Copilot SDK call failed: %s", exc)
-        return build_fallback(request, f"Copilot SDK unavailable ({type(exc).__name__}). Showing deterministic demo.")
+        note = f"Copilot SDK unavailable ({type(exc).__name__}). Showing deterministic demo."
+        if request.trial_id:
+            return build_cohort_fallback(request, note)
+        return build_fallback(request, note)
 
     if rendered:
         view = rendered[-1]

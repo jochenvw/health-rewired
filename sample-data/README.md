@@ -10,7 +10,7 @@
 |---|---|---|
 | `patients/<id>.json` | JSON | One synthetic oncology patient: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
 | `notes/<id>-*.md` | Markdown | Free-text clinical notes (MDT notes, letters) for extraction/reasoning demos |
-| `trials.csv` | CSV | Synthetic clinical trials with simple eligibility criteria |
+| `trials.csv` | CSV | Synthetic clinical trials. `key_inclusion`/`key_exclusion` are the human-readable criteria; the remaining columns (`ecog_max`, `require_biomarker`/`require_value`, `exclude_biomarker`/`exclude_value`, `requires_regimen_keyword`, `requires_stage_keyword`, `excludes_stage_keyword`) are a **best-effort structured subset** of the same criteria, used by the cohort-explorer eligibility engine (`backend/app/agent/cohort.py`). Blank means "no structured rule for this clause yet" and the engine reports the patient as `unknown`, not eligible. |
 
 ## How the app uses it
 

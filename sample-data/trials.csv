@@ -1,7 +1,7 @@
-trial_id,title,phase,cancer_type,key_inclusion,key_exclusion,site,status
-SYN-BR-101,Adding a CDK4/6 inhibitor to neoadjuvant chemotherapy in HR+ HER2- breast cancer,II,breast,"ER+ HER2- stage II-III, ECOG 0-1","HER2+; grade>=2 neuropathy",Munich,recruiting
-SYN-BR-205,De-escalated anti-HER2 therapy guided by early response,III,breast,"HER2+ (IHC 3+ or ISH+) stage II-III","prior anti-HER2 therapy",Munich,recruiting
-SYN-LU-310,Liquid-biopsy-guided switch at molecular progression on osimertinib,II,lung,"EGFR-mutant NSCLC on osimertinib, ECOG 0-2","symptomatic brain metastases",Munich,recruiting
-SYN-LU-412,Stereotactic radiotherapy for oligoprogressive NSCLC,II,lung,"<=3 progressing lesions on targeted therapy","ILD; prior thoracic RT to target",Augsburg,recruiting
-SYN-CRC-120,ctDNA-guided surveillance after resected stage III colon cancer,III,colorectal,"Resected stage III, completed adjuvant therapy","metastatic disease",Munich,recruiting
-SYN-CRC-221,KRAS G12D inhibitor in advanced colorectal cancer,I,colorectal,"KRAS G12D, measurable metastatic disease","active hepatitis; ECOG>=2",Regensburg,not yet recruiting
+trial_id,title,phase,cancer_type,key_inclusion,key_exclusion,site,status,ecog_max,require_biomarker,require_value,exclude_biomarker,exclude_value,requires_regimen_keyword,requires_stage_keyword,excludes_stage_keyword
+SYN-BR-101,Adding a CDK4/6 inhibitor to neoadjuvant chemotherapy in HR+ HER2- breast cancer,II,breast,"ER+ HER2- stage II-III, ECOG 0-1","HER2+; grade>=2 neuropathy",Munich,recruiting,1,HER2,negative,,,,,
+SYN-BR-205,De-escalated anti-HER2 therapy guided by early response,III,breast,"HER2+ (IHC 3+ or ISH+) stage II-III","prior anti-HER2 therapy",Munich,recruiting,,HER2,positive,,,,,
+SYN-LU-310,Liquid-biopsy-guided switch at molecular progression on osimertinib,II,lung,"EGFR-mutant NSCLC on osimertinib, ECOG 0-2","symptomatic brain metastases",Munich,recruiting,2,,,,,osimertinib,,
+SYN-LU-412,Stereotactic radiotherapy for oligoprogressive NSCLC,II,lung,"<=3 progressing lesions on targeted therapy","ILD; prior thoracic RT to target",Augsburg,recruiting,,,,,,,,
+SYN-CRC-120,ctDNA-guided surveillance after resected stage III colon cancer,III,colorectal,"Resected stage III, completed adjuvant therapy","metastatic disease",Munich,recruiting,,,,,,,,M1
+SYN-CRC-221,KRAS G12D inhibitor in advanced colorectal cancer,I,colorectal,"KRAS G12D, measurable metastatic disease","active hepatitis; ECOG>=2",Regensburg,not yet recruiting,1,KRAS,G12D,,,,M1,
