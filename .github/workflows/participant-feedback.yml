@@ -18,7 +18,12 @@ jobs:
   relay:
     if: >-
       github.event.issue.pull_request == null &&
-      github.event.sender.type != 'Bot'
+      github.event.sender.type != 'Bot' &&
+      !contains(github.event.comment.body, '/architecture') &&
+      !contains(github.event.comment.body, 'ready for architecture') &&
+      !contains(github.event.comment.body, 'prototype is done') &&
+      !contains(github.event.issue.labels.*.name, 'architecture-coaching') &&
+      !contains(github.event.issue.labels.*.name, 'architecture-ready')
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -197,7 +202,9 @@ jobs:
                 `### 🧭 Two prototype revisions are complete`,
                 ``,
                 `Thanks — your latest feedback is saved here. To keep the hackathon moving,`,
-                `automatic building stops after two revision rounds. Please discuss the next`,
-                `step with a facilitator rather than repeating your comment.`,
+                `automatic building stops after two revision rounds. If the prototype now shows`,
+                `the idea well enough, reply \`/architecture\` and the architecture coach will help`,
+                `turn it into a future real-world Azure design. Otherwise, discuss the next step`,
+                `with a facilitator rather than repeating your comment.`,
               ].join("\n"),
             });
