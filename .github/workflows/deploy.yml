@@ -48,6 +48,41 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Tell participant the prototype is being published
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request.number;
+            const marker = "<!-- oncology-hackathon-preview -->";
+            const releaseRe = /<!-- oncology-hackathon-release:/;
+            const { repository } = await github.graphql(
+              `query($owner:String!,$repo:String!,$pr:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$pr){closingIssuesReferences(first:5){nodes{number}}}}}`,
+              { owner, repo, pr },
+            );
+
+            for (const { number: issue_number } of repository.pullRequest.closingIssuesReferences.nodes) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100,
+              });
+              const status = comments.find(
+                (comment) => comment.body?.includes(marker) && !releaseRe.test(comment.body),
+              );
+              if (!status) continue;
+
+              const body = [
+                marker,
+                `### ✅ Prototype built · publishing your preview`,
+                ``,
+                `Copilot has finished the first version. We are running the final checks and publishing it now.`,
+                `The live link should appear here in a few more minutes.`,
+              ].join("\n");
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: status.id, body,
+              });
+            }
+
       - name: Check configuration
         env:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
@@ -190,8 +225,8 @@ jobs:
                 `**${url}/#/idea/${issue_number}**`,
                 ``,
                 minor === 0
-                  ? `Try it and tell us what to change: comment on #${pr} starting with \`@copilot\`.`
-                  : `Copilot has updated your prototype. Reload the page to see the changes, and keep the feedback coming on #${pr} (start with \`@copilot\`).`,
+                  ? `Try it and reply on this issue with what you want changed. We will pass your feedback to Copilot automatically.`
+                  : `Copilot has updated your prototype. Reload the page to see the changes, then reply on this issue with any further feedback.`,
                 `Synthetic data only · hackathon prototype · not for clinical use.`,
               ].join("\n");
 
@@ -214,3 +249,43 @@ jobs:
               `Build \`${build}\` · updates automatically on every push to this pull request.`,
               `Synthetic data only · hackathon prototype · not for clinical use.`,
             ].join("\n"));
+
+      - name: Tell participant if publishing failed
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request.number;
+            const marker = "<!-- oncology-hackathon-preview -->";
+            const releaseRe = /<!-- oncology-hackathon-release:/;
+            const { repository } = await github.graphql(
+              `query($owner:String!,$repo:String!,$pr:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$pr){closingIssuesReferences(first:5){nodes{number}}}}}`,
+              { owner, repo, pr },
+            );
+
+            for (const { number: issue_number } of repository.pullRequest.closingIssuesReferences.nodes) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100,
+              });
+              const status = comments.find(
+                (comment) => comment.body?.includes(marker) && !releaseRe.test(comment.body),
+              );
+              const body = [
+                marker,
+                `### ⚠️ We could not publish the prototype yet`,
+                ``,
+                `The first version was built, but the live preview hit a problem during final checks.`,
+                `An organiser can see the failure and will take a look. Your idea and feedback are safe here.`,
+              ].join("\n");
+
+              if (status) {
+                await github.rest.issues.updateComment({
+                  owner, repo, comment_id: status.id, body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number, body,
+                });
+              }
+            }

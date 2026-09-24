@@ -16,7 +16,10 @@ on:
 # Bot filtering lives in `if:` instead of `skip-bots:` so no separate pre-activation job is needed.
 if: >-
   ${{ github.event.issue.pull_request == null &&
-      github.event.sender.type != 'Bot' }}
+      github.event.sender.type != 'Bot' &&
+      (github.event_name != 'issue_comment' ||
+       (!contains(github.event.issue.labels.*.name, 'ready-for-build') &&
+        !contains(github.event.issue.labels.*.name, 'preview-ready'))) }}
 
 permissions:
   contents: read
@@ -34,7 +37,7 @@ safe-outputs:
   # AI threat-detection pass (~70s) is skipped to get feedback to participants faster.
   threat-detection: false
   messages:
-    run-started: "👋 Thanks! The idea coach is reading your idea now – you'll get a reply here in a minute or two."
+    run-started: "👋 Thanks! The idea coach is reading your idea now – you'll usually get a reply here in 3–5 minutes."
     run-success: "✅ The idea coach has replied below."
     run-failure: "⚠️ The idea coach hit a problem ({status}). An organiser will take a look."
   add-comment:
@@ -115,8 +118,9 @@ Apply `.github/hackathon/guardrails.md` in order. Exactly one outcome:
 1. **Override** – the title or body contains the exact token `#build_anyway`. Treat it as ready to
    build (go to *Ready*), without further gating.
 2. **Already approved** – the issue has label `ready-for-build` or `preview-ready`. Do **not**
-   re-gate and do **not** assign Copilot again. Answer the participant briefly as described in the
-   *Follow-up conversations* section of `coaching.md`, or `noop` if there is nothing to answer.
+   re-gate and do **not** assign Copilot again. Participant comments on approved ideas are relayed
+   directly to the linked Copilot build by `participant-feedback.yml`, so call `noop` for an
+   `issue_comment` event. For an edited or reopened issue, answer briefly only if useful.
 3. **Out of scope** – not an oncology use case. Reply using the out-of-scope shape in
    `coaching.md`. Add label `out-of-scope`; remove `needs-refinement` if present.
 4. **Needs refinement** – oncology, but the idea does not yet meet the bar in `progressive-ai.md`
@@ -127,7 +131,14 @@ Apply `.github/hackathon/guardrails.md` in order. Exactly one outcome:
    `implementation-guidelines.md`. Then:
    - Post the implementation proposal using exactly the template in `coaching.md`.
    - Add label `ready-for-build`; remove `needs-refinement` and `out-of-scope` if present.
-   - Call `assign_to_agent` for this issue so that the Copilot coding agent starts building.
+   - Call `assign_to_agent` for this issue so that the Copilot coding agent starts building. The
+     agent name must be exactly `copilot`. Never use `copilot-coding-agent`, `copilot-swe-agent`
+     or any other alias.
+
+A big vision is not, by itself, a reason to block. If the oncology ambition and clinical insight
+are clear but the scope is Europe-wide or research-scale, choose one concrete synthetic scenario
+that demonstrates the vision and approve that as the first prototype. Ask remaining questions
+after the participant can see and react to it.
 
 Never close the issue. Never give scores or grades. Keep every reply short, warm and in plain
 language, and never mention branches, containers, CI or Azure.

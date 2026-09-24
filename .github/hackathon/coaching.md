@@ -77,8 +77,8 @@ Once you have tried it, tell us what to change – that is how the idea gets sha
 
 - If the participant replies, take the new information into account and re-apply the guardrails.
 - If the idea was already approved (label `ready-for-build` or `preview-ready`), do not re-gate.
-  Answer briefly, and point them to the pull request to request changes by commenting there
-  (starting their comment with `@copilot`).
+  The deterministic participant-feedback workflow relays their issue comment to the linked Copilot
+  build, so do not send them to a pull request or ask them to use technical commands.
 - Do not repeat questions that have already been answered.
 - After three refinement rounds without progress, offer to approve a smaller version of the idea
   rather than asking more questions.

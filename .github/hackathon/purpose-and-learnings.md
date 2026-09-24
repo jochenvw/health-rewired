@@ -11,7 +11,7 @@ writing code – so they can react, refine and decide if it is worth pursuing.**
 - **Audience.** Oncologists, nurses, MDT coordinators, pharmacists, researchers. Mostly
   non-technical. They judge by what they see and click, not by code or architecture.
 - **Output.** A clickable prototype, not a product. It exists to start a conversation
-  ("yes, but in tumour board I'd also need …"), then be iterated via `@copilot` comments.
+  ("yes, but in tumour board I'd also need …"), then be iterated through replies on the idea issue.
 - **Measure of success.** The participant recognises their clinical insight on screen and
   can picture it in their daily software. Everything else is secondary.
 
@@ -54,7 +54,8 @@ scenario, step by step, so they understand *how this could actually work*.
 | 3 | Assigned to Copilot | "🛠️ Building your prototype" comment |
 | 4 | Copilot builds a pull request | Nothing to do – silence is fine, the status comment explains |
 | 5 | Deployed preview | Comment "✅ live · v1.0" with a direct link to `/#/idea/<N>` |
-| 6 | Each new build | "🆕 New version live · v1.N" comment on the issue |
+| 6 | Participant feedback | Reply on the idea issue; the feedback relay passes it to Copilot |
+| 7 | Each new build | "🆕 New version live · v1.N" comment on the issue |
 
 Rule: **the participant should never wonder whether something is happening.** Acknowledge fast,
 report progress, link straight to the result.

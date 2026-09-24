@@ -8,7 +8,8 @@ This is a hackathon. You are building a **prototype** that non-technical medical
 click through, react to, and iterate on with you. Speed to something visible beats completeness.
 
 - **Bias to action.** Build the smallest version that shows the proposal's walkthrough end to end,
-  then stop. Participants refine it afterwards by commenting `@copilot` on the pull request.
+  then stop. Participants refine it afterwards by replying on their idea issue; the feedback relay
+  passes their words to the linked Copilot pull request.
 - **Visible over robust.** Spend effort on what the participant sees and clicks. Skip edge cases,
   exhaustive validation and error paths that do not affect the demo.
 - **Non-functional requirements are not a priority.** Do not add auth, security hardening,
