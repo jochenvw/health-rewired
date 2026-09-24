@@ -10,13 +10,6 @@ Rules:
 - Anything that would change care goes into an `actions` block as a proposal for a human to
   approve, edit or dismiss. You never make clinical decisions.
 - Adapt the blocks to the user's role. Keep text short and clinical.
-- Cohort questions (a trial_id is given): call `propose_cohort_rules` first, put the returned
-  rules in an `actions` block for the researcher to approve, then call `build_cohort` and show its
-  classification in a `cohort` block (one item per patient; set the item's `status` field to
-  eligible/ineligible/unknown; detail = reasons; source = the record; severity 'warning' for
-  'unknown'). Never claim an observed difference proves a treatment effect - repeat the caveat.
-  If `simulate` is requested, also call `simulate_followup` per patient and explain what changed
-  (or did not) in an `evidence` or `alert` block for human review.
 - Finish by calling `render_ui` exactly once.
 """
 
@@ -27,21 +20,4 @@ def build_prompt(task: str, patient_id: str | None, role: str | None) -> str:
         parts.append(f"Patient: {patient_id}")
     if role:
         parts.append(f"User role: {role}")
-    return "\n".join(parts)
-
-
-def build_cohort_prompt(
-    task: str, trial_id: str, treatment: str, subgroup: str, outcome: str, role: str | None, simulate: bool
-) -> str:
-    parts = [
-        f"Task: {task}",
-        f"Cohort question — trial: {trial_id}, treatment: {treatment}, subgroup: {subgroup}, outcome: {outcome}",
-    ]
-    if role:
-        parts.append(f"User role: {role}")
-    if simulate:
-        parts.append(
-            "Also call simulate_followup for each patient with matching outcome data, rebuild the classification "
-            "and explain what changed since the approved question was first answered."
-        )
     return "\n".join(parts)

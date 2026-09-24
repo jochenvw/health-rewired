@@ -3,8 +3,8 @@ issue: 27
 title: "Cohort explorer for a continuously learning oncology cohort"
 users: [researcher, oncologist, coordinator]
 capabilities: [tool-use, generative-ui, human-in-the-loop, retrieval-and-evidence-grounding]
-ui_surfaces: ["#cohort (Cohort explorer section on the home page)"]
-api_endpoints: ["POST /api/agent/run (trial_id/treatment/subgroup/outcome/simulate fields)"]
+ui_surfaces: ["/#/idea/27 (Cohort explorer idea page)"]
+api_endpoints: ["GET /api/ideas/27/trials", "POST /api/ideas/27/run (trial_id/treatment/subgroup/outcome/simulate fields)"]
 agent_tools: ["propose_cohort_rules", "build_cohort", "simulate_followup"]
 data: ["sample-data/patients/*.json", "sample-data/trials.csv (structured eligibility columns)"]
 depends_on: []
@@ -28,7 +28,7 @@ criteria (every classification traceable to its source record), a descriptive (n
 per patient, and a "simulate new data" rerun that explains what changed.
 
 ## Agent behaviour
-Tools (`backend/app/agent/tools.py`, `backend/app/agent/cohort.py`): `propose_cohort_rules` drafts
+Tools (`backend/app/ideas/issue_27.py`, `backend/app/ideas/issue_27_cohort.py`): `propose_cohort_rules` drafts
 the cohort question for approval; `build_cohort` classifies every synthetic patient and describes
 outcomes; `simulate_followup` fabricates one fictional next lab record per patient (in-memory only)
 so the question can be rerun. The agent never states that an observed difference proves a

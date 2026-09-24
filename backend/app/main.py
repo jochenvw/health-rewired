@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 from app import sample_data
 from app.agent import AgentRequest, AgentResult, run_agent, shutdown
 from app.config import settings
+from app.ideas import routers as idea_routers
 
 
 @asynccontextmanager
@@ -45,12 +46,6 @@ async def patients() -> list[dict]:
     return sample_data.list_patients()
 
 
-@app.get("/api/trials")
-async def trials() -> list[dict]:
-    """Synthetic trials, including the structured eligibility columns the cohort explorer uses."""
-    return sample_data.read("trials.csv")
-
-
 @app.get("/api/sample-data")
 async def sample_data_index() -> list[str]:
     return sample_data.list_files()
@@ -67,6 +62,11 @@ async def sample_data_file(path: str):
 @app.post("/api/agent/run")
 async def agent_run(request: AgentRequest) -> AgentResult:
     return await run_agent(request)
+
+
+# Idea routers must be registered before the SPA catch-all below.
+for _router in idea_routers():
+    app.include_router(_router)
 
 
 @app.get("/{full_path:path}", include_in_schema=False)

@@ -4,7 +4,6 @@ It follows the same UI-block contract as the live agent, so the frontend and dem
 """
 
 from app import sample_data
-from app.agent import cohort
 from app.agent.models import AgentRequest, AgentResult, TraceStep
 from app.agent.ui import UIBlock, UIItem
 
@@ -95,111 +94,6 @@ def build_fallback(request: AgentRequest, note: str) -> AgentResult:
     return AgentResult(
         mode="fallback",
         headline=f"Case overview for {patient_id} (deterministic demo)",
-        blocks=blocks,
-        trace=trace,
-        note=note,
-    )
-
-
-def _cohort_block(result: cohort.CohortResult) -> UIBlock:
-    counts = result.counts
-    items = [
-        UIItem(
-            label=f"{p.patient_id} · {p.name} · {p.status.upper()}",
-            detail="; ".join(p.reasons),
-            source=p.source,
-            severity="warning" if p.status == "unknown" else None,
-            status=p.status,
-        )
-        for p in result.patients
-    ]
-    return UIBlock(
-        type="cohort",
-        title=f"Cohort for {result.trial_id}",
-        body=(f"Eligible: {counts['eligible']} · Ineligible: {counts['ineligible']} · Unknown: {counts['unknown']}"),
-        items=items,
-    )
-
-
-def build_cohort_fallback(request: AgentRequest, note: str) -> AgentResult:
-    """Deterministic cohort-explorer view: rules → classification → outcomes → review queue."""
-    trace = [TraceStep(tool="propose_cohort_rules", arguments=request.trial_id)]
-    try:
-        result = cohort.build_cohort(
-            request.trial_id, request.treatment or "", request.subgroup or "", request.outcome or "lab trend"
-        )
-    except KeyError:
-        known = ", ".join(t["trial_id"] for t in cohort.list_trials())
-        return AgentResult(
-            mode="fallback",
-            headline="Unknown trial",
-            blocks=[UIBlock(type="alert", title="Unknown trial id", body=f"Known trials: {known}")],
-            trace=trace,
-            note=note,
-        )
-    trace.append(TraceStep(tool="build_cohort", arguments=request.trial_id))
-
-    blocks = [
-        UIBlock(
-            type="actions",
-            title="Proposed cohort rules (approve before reviewing results)",
-            items=[
-                UIItem(label=rule, detail="Proposed from the trial's criteria; edit or approve")
-                for rule in result.rules
-            ],
-        ),
-        _cohort_block(result),
-        UIBlock(
-            type="evidence",
-            title="What happened (descriptive, not causal)",
-            body=result.caveat,
-            items=[
-                UIItem(label=f"{p.patient_id} · {p.name}", detail=p.outcome_summary, source=p.source)
-                for p in result.patients
-            ],
-        ),
-    ]
-    missing = [p for p in result.patients if p.outcome_missing]
-    unknowns = [p for p in result.patients if p.status == "unknown"]
-    review_items = [
-        UIItem(label=f"Confirm eligibility for {p.patient_id}: {p.reasons[0]}", severity="warning") for p in unknowns
-    ] + [UIItem(label=f"Missing outcome data for {p.patient_id}", severity="warning") for p in missing]
-    if review_items:
-        blocks.append(UIBlock(type="alert", title="Needs human review", severity="warning", items=review_items))
-
-    if request.simulate:
-        simulated_labs = {p.patient_id: cohort.simulate_followup(p.patient_id) for p in result.patients}
-        trace.append(TraceStep(tool="simulate_followup", arguments="all patients"))
-        simulated_result = cohort.build_cohort(
-            request.trial_id,
-            request.treatment or "",
-            request.subgroup or "",
-            request.outcome or "lab trend",
-            simulated={pid: {"labs": data["labs"]} for pid, data in simulated_labs.items()},
-        )
-        diff = cohort.build_simulated_diff(result, simulated_result)
-        blocks.append(
-            UIBlock(
-                type="evidence",
-                title="What changed after simulated follow-up",
-                body="Fictional follow-up records only, never written to /sample-data.",
-                items=[UIItem(label=line) for line in diff],
-            )
-        )
-
-    blocks.append(
-        UIBlock(
-            type="actions",
-            title="Review queue",
-            items=[UIItem(label="Investigate the flagged patients above")]
-            if review_items
-            else [UIItem(label="No open flags — approve and close the loop, or return after new data arrives")],
-        )
-    )
-
-    return AgentResult(
-        mode="fallback",
-        headline=f"Cohort for {result.trial_id}: {result.trial_title} (deterministic demo)",
         blocks=blocks,
         trace=trace,
         note=note,

@@ -2,10 +2,10 @@
 
 This is intentionally *not* an LLM call: eligibility classification, outcome description and
 "what changed after simulated follow-up" are computed from `/sample-data` with plain rules, so the
-result is reproducible and traceable. The Copilot SDK agent (``runner.py``) reads this engine's
+result is reproducible and traceable. The Copilot SDK agent (``issue_27.py``) reads this engine's
 output through the ``propose_cohort_rules`` / ``build_cohort`` / ``simulate_followup`` tools and
-decides how to narrate and structure it into UI blocks; the deterministic fallback (``fallback.py``)
-renders the same output directly when the SDK is unavailable.
+decides how to narrate and structure it into UI blocks; the deterministic fallback in
+``issue_27.py`` renders the same output directly when the SDK is unavailable.
 
 Nothing here establishes causality or recommends treatment - it only classifies, describes and
 flags for human review, per the hackathon proposal for issue #27.

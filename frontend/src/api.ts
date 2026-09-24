@@ -35,15 +35,7 @@ export type Status = {
 
 export type PatientSummary = { id: string; name: string; age: number; diagnosis: string };
 
-export type TrialSummary = {
-  trial_id: string;
-  title: string;
-  cancer_type: string;
-  key_inclusion: string;
-  key_exclusion: string;
-};
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
@@ -55,17 +47,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   status: () => request<Status>('/api/status'),
   patients: () => request<PatientSummary[]>('/api/patients'),
-  trials: () => request<TrialSummary[]>('/api/trials'),
-  runAgent: (
-    body: {
-      task: string;
-      patient_id?: string;
-      role?: string;
-      trial_id?: string;
-      treatment?: string;
-      subgroup?: string;
-      outcome?: string;
-      simulate?: boolean;
-    },
-  ) => request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
+    request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
 };

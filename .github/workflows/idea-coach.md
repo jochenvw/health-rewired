@@ -55,6 +55,9 @@ safe-outputs:
       Build the latest "🚀 Implementation proposal" comment on this issue as a fast hackathon
       prototype for non-technical clinicians to click through and iterate on: smallest version
       that shows the walkthrough end to end, visible over robust, no non-functional extras.
+      The idea gets its own page: frontend/src/ideas/issue-<N>/index.tsx and
+      backend/app/ideas/issue_<N>.py (rule 0 in implementation-guidelines.md). Do not edit the
+      landing page (frontend/src/App.tsx) or backend/app/main.py.
       Follow .github/copilot-instructions.md and every file in .github/hackathon/ (start with
       "Hackathon mindset" in implementation-guidelines.md). Use synthetic data from
       /sample-data only, keep the GitHub Copilot SDK central.

@@ -15,6 +15,9 @@ applyTo: "backend/**"
   - `prompts.py` – system prompt. Keep it short and role/task specific.
   - `fallback.py` – deterministic response when the SDK is not configured. Keep it working.
 - Sample data access goes through `backend/app/sample_data.py` (reads `/sample-data`). No database.
+- **Idea-specific code** goes in `backend/app/ideas/issue_<N>.py` with
+  `router = APIRouter(prefix="/api/ideas/<N>")`; routers are discovered automatically, so do not
+  edit `main.py`. Call `run_agent(request, system_prompt=..., prompt=..., extra_tools=[...])`.
 - All API routes are under `/api`. `/api/health` must stay dependency-free and fast.
 - Tests: `backend/tests/`, run with `uv run pytest`. Tests must not require a Copilot token.
 - Lint/format: `uv run ruff check . && uv run ruff format .`
