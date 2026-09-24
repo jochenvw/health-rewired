@@ -10,10 +10,13 @@ on:
   issue_comment:
     types: [created]
   roles: all
-  skip-bots: [github-actions, dependabot, copilot]
   reaction: eyes
+  status-comment: true
 
-if: ${{ github.event.issue.pull_request == null }}
+# Bot filtering lives in `if:` instead of `skip-bots:` so no separate pre-activation job is needed.
+if: >-
+  ${{ github.event.issue.pull_request == null &&
+      github.event.sender.type != 'Bot' }}
 
 permissions:
   contents: read
@@ -27,6 +30,13 @@ tools:
     toolsets: [issues, repos]
 
 safe-outputs:
+  # Outputs are tightly bounded (1 comment, allow-listed labels, assign Copilot only), so the extra
+  # AI threat-detection pass (~70s) is skipped to get feedback to participants faster.
+  threat-detection: false
+  messages:
+    run-started: "👋 Thanks! The idea coach is reading your idea now – you'll get a reply here in a minute or two."
+    run-success: "✅ The idea coach has replied below."
+    run-failure: "⚠️ The idea coach hit a problem ({status}). An organiser will take a look."
   add-comment:
     max: 1
     hide-older-comments: true
