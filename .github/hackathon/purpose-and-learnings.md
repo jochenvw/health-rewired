@@ -56,12 +56,16 @@ scenario, step by step, so they understand *how this could actually work*.
 | 5 | Deployed preview | Comment "✅ live · v1.0" with a direct link to `/#/idea/<N>` |
 | 6 | Participant feedback | Reply on the idea issue; the feedback relay passes up to two focused revision rounds to Copilot |
 | 7 | Each new build | "🆕 New version live · v1.N" comment on the issue |
+| 8 | Participant finishes the prototype | Reply `/architecture`, `ready for architecture`, or `prototype is done` on the issue |
+| 9 | Architecture coach | Asks only missing real-world questions, then posts an Azure architecture diagram, five-pillar Well-Architected review and staged delivery path |
 
 Rule: **the participant should never wonder whether something is happening.** Acknowledge fast,
 report progress, link straight to the result.
 
 Hackathon limit: the first preview may receive at most **two automatic revision rounds**. Further
-feedback stays on the issue for discussion with a facilitator rather than triggering more builds.
+feedback stays on the issue rather than triggering more builds. When the prototype communicates the
+idea well enough, the participant can start the separate architecture-coaching phase; it plans a
+future implementation but does not change the demo.
 
 ## 3. What a good prototype looks like
 
