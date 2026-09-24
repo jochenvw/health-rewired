@@ -62,7 +62,8 @@ safe-outputs:
       (frontend/src/hospital/), fill it with lots of synthetic data and clickable interactions
       (rule 7; frontend/src/ideas/starter/index.tsx is the example).
       Tell the story of the vision: one concrete scenario, guided with StoryGuide, simulated
-      behind-the-scenes work with Backstage, ending on the payoff.
+      behind-the-scenes work with Backstage, ending on the payoff. Every AI wait shows a
+      spinner and label immediately (Working / Backstage) – never a frozen screen.
       Follow .github/copilot-instructions.md and every file in .github/hackathon/ (start with
       purpose-and-learnings.md, then "Hackathon mindset" in implementation-guidelines.md). Use synthetic data from
       /sample-data only, keep the GitHub Copilot SDK central.

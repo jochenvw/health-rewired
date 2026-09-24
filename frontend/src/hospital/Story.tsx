@@ -59,6 +59,27 @@ export function StoryGuide({
   );
 }
 
+/**
+ * Always-visible "working" indicator for any wait on the AI or a simulated process: spinner,
+ * label and elapsed seconds, so nobody wonders whether something is happening.
+ */
+export function Working({ label, hint }: { label: string; hint?: string }) {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const t = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  return (
+    <span className="hx-working" role="status" aria-live="polite">
+      <span className="hx-spinner" aria-hidden />
+      <span>
+        {label} <span className="hx-working-time">· {seconds}s</span>
+        {hint && seconds >= 8 && <span className="hx-working-hint"> – {hint}</span>}
+      </span>
+    </span>
+  );
+}
+
 export type Stage = {
   label: string;
   /** Shown under the label once the stage runs, e.g. "412 matching records · data stays on site". */
@@ -115,7 +136,7 @@ export function Backstage({
     <section className="hx-backstage" aria-live="polite">
       <header>
         <strong>{title}</strong>
-        <span>{finished ? 'Completed' : 'Running…'}</span>
+        {finished ? <span>Completed</span> : <Working label="Working" hint="AI answers can take up to a minute" />}
       </header>
       <ol>
         {stages.map((s, i) => {

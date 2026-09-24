@@ -29,6 +29,8 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 - The page **does not tell the story**: no guided steps (`StoryGuide`), the mechanism of the
   vision stays invisible (no `Backstage` showing what happens behind the scenes), or a newcomer
   cannot reach the payoff just by following the steps.
+- A wait on the AI or a simulated process shows **no visible activity** (no spinner / `Working`
+  / running `Backstage`), so a viewer could think it has hung.
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
 
