@@ -10,11 +10,14 @@ const exampleTasks = [
   'Which synthetic trials could fit, and what data is still needed to check eligibility?',
 ];
 
+const repoUrl = 'https://github.com/jochenvw/health-rewired';
+const newIdeaUrl = `${repoUrl}/issues/new?template=oncology-idea.yml`;
+const ideasUrl = `${repoUrl}/issues`;
+
 const steps = [
-  { title: 'Open an issue', body: 'Describe your oncology idea in plain language. No code, no jargon.' },
-  { title: 'Get coached', body: 'An AI coach helps sharpen the clinical insight and stretch the ambition.' },
-  { title: 'Copilot builds', body: 'Once ready, GitHub Copilot implements your idea on top of this canvas.' },
-  { title: 'Click the link', body: 'A live prototype appears at its own URL, right in your issue.' },
+  { title: 'Share your idea', body: 'Open a GitHub issue and describe it in plain language. No code needed.' },
+  { title: 'Get coached', body: 'An AI coach replies within minutes to help sharpen the clinical insight.' },
+  { title: 'See it live', body: 'GitHub Copilot builds it and posts a link to your working prototype.' },
 ];
 
 export default function App() {
@@ -63,31 +66,31 @@ export default function App() {
           </div>
         </div>
         <nav aria-label="Main">
-          <a href="#how">How it works</a>
-          <a href="#canvas">Agent canvas</a>
+          <a href={ideasUrl} target="_blank" rel="noreferrer">
+            Browse ideas
+          </a>
         </nav>
       </header>
 
       <section className="hero">
-        <p className="eyebrow">Oncology Hackathon 2026 · Munich</p>
         <h1>
-          Where oncology ideas become <span className="accent">agentic prototypes</span>.
+          Bring your oncology idea. <span className="accent">We'll build it.</span>
         </h1>
         <p className="lede">
-          This is the blank canvas every hackathon idea starts from. Clinicians bring the insight; AI agents coach,
-          build and deploy. Pursue the impossible. Cross boundaries. Move from discovery to impact.
+          Describe your idea in a GitHub issue. An AI coach helps you sharpen it, then GitHub Copilot turns it into a
+          working prototype.
         </p>
         <div className="cta-row">
-          <a className="button primary" href="#canvas">
-            Try the agent
+          <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
+            Submit your idea on GitHub →
           </a>
-          <a className="button ghost" href="#how">
-            Start with an idea
+          <a className="button ghost" href={ideasUrl} target="_blank" rel="noreferrer">
+            See other ideas
           </a>
         </div>
       </section>
 
-      <section id="how" className="steps">
+      <section className="steps">
         {steps.map((step, index) => (
           <article key={step.title} className="step">
             <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
@@ -99,12 +102,9 @@ export default function App() {
 
       <section id="canvas" className="canvas">
         <div className="canvas-intro">
-          <p className="eyebrow">Agent canvas</p>
-          <h2>Not a chatbot: an agent that looks things up and chooses what to show.</h2>
-          <p>
-            The GitHub Copilot SDK agent reads synthetic records with tools, reasons over them, and assembles the
-            screen below from UI blocks. Proposed actions always wait for a human.
-          </p>
+          <p className="eyebrow">Starter agent</p>
+          <h2>Every prototype starts from this agent.</h2>
+          <p>Try it on synthetic patients to see what your idea can build on.</p>
         </div>
 
         <form className="agent-form" onSubmit={run}>
