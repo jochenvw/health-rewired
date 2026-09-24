@@ -81,3 +81,15 @@ def test_unescape_restores_double_escaped_unicode():
     from app.agent.runner import _unescape
 
     assert _unescape({"a": ["CEA 2.1\\u21924.6"], "b": 1}) == {"a": ["CEA 2.1\u21924.6"], "b": 1}
+
+
+def test_idea_routers_are_discovered_and_mounted(client):
+    from fastapi import APIRouter
+
+    from app.ideas import routers
+
+    found = routers()
+    assert all(isinstance(r, APIRouter) for r in found)
+    mounted = {route.path for route in app.routes}
+    for router in found:
+        assert {route.path for route in router.routes} <= mounted

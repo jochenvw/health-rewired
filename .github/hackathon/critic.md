@@ -21,6 +21,9 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 - A **role-specific** experience became generic.
 - An important **human decision boundary** disappeared (the AI decides silently).
 - The app technically works but **no longer demonstrates the original insight**.
+- The idea **does not have its own page** at `/#/idea/<N>` (it was added to the landing page or
+  the starter agent instead), or that page does not show the idea's main screen immediately.
+  Always material – ask for a fix.
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
 

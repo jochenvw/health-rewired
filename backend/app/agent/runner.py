@@ -15,6 +15,7 @@ from typing import Any
 from copilot import CopilotClient
 from copilot.session import PermissionHandler
 from copilot.session_events import AssistantMessageData, ToolExecutionStartData
+from copilot.tools import Tool
 
 from app.agent.fallback import build_fallback
 from app.agent.models import AgentRequest, AgentResult, TraceStep
@@ -54,14 +55,21 @@ async def shutdown() -> None:
             _client = None
 
 
-async def run_agent(request: AgentRequest) -> AgentResult:
+async def run_agent(
+    request: AgentRequest,
+    *,
+    system_prompt: str | None = None,
+    prompt: str | None = None,
+    extra_tools: list[Tool] | None = None,
+) -> AgentResult:
+    """Run one agent turn. Ideas pass their own ``system_prompt``, ``prompt`` and ``extra_tools``."""
     if settings.copilot_auth_mode == "not-configured":
         return build_fallback(request, "Copilot SDK not configured: set COPILOT_GITHUB_TOKEN.")
 
     rendered: list[RenderUIParams] = []
     trace: list[TraceStep] = []
     messages: list[str] = []
-    tools = [*DATA_TOOLS, build_render_ui_tool(rendered.append)]
+    tools = [*DATA_TOOLS, *(extra_tools or []), build_render_ui_tool(rendered.append)]
 
     def on_event(event) -> None:
         match event.data:
@@ -78,14 +86,14 @@ async def run_agent(request: AgentRequest) -> AgentResult:
             model=settings.copilot_model,
             tools=tools,
             available_tools=[tool.name for tool in tools],
-            system_message={"mode": "replace", "content": SYSTEM_PROMPT},
+            system_message={"mode": "replace", "content": system_prompt or SYSTEM_PROMPT},
             skip_custom_instructions=True,
             enable_config_discovery=False,
             working_directory=_workdir,
         ) as session:
             session.on(on_event)
             await session.send_and_wait(
-                build_prompt(request.task, request.patient_id, request.role),
+                prompt or build_prompt(request.task, request.patient_id, request.role),
                 timeout=settings.agent_timeout_seconds,
             )
     except Exception as exc:  # noqa: BLE001 - any SDK/auth/network failure degrades to the demo path
