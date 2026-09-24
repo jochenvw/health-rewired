@@ -25,6 +25,7 @@ export function HospitalShell({
   active,
   onNav,
   patient,
+  guide,
   toolbar,
   children,
 }: {
@@ -34,6 +35,8 @@ export function HospitalShell({
   active: string;
   onNav: (id: string) => void;
   patient?: BannerPatient | null;
+  /** Guided-demo bar (StoryGuide) shown above the screen. */
+  guide?: ReactNode;
   /** Buttons / selectors shown in the toolbar above the content. */
   toolbar?: ReactNode;
   children: ReactNode;
@@ -58,6 +61,7 @@ export function HospitalShell({
           <span key={m}>{m}</span>
         ))}
       </div>
+      {guide}
       {patient && <PatientBanner patient={patient} />}
       <div className="hx-body">
         <nav className="hx-nav" aria-label={module}>

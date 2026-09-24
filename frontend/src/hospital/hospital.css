@@ -434,6 +434,151 @@
   margin: 0;
 }
 
+/* Guided demo bar and simulated behind-the-scenes work (Story.tsx). */
+.hx-story {
+  background: #fffbea;
+  border-bottom: 1px solid #e6d58f;
+}
+
+.hx-story-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0;
+  padding: 6px 12px 0;
+  list-style: none;
+}
+
+.hx-story-steps button {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 4px 10px 6px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.hx-story-steps li.current button {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: #d9a400;
+}
+
+.hx-story-steps li.done button {
+  color: var(--ok);
+}
+
+.hx-story-num {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #eee3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hx-story-steps li.current .hx-story-num {
+  background: #d9a400;
+  color: #fff;
+}
+
+.hx-story-steps li.done .hx-story-num {
+  background: #d7ecd9;
+}
+
+.hx-story-explain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid #efe3ad;
+}
+
+.hx-story-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a6a00;
+}
+
+.hx-backstage {
+  background: #f7f9fb;
+  border: 1px dashed #9fb6ce;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
+.hx-backstage > header {
+  display: flex;
+  justify-content: space-between;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.hx-backstage ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.hx-backstage li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.hx-backstage li.waiting {
+  color: var(--muted);
+}
+
+.hx-backstage li.done .hx-stage-icon {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.hx-stage-icon {
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.hx-stage-detail {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hx-backstage-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hx-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #c6d4e3;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: hx-spin 0.8s linear infinite;
+}
+
+@keyframes hx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 760px) {
   .hx-body {
     flex-direction: column;

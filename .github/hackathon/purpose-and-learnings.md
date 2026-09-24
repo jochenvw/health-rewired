@@ -15,6 +15,29 @@ writing code – so they can react, refine and decide if it is worth pursuing.**
 - **Measure of success.** The participant recognises their clinical insight on screen and
   can picture it in their daily software. Everything else is secondary.
 
+### The prototype tells the story of the vision
+
+Issues describe a **vision** ("turn Europe into one learning oncology cohort"), often in a few
+questions. The prototype's job is to **take someone on the ride**: walk them through one concrete
+scenario, step by step, so they understand *how this could actually work*.
+
+1. **Pick one concrete storyline** from the vision – a specific user, a specific need, a specific
+   outcome. Example for a federated-cohort vision: *a trial needs HER2-low patients → the AI turns
+   the criteria into a structured query → the query goes to 12 connected hospitals (each spins,
+   answers with counts; data stays on site) → the AI pre-selects candidates with reasons → the
+   clinician approves → invitation letters go out → an opt-in table fills up.*
+2. **Guide the walk-through.** A `StoryGuide` bar numbers the steps, says in one sentence what is
+   happening and why, and offers the next action ("Send query to hospitals →"). Someone who
+   has never seen the idea should reach the end just by clicking Next.
+3. **Show what happens behind the scenes – simulated is fine.** Use `Backstage` for the work the
+   real system would do out of sight: querying hospitals, harmonising data, matching criteria,
+   training a model, sending letters. Spinners, ticks, counts and one-line explanations make the
+   mechanism understandable. Faked timings and numbers are expected; label them as simulated.
+4. **Let the AI do visible, meaningful work** at the step where it matters (structure the query,
+   pre-select, explain), and let the human decide at the step where that matters.
+5. **End with the payoff** – the moment the vision promised (a filled cohort, a signed letter, a
+   decision at the MDT), so the story has a clear ending.
+
 ## 2. The flow (each step must be visible to the participant)
 
 | # | Step | What the participant sees |
@@ -68,8 +91,11 @@ Each learning states the failure we saw and the rule that prevents it.
 | PR branches conflicted with `main` and deploys silently stopped | Keep ideas in their own files so branches merge cleanly; if conflicted, merge `main` in |
 | A generic dark "AI demo" look did not help clinicians picture the idea | Style idea pages as plain hospital software with lots of fake data |
 | Proposals were written for engineers | Proposal = plain-language walkthrough of hospital screens ("You open the worklist …") |
+| A prototype showed a working screen, but the viewer could not tell what the vision was or how it would work | Tell one storyline end to end: `StoryGuide` steps, simulated `Backstage` work with explanations, a clear payoff |
+| Big-picture issues ("Europe as one cohort") produced a generic analytics screen | Turn the vision into one concrete scenario with a user, a need and an ending; mention other scenarios as "next" |
 
 ## 6. When in doubt
 
 Ask: **"Will a busy oncologist, clicking this link on their phone between patients, recognise
-their idea within ten seconds?"** If not, fix that before anything else.
+their idea within ten seconds – and after clicking Next a few times, understand how it would
+work?"** If not, fix that before anything else.

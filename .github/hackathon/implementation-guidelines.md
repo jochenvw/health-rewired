@@ -72,6 +72,11 @@ click through, react to, and iterate on with you. Speed to something visible bea
      fine.
    - The AI assistant appears as one part of that screen (a panel, tab or side pane), not as the
      whole page. `frontend/src/ideas/starter/index.tsx` shows the pattern.
+   - **Tell the story of the vision** (see `purpose-and-learnings.md` §1). Turn the issue into one
+     concrete storyline and guide it with `StoryGuide` (`frontend/src/hospital/Story.tsx`), passed
+     as `guide` to `HospitalShell`. Show out-of-sight work – hospitals queried, data matched,
+     models trained, letters sent – with `Backstage` stages (spinners, counts, one-line
+     explanations). Simulated timings and numbers are fine. End on the payoff screen.
 8. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
    abstraction layers.
 9. **No new infrastructure.** No databases, queues, extra services or containers. One container.

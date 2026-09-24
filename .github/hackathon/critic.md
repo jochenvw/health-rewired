@@ -26,6 +26,9 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
   Always material – ask for a fix.
 - The page **does not look like hospital software** (no `HospitalShell`, a chat box or marketing
   page instead of a clinical screen, or too little fake data to picture a real clinic day).
+- The page **does not tell the story**: no guided steps (`StoryGuide`), the mechanism of the
+  vision stays invisible (no `Backstage` showing what happens behind the scenes), or a newcomer
+  cannot reach the payoff just by following the steps.
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
 
