@@ -596,3 +596,41 @@
     display: none;
   }
 }
+
+.hx-risk-estimate {
+  margin: 10px 0 6px;
+  font-size: 13px;
+}
+
+.hx-contrib {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 10px;
+}
+
+.hx-contrib-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hx-contrib-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hx-contrib-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #eef2f7;
+  overflow: hidden;
+}
+
+.hx-contrib-fill {
+  display: block;
+  height: 100%;
+  background: #6f9bd6;
+}
