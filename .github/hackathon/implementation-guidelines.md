@@ -8,7 +8,8 @@ This is a hackathon. You are building a **prototype** that non-technical medical
 click through, react to, and iterate on with you. Speed to something visible beats completeness.
 
 - **Bias to action.** Build the smallest version that shows the proposal's walkthrough end to end,
-  then stop. Participants refine it afterwards by commenting `@copilot` on the pull request.
+  then stop. Participants refine it afterwards by replying on their idea issue; the feedback relay
+  passes their words to the linked Copilot pull request for at most two focused revision rounds.
 - **Visible over robust.** Spend effort on what the participant sees and clicks. Skip edge cases,
   exhaustive validation and error paths that do not affect the demo.
 - **Non-functional requirements are not a priority.** Do not add auth, security hardening,
@@ -60,22 +61,29 @@ click through, react to, and iterate on with you. Speed to something visible bea
    (approve / edit / dismiss). Show "why" and sources where the agent makes claims.
 6. **Prototype disclaimer.** Keep the "Hackathon prototype – synthetic data – not for clinical use"
    notice visible.
-7. **Look like hospital software.** The participant must be able to picture the idea inside the
-   clinical system they use every day. Wrap the page in `HospitalShell` from
-   `frontend/src/hospital/HospitalShell.tsx` (hospital app bar, patient banner, left navigation,
-   status bar) and build with its `Panel`, `DataTable`, `Tabs` and `Pill` pieces. Keep it
-   deliberately plain and dense – light grey, hospital blue, tables – not a startup landing page.
+7. **Look credible in the participant's working world.** Match the visual language to the user and
+   task in the proposal instead of making every idea look like the same blue EHR.
+   - For patient-level clinical workflows, default to `HospitalShell` from
+     `frontend/src/hospital/HospitalShell.tsx` (hospital app bar, patient banner, left navigation,
+     status bar) and its `Panel`, `DataTable`, `Tabs` and `Pill` pieces.
+   - For research networks, trial operations, federated learning or other cross-hospital work, a
+     purpose-built issue-local shell may fit better: for example a network canvas, evidence
+     workspace or operations command centre. Give it a distinct visual identity that supports the
+     concept. Do not modify shared `HospitalShell` components or other ideas to achieve it.
+   - In either mode, keep it deliberately functional, dense and data-rich – not a startup landing
+     page, generic dashboard template or decorative concept mock-up.
    - **Lots of fake data.** Fill worklists, results, notes and histories so the screen feels like a
-     real clinic day. Use `/sample-data` and add inline synthetic rows (names, times, wards) freely.
+     real working day. Use `/sample-data` and add inline synthetic rows (names, times, wards,
+     sites, cohorts or trial signals) freely.
    - **Real-feeling interactions.** Clickable rows that open a chart, tabs, filters, acknowledge /
      approve / file-to-chart buttons that change state. They do not need a backend – local state is
      fine.
    - The AI assistant appears as one part of that screen (a panel, tab or side pane), not as the
-     whole page. `frontend/src/ideas/starter/index.tsx` shows the pattern.
+     whole page. `frontend/src/ideas/starter/index.tsx` shows the clinical-shell pattern.
    - **Tell the story of the vision** (see `purpose-and-learnings.md` §1). Turn the issue into one
-     concrete storyline and guide it with `StoryGuide` (`frontend/src/hospital/Story.tsx`), passed
-     as `guide` to `HospitalShell`. Show out-of-sight work – hospitals queried, data matched,
-     models trained, letters sent – with `Backstage` stages (spinners, counts, one-line
+     concrete storyline and guide it with `StoryGuide` (`frontend/src/hospital/Story.tsx`) or an
+     equally clear issue-local step treatment. Show out-of-sight work – hospitals queried, data
+     matched, models trained, letters sent – with `Backstage` stages (spinners, counts, one-line
      explanations). Simulated timings and numbers are fine. End on the payoff screen.
    - **No doubt while waiting.** Every AI call or simulated process shows a spinner and a label
      at once – in the clicked button and in the result area (`Working` with elapsed seconds, or a
