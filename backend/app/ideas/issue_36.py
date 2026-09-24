@@ -93,9 +93,10 @@ def simulate_paths(patient_id: str) -> TwinSimulation:
 
     cancer_type = _cancer_type(record.get("diagnosis", {}).get("primary", ""))
 
-    is_egfr_oligoprogression = cancer_type == "lung" and "EGFR" in record.get("diagnosis", {}).get("biomarkers", {})
+    egfr_status = record.get("diagnosis", {}).get("biomarkers", {}).get("EGFR", "")
+    is_egfr_positive_lung_case = cancer_type == "lung" and "positive" in egfr_status.lower()
 
-    if is_egfr_oligoprogression:
+    if is_egfr_positive_lung_case:
         paths = [
             TreatmentPath(
                 id="platinum_doublet_chemo",
