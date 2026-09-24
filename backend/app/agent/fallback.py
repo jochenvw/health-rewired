@@ -3,8 +3,6 @@
 It follows the same UI-block contract as the live agent, so the frontend and demos keep working.
 """
 
-import re
-
 from app import sample_data
 from app.agent.models import AgentRequest, AgentResult, TraceStep
 from app.agent.ui import UIBlock, UIItem
@@ -16,80 +14,6 @@ def _cancer_type(primary: str) -> str:
         if keyword in primary:
             return kind
     return ""
-
-
-_CONCERN_KEYWORDS = {"new", "indeterminate", "progression", "progressive", "progressing"}
-_WORD_RE = re.compile(r"[a-z0-9]+")
-
-
-def _match_trial(record: dict, trials: list[dict]) -> dict | None:
-    """Score synthetic trials by word-level overlap with this patient's regimen and biomarkers."""
-    text = " ".join(t.get("regimen", "") for t in record.get("treatments", []))
-    text += " " + " ".join(f"{k} {v}" for k, v in record.get("diagnosis", {}).get("biomarkers", {}).items())
-    words = {w for w in _WORD_RE.findall(text.lower()) if len(w) > 3}
-
-    def score(trial: dict) -> int:
-        inclusion_words = set(_WORD_RE.findall(trial.get("key_inclusion", "").lower()))
-        return len(words & inclusion_words)
-
-    scored = sorted(trials, key=score, reverse=True)
-    if scored and score(scored[0]) > 0:
-        return scored[0]
-    return None
-
-
-def _build_outcome_risk(record: dict, source: str, trials: list[dict]) -> UIBlock | None:
-    """Reason across imaging, labs and biomarkers together and ground any concern in a trial."""
-
-    def _has_concern(result: str) -> bool:
-        return bool(_CONCERN_KEYWORDS & set(_WORD_RE.findall(result.lower())))
-
-    imaging_concerns = [img for img in record.get("imaging", []) if _has_concern(img["result"])]
-    lab_concerns = [lab for lab in record.get("labs", []) if lab.get("flag")]
-    if not imaging_concerns and not lab_concerns:
-        return None
-
-    items = [
-        UIItem(
-            label=f"Imaging: {img['modality']}",
-            detail=img["result"],
-            date=img["date"],
-            source=source,
-            severity="warning",
-        )
-        for img in imaging_concerns
-    ] + [
-        UIItem(
-            label=f"Lab: {lab['test']} {lab['value']} {lab['unit']}",
-            detail=f"{lab['flag']} (ref {lab['ref']}) on {lab['date']}",
-            date=lab["date"],
-            source=source,
-            severity="warning",
-        )
-        for lab in lab_concerns
-    ]
-    biomarkers = record.get("diagnosis", {}).get("biomarkers", {})
-    if biomarkers:
-        items.append(
-            UIItem(label="Biomarkers", detail=", ".join(f"{k} {v}" for k, v in biomarkers.items()), source=source)
-        )
-
-    trial = _match_trial(record, trials)
-    if trial:
-        items.append(
-            UIItem(
-                label=f"Matching trial {trial['trial_id']}: {trial['title']}",
-                detail=f"Inclusion: {trial['key_inclusion']}",
-                source="trials.csv",
-            )
-        )
-
-    severity = "critical" if imaging_concerns and lab_concerns else "warning"
-    narrative = (
-        "Imaging, labs and biomarkers together suggest a possible outcome concern for "
-        f"{record.get('name')}. Review before the next decision point."
-    )
-    return UIBlock(type="outcome_risk", title="Outcome risk", severity=severity, body=narrative, items=items)
 
 
 def build_fallback(request: AgentRequest, note: str) -> AgentResult:
@@ -144,12 +68,7 @@ def build_fallback(request: AgentRequest, note: str) -> AgentResult:
     ]
     if alerts:
         blocks.append(UIBlock(type="alert", title="Needs attention", severity="warning", items=alerts))
-
-    outcome_risk = _build_outcome_risk(record, source, trials)
-    if outcome_risk:
-        blocks.append(outcome_risk)
-        trace.append(TraceStep(tool="predict_outcome_risk", arguments=patient_id))
-    elif trials:
+    if trials:
         blocks.append(
             UIBlock(
                 type="evidence",

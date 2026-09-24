@@ -42,7 +42,7 @@ def test_agent_falls_back_without_token(client):
 
 
 def test_outcome_risk_grounds_concern_in_matching_trial(client):
-    response = client.post("/api/agent/run", json={"task": "Assess outcome risk", "patient_id": "P-002"})
+    response = client.post("/api/ideas/31/run", json={"task": "Assess outcome risk", "patient_id": "P-002"})
     body = response.json()
     outcome_risk = next(block for block in body["blocks"] if block["type"] == "outcome_risk")
     assert outcome_risk["severity"] == "critical"
@@ -54,7 +54,7 @@ def test_outcome_risk_grounds_concern_in_matching_trial(client):
 
 
 def test_outcome_risk_uses_warning_severity_for_labs_only(client):
-    response = client.post("/api/agent/run", json={"task": "Give me a case overview", "patient_id": "P-001"})
+    response = client.post("/api/ideas/31/run", json={"task": "Give me a case overview", "patient_id": "P-001"})
     body = response.json()
     outcome_risk = next(block for block in body["blocks"] if block["type"] == "outcome_risk")
     # P-001 has flagged labs but no imaging concern, so severity should stay at warning, not critical.
