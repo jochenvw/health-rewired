@@ -296,7 +296,7 @@ function PathCard({
   chosen: boolean;
   onChoose: () => void;
 }) {
-  const maxToxicity = Math.max(...path.trajectory.map((p) => p.toxicity_grade));
+  const maxToxicity = path.trajectory.length ? Math.max(...path.trajectory.map((p) => p.toxicity_grade)) : 0;
   return (
     <div className={`twin-path-card${chosen ? ' chosen' : ''}`}>
       <h4>{path.name}</h4>

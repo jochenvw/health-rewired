@@ -79,6 +79,8 @@ def _comparable_patients(cancer_type: str) -> list[dict]:
         rows = sample_data.read("comparable_patients.csv")
     except FileNotFoundError:
         return []
+    if not cancer_type:
+        return rows
     return [row for row in rows if row.get("cancer_type") == cancer_type]
 
 
@@ -90,9 +92,6 @@ def simulate_paths(patient_id: str) -> TwinSimulation:
         raise HTTPException(status_code=404, detail=f"Unknown patient '{patient_id}'") from exc
 
     cancer_type = _cancer_type(record.get("diagnosis", {}).get("primary", ""))
-    has_renal_impairment = any(
-        lab["test"].lower() == "creatinine" and lab.get("flag") for lab in record.get("labs", [])
-    )
 
     if patient_id == "P-004" and cancer_type == "lung":
         paths = [
@@ -159,6 +158,9 @@ def simulate_paths(patient_id: str) -> TwinSimulation:
         )
         headline = f"Digital twin: three next-treatment paths for {record.get('name')} after progression on osimertinib"
     else:
+        has_renal_impairment = any(
+            lab["test"].lower() == "creatinine" and lab.get("flag") for lab in record.get("labs", [])
+        )
         toxicity_bump = 1 if has_renal_impairment else 0
         paths = [
             TreatmentPath(
