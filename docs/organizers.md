@@ -36,7 +36,12 @@ IDEA → CONVERSATION → BETTER IDEA → AGENT BUILDS IT → LIVE APPLICATION
    issue comment with the link as **v1.0** (label `preview-ready`); every later build that goes live
    posts a new **🆕 New version live · v1.N** comment on the issue (minor version bumped per build).
    The link is also posted in the PR. While the title still starts with `[WIP]`, CI runs but
-   nothing is deployed.
+   nothing is deployed. Links open the idea's own page (`/#/idea/<N>`); the landing page lists
+   every idea in the build.
+
+Each idea lives in its own files – `frontend/src/ideas/issue-<N>/` and
+`backend/app/ideas/issue_<N>.py`, both discovered automatically – so merging several idea PRs into
+`main` produces one landing page that lists all ideas, without merge conflicts.
 5. The **critic** checks whether the build preserved the interesting idea and can ask Copilot for
    one fix round.
 6. The participant tries the live URL and asks for changes by commenting `@copilot …` on the PR.

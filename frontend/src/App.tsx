@@ -1,52 +1,35 @@
-import { FormEvent, useEffect, useState } from 'react';
-import { api, type AgentResult, type PatientSummary, type Status } from './api';
-import { RenderBlock } from './blocks/registry';
-
-const roles = ['Oncologist', 'Oncology nurse', 'MDT coordinator', 'Pharmacist', 'Patient'];
-
-const exampleTasks = [
-  "Prepare this case for tomorrow's tumour board. What is missing?",
-  'What changed since the last visit, and what needs attention now?',
-  'Which synthetic trials could fit, and what data is still needed to check eligibility?',
-];
+import { useEffect, useState } from 'react';
+import { api, type Status } from './api';
+import { findIdea, ideas } from './ideas';
 
 const repoUrl = 'https://github.com/jochenvw/health-rewired';
 const newIdeaUrl = `${repoUrl}/issues/new?template=oncology-idea.yml`;
-const ideasUrl = `${repoUrl}/issues`;
 
-const steps = [
-  { title: 'Share your idea', body: 'Open a GitHub issue and describe it in plain language. No code needed.' },
-  { title: 'Get coached', body: 'An AI coach replies within minutes to help sharpen the clinical insight.' },
-  { title: 'See it live', body: 'GitHub Copilot builds it and posts a link to your working prototype.' },
-];
+// Routes: `#/` is the landing page, `#/idea/<id>` is one idea page (id = issue number or "starter").
+function useRoute() {
+  const read = () => window.location.hash.replace(/^#\/?/, '');
+  const [route, setRoute] = useState(read);
+  useEffect(() => {
+    const onChange = () => {
+      setRoute(read());
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('hashchange', onChange);
+    return () => window.removeEventListener('hashchange', onChange);
+  }, []);
+  return route;
+}
 
 export default function App() {
   const [status, setStatus] = useState<Status | null>(null);
-  const [patients, setPatients] = useState<PatientSummary[]>([]);
-  const [patientId, setPatientId] = useState('P-001');
-  const [role, setRole] = useState(roles[2]);
-  const [task, setTask] = useState(exampleTasks[0]);
-  const [result, setResult] = useState<AgentResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const route = useRoute();
 
   useEffect(() => {
     api.status().then(setStatus).catch(() => setStatus(null));
-    api.patients().then(setPatients).catch(() => setPatients([]));
   }, []);
 
-  const run = async (event: FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      setResult(await api.runAgent({ task, patient_id: patientId, role }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'The agent could not be reached.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const ideaId = route.startsWith('idea/') ? route.slice('idea/'.length) : null;
+  const idea = ideaId ? findIdea(ideaId) : undefined;
 
   return (
     <div className="page">
@@ -56,7 +39,7 @@ export default function App() {
       </div>
 
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="#/">
           <span className="brand-mark" aria-hidden>
             ✦
           </span>
@@ -64,117 +47,55 @@ export default function App() {
             <strong>Health Rewired</strong>
             <span>Oncology Hackathon 2026 · Munich</span>
           </div>
-        </div>
+        </a>
         <nav aria-label="Main">
-          <a href={ideasUrl} target="_blank" rel="noreferrer">
-            Browse ideas
+          <a href={newIdeaUrl} target="_blank" rel="noreferrer">
+            Submit an idea
           </a>
         </nav>
       </header>
 
-      {/* Landing content for the main site. Idea builds replace this hero and the steps below with
-          the idea's own screen (see .github/hackathon/implementation-guidelines.md, rule 0). */}
-      <section className="hero">
-        <h1>
-          Bring your oncology idea. <span className="accent">We'll build it.</span>
-        </h1>
-        <p className="lede">
-          Describe your idea in a GitHub issue. An AI coach helps you sharpen it, then GitHub Copilot turns it into a
-          working prototype.
-        </p>
-        <div className="cta-row">
-          <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
-            Submit your idea on GitHub →
+      {idea ? (
+        <main className="idea-page">
+          <a className="back-link" href="#/">
+            ← All ideas
           </a>
-          <a className="button ghost" href={ideasUrl} target="_blank" rel="noreferrer">
-            See other ideas
-          </a>
-        </div>
-      </section>
+          <h1>{idea.meta.title}</h1>
+          <p className="lede">{idea.meta.tagline}</p>
+          <idea.default />
+        </main>
+      ) : (
+        <main>
+          <section className="hero">
+            <h1>
+              Bring your oncology idea. <span className="accent">We'll build it.</span>
+            </h1>
+            <p className="lede">
+              Describe it in a GitHub issue. An AI coach sharpens it with you, then GitHub Copilot builds a prototype
+              you can click through.
+            </p>
+            {ideaId && <p className="note">That idea is not part of this version yet. Pick one below.</p>}
+            <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
+              Submit your idea on GitHub →
+            </a>
+          </section>
 
-      <section className="steps">
-        {steps.map((step, index) => (
-          <article key={step.title} className="step">
-            <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </article>
-        ))}
-      </section>
-
-      <section id="canvas" className="canvas">
-        <div className="canvas-intro">
-          <p className="eyebrow">Starter agent</p>
-          <h2>Every prototype starts from this agent.</h2>
-          <p>Try it on synthetic patients to see what your idea can build on.</p>
-        </div>
-
-        <form className="agent-form" onSubmit={run}>
-          <div className="field-row">
-            <label>
-              Synthetic patient
-              <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
-                {(patients.length ? patients : [{ id: 'P-001', name: 'P-001', age: 0, diagnosis: '' }]).map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.id} · {p.name}
-                    {p.diagnosis ? ` · ${p.diagnosis}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Your role
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                {roles.map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <label>
-            Task for the agent
-            <textarea value={task} onChange={(e) => setTask(e.target.value)} rows={3} />
-          </label>
-          <div className="chip-row">
-            {exampleTasks.map((example) => (
-              <button key={example} type="button" className="chip" onClick={() => setTask(example)}>
-                {example}
-              </button>
-            ))}
-          </div>
-          <button className="button primary" type="submit" disabled={loading || task.trim().length < 3}>
-            {loading ? 'Agent is working…' : 'Run agent'}
-          </button>
-        </form>
-
-        {error && <p className="error">{error}</p>}
-
-        {result && (
-          <div className="result" aria-live="polite">
-            <div className="result-header">
-              <h3>{result.headline}</h3>
-              <span className={`mode mode-${result.mode}`}>
-                {result.mode === 'copilot' ? 'Live Copilot SDK agent' : 'Deterministic demo'}
-              </span>
-            </div>
-            {result.note && <p className="note">{result.note}</p>}
-            {result.trace.length > 0 && (
-              <ol className="trace" aria-label="What the agent did">
-                {result.trace.map((step, index) => (
-                  <li key={index} title={step.arguments ?? undefined}>
-                    {step.tool}
-                  </li>
-                ))}
-              </ol>
-            )}
-            <div className="blocks">
-              {result.blocks.map((block, index) => (
-                <RenderBlock key={index} block={block} />
+          <section aria-labelledby="ideas-title">
+            <h2 id="ideas-title" className="section-title">
+              Ideas
+            </h2>
+            <div className="idea-grid">
+              {ideas.map(({ meta }) => (
+                <a key={meta.id} className="idea-card" href={`#/idea/${meta.id}`}>
+                  {meta.issue && <span className="step-index">Idea #{meta.issue}</span>}
+                  <h3>{meta.title}</h3>
+                  <p>{meta.tagline}</p>
+                </a>
               ))}
             </div>
-          </div>
-        )}
-      </section>
+          </section>
+        </main>
+      )}
 
       <footer className="footer">
         <span>Health Rewired · Oncology Hackathon 2026 · Munich</span>

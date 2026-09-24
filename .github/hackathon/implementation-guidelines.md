@@ -26,18 +26,28 @@ click through, react to, and iterate on with you. Speed to something visible bea
 1. Read the issue, **the latest "🚀 Implementation proposal" comment**, and the conversation.
    The proposal is the contract. The participant's clinical insight is the point.
 2. Read [`capability-cards.md`](capability-cards.md) for the capabilities the proposal names.
-3. Where code goes: agent and tools in `backend/app/agent/`, API in `backend/app/`, the page in
-   `frontend/src/App.tsx`, UI blocks in `frontend/src/blocks/`, synthetic data in `/sample-data`.
+3. Where code goes – **each idea lives in its own files**, so ideas never collide and can later all
+   be merged into `main`, where the landing page lists every idea:
+   - Page: `frontend/src/ideas/issue-<N>/index.tsx` exporting `meta` (`id: "<N>"`, `issue: <N>`,
+     plain-language `title` and one-line `tagline`) and a default component. It is discovered
+     automatically, appears on the landing page, and opens at `/#/idea/<N>`. Copy
+     `frontend/src/ideas/starter/index.tsx` as a starting point. Idea-specific CSS goes in a file in
+     the same folder.
+   - API: `backend/app/ideas/issue_<N>.py` exposing `router = APIRouter(prefix="/api/ideas/<N>")`,
+     discovered automatically. Put idea-specific prompts, tools and helpers there and call
+     `run_agent(request, system_prompt=..., extra_tools=[...])` from `app.agent`.
+   - Shared, reusable pieces (new UI block types, generally useful tools, synthetic data) may go in
+     the shared places: `frontend/src/blocks/`, `backend/app/agent/`, `/sample-data`.
 
 ## Build rules
 
-0. **The idea is the page.** The participant opens their preview link and must see *their idea*
-   first, without scrolling – not the hackathon landing page. In `frontend/src/App.tsx`, **replace**
-   the landing hero ("Bring your oncology idea…"), the three steps and the "Submit your idea"
-   buttons with the idea's own title, one line on the clinical moment, and its main screen. Keep
-   the disclaimer bar and the brand header. The generic starter agent canvas either becomes the
-   idea's screen or moves below it; never put the idea underneath it. Appending a section at the
-   bottom of the landing page is the most common way a good build looks like "nothing changed".
+0. **The idea gets its own page – do not touch the landing page.** Do not edit
+   `frontend/src/App.tsx` or `backend/app/main.py`; add your idea page and router as described
+   in "Where code goes". The participant's link opens `/#/idea/<N>` directly, so the page must
+   show the idea's main screen immediately, with no scrolling and no setup: pre-select a sensible
+   synthetic patient or example and make the main action one obvious button. The `title` and
+   `tagline` are read by clinicians – use their words, not internal terms (say "Patients like
+   mine who were left out of trials", not "Cohort explorer").
 1. **Copilot SDK stays central.** Agent behaviour goes through `backend/app/agent/`, using the
    GitHub Copilot SDK. Add tools in `backend/app/agent/tools.py`; do not call model APIs directly.
 2. **Agentic, not chat.** Prefer an agent that uses tools and renders UI blocks over a chat box.

@@ -187,7 +187,7 @@ jobs:
                 `<!-- oncology-hackathon-release: ${latest} build: ${build} -->`,
                 minor === 0 ? `### 🚀 Your prototype is live · ${latest}` : `### 🆕 New version live · ${latest}`,
                 ``,
-                `**${url}**`,
+                `**${url}/#/idea/${issue_number}**`,
                 ``,
                 minor === 0
                   ? `Try it and tell us what to change: comment on #${pr} starting with \`@copilot\`.`
@@ -209,7 +209,7 @@ jobs:
               marker,
               `### 🚀 Preview ready${latest ? ` · ${latest}` : ""}`,
               ``,
-              `**${url}**`,
+              `**${url}${issues.length ? `/#/idea/${issues[0]}` : ""}**`,
               ``,
               `Build \`${build}\` · updates automatically on every push to this pull request.`,
               `Synthetic data only · hackathon prototype · not for clinical use.`,
