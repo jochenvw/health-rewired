@@ -72,6 +72,8 @@ export default function App() {
         </nav>
       </header>
 
+      {/* Landing content for the main site. Idea builds replace this hero and the steps below with
+          the idea's own screen (see .github/hackathon/implementation-guidelines.md, rule 0). */}
       <section className="hero">
         <h1>
           Bring your oncology idea. <span className="accent">We'll build it.</span>

@@ -26,10 +26,18 @@ click through, react to, and iterate on with you. Speed to something visible bea
 1. Read the issue, **the latest "🚀 Implementation proposal" comment**, and the conversation.
    The proposal is the contract. The participant's clinical insight is the point.
 2. Read [`capability-cards.md`](capability-cards.md) for the capabilities the proposal names.
-3. Read `README.md` → "Extending the app" for where code goes.
+3. Where code goes: agent and tools in `backend/app/agent/`, API in `backend/app/`, the page in
+   `frontend/src/App.tsx`, UI blocks in `frontend/src/blocks/`, synthetic data in `/sample-data`.
 
 ## Build rules
 
+0. **The idea is the page.** The participant opens their preview link and must see *their idea*
+   first, without scrolling – not the hackathon landing page. In `frontend/src/App.tsx`, **replace**
+   the landing hero ("Bring your oncology idea…"), the three steps and the "Submit your idea"
+   buttons with the idea's own title, one line on the clinical moment, and its main screen. Keep
+   the disclaimer bar and the brand header. The generic starter agent canvas either becomes the
+   idea's screen or moves below it; never put the idea underneath it. Appending a section at the
+   bottom of the landing page is the most common way a good build looks like "nothing changed".
 1. **Copilot SDK stays central.** Agent behaviour goes through `backend/app/agent/`, using the
    GitHub Copilot SDK. Add tools in `backend/app/agent/tools.py`; do not call model APIs directly.
 2. **Agentic, not chat.** Prefer an agent that uses tools and renders UI blocks over a chat box.
