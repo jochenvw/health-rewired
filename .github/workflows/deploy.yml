@@ -156,29 +156,61 @@ jobs:
               }
             }
 
-            await upsert(pr, [
-              marker,
-              `### 🚀 Preview ready`,
-              ``,
-              `**${url}**`,
-              ``,
-              `Build \`${process.env.VERSION}\` · updates automatically on every push to this pull request.`,
-              `Synthetic data only · hackathon prototype · not for clinical use.`,
-            ].join("\n"));
-
             const { repository } = await github.graphql(
               `query($owner:String!,$repo:String!,$pr:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$pr){closingIssuesReferences(first:5){nodes{number}}}}}`,
               { owner, repo, pr },
             );
-            for (const { number } of repository.pullRequest.closingIssuesReferences.nodes) {
-              await upsert(number, [
-                marker,
-                `### 🚀 Your prototype is live`,
+            const issues = repository.pullRequest.closingIssuesReferences.nodes.map((n) => n.number);
+
+            // Every new build that goes live is a new prototype version on the idea issue:
+            // v1.0, v1.1, v1.2, … The hidden marker stores version and build, so re-runs of the
+            // same build do not post again and the next number is derived from the issue itself.
+            const releaseRe = /<!-- oncology-hackathon-release: v1\.(\d+) build: (\w+) -->/;
+            const build = process.env.VERSION;
+            let latest = null;
+
+            for (const issue_number of issues) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100,
+              });
+              const releases = comments
+                .map((c) => c.body?.match(releaseRe))
+                .filter(Boolean)
+                .map((m) => ({ minor: Number(m[1]), build: m[2] }));
+              const already = releases.find((r) => r.build === build);
+              const minor = already ? already.minor : releases.reduce((max, r) => Math.max(max, r.minor + 1), 0);
+              latest = `v1.${minor}`;
+              if (already) continue;
+
+              const body = [
+                ...(minor === 0 ? [marker] : []),
+                `<!-- oncology-hackathon-release: ${latest} build: ${build} -->`,
+                minor === 0 ? `### 🚀 Your prototype is live · ${latest}` : `### 🆕 New version live · ${latest}`,
                 ``,
                 `**${url}**`,
                 ``,
-                `Try it and tell us what to change: comment on #${pr} starting with \`@copilot\`.`,
+                minor === 0
+                  ? `Try it and tell us what to change: comment on #${pr} starting with \`@copilot\`.`
+                  : `Copilot has updated your prototype. Reload the page to see the changes, and keep the feedback coming on #${pr} (start with \`@copilot\`).`,
                 `Synthetic data only · hackathon prototype · not for clinical use.`,
-              ].join("\n"));
-              await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ["preview-ready"] });
+              ].join("\n");
+
+              // The first version replaces the "🛠️ Building your prototype" status comment.
+              const status = comments.find((c) => c.body?.includes(marker) && !releaseRe.test(c.body));
+              if (minor === 0 && status) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: status.id, body });
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number, body });
+              }
+              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ["preview-ready"] });
             }
+
+            await upsert(pr, [
+              marker,
+              `### 🚀 Preview ready${latest ? ` · ${latest}` : ""}`,
+              ``,
+              `**${url}**`,
+              ``,
+              `Build \`${build}\` · updates automatically on every push to this pull request.`,
+              `Synthetic data only · hackathon prototype · not for clinical use.`,
+            ].join("\n"));

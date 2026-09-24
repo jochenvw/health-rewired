@@ -32,9 +32,11 @@ IDEA → CONVERSATION → BETTER IDEA → AGENT BUILDS IT → LIVE APPLICATION
    `ready-for-build` and **assigns the Copilot coding agent**.
 4. As soon as Copilot is assigned, the issue gets a **🛠️ Building your prototype** comment
    (`build-started.yml`). Copilot opens a `[WIP]` pull request. Once Copilot finishes (it drops
-   `[WIP]` from the title), every push deploys a **preview** and the same issue comment is replaced
-   with the live link (label `preview-ready`); the link is also posted in the PR. While the title
-   still starts with `[WIP]`, CI runs but nothing is deployed.
+   `[WIP]` from the title), every push deploys a **preview**. The first live build replaces the
+   issue comment with the link as **v1.0** (label `preview-ready`); every later build that goes live
+   posts a new **🆕 New version live · v1.N** comment on the issue (minor version bumped per build).
+   The link is also posted in the PR. While the title still starts with `[WIP]`, CI runs but
+   nothing is deployed.
 5. The **critic** checks whether the build preserved the interesting idea and can ask Copilot for
    one fix round.
 6. The participant tries the live URL and asks for changes by commenting `@copilot …` on the PR.
