@@ -153,6 +153,15 @@ nav a:hover {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.idea-hero .cta-row label {
+  min-width: 260px;
+}
+
+.idea-hero .cta-row select {
+  width: 100%;
 }
 
 .button {

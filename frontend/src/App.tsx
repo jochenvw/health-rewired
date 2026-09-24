@@ -4,22 +4,18 @@ import { RenderBlock } from './blocks/registry';
 
 const roles = ['Oncologist', 'Oncology nurse', 'MDT coordinator', 'Pharmacist', 'Patient'];
 
+const OUTCOME_RISK_TASK = 'Assess outcome risk across labs, imaging and biomarkers, and ground it in a matching trial.';
+
 const exampleTasks = [
   "Prepare this case for tomorrow's tumour board. What is missing?",
   'What changed since the last visit, and what needs attention now?',
   'Which synthetic trials could fit, and what data is still needed to check eligibility?',
-  'Assess outcome risk across labs, imaging and biomarkers, and ground it in a matching trial.',
+  OUTCOME_RISK_TASK,
 ];
 
 const repoUrl = 'https://github.com/jochenvw/health-rewired';
 const newIdeaUrl = `${repoUrl}/issues/new?template=oncology-idea.yml`;
 const ideasUrl = `${repoUrl}/issues`;
-
-const steps = [
-  { title: 'Share your idea', body: 'Open a GitHub issue and describe it in plain language. No code needed.' },
-  { title: 'Get coached', body: 'An AI coach replies within minutes to help sharpen the clinical insight.' },
-  { title: 'See it live', body: 'GitHub Copilot builds it and posts a link to your working prototype.' },
-];
 
 export default function App() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -30,6 +26,9 @@ export default function App() {
   const [result, setResult] = useState<AgentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [outcomeResult, setOutcomeResult] = useState<AgentResult | null>(null);
+  const [outcomeError, setOutcomeError] = useState<string | null>(null);
+  const [outcomeLoading, setOutcomeLoading] = useState(false);
 
   useEffect(() => {
     api.status().then(setStatus).catch(() => setStatus(null));
@@ -49,6 +48,21 @@ export default function App() {
     }
   };
 
+  const showOutcomeRisk = async () => {
+    setOutcomeLoading(true);
+    setOutcomeError(null);
+    try {
+      setOutcomeResult(await api.runAgent({ task: OUTCOME_RISK_TASK, patient_id: patientId, role: 'Oncologist' }));
+    } catch (err) {
+      setOutcomeError(err instanceof Error ? err.message : 'The agent could not be reached.');
+    } finally {
+      setOutcomeLoading(false);
+    }
+  };
+
+  const outcomeRiskBlocks = outcomeResult?.blocks.filter((block) => block.type === 'outcome_risk') ?? [];
+  const patientOptions = patients.length ? patients : [{ id: 'P-001', name: 'P-001', age: 0, diagnosis: '' }];
+
   return (
     <div className="page">
       <div className="disclaimer" role="note">
@@ -67,38 +81,64 @@ export default function App() {
           </div>
         </div>
         <nav aria-label="Main">
+          <a href={newIdeaUrl} target="_blank" rel="noreferrer">
+            Submit an idea
+          </a>
           <a href={ideasUrl} target="_blank" rel="noreferrer">
             Browse ideas
           </a>
         </nav>
       </header>
 
-      <section className="hero">
+      <section className="hero idea-hero">
+        <p className="eyebrow">Predict outcomes</p>
         <h1>
-          Bring your oncology idea. <span className="accent">We'll build it.</span>
+          See the outcome risk, <span className="accent">not just a number.</span>
         </h1>
         <p className="lede">
-          Describe your idea in a GitHub issue. An AI coach helps you sharpen it, then GitHub Copilot turns it into a
-          working prototype.
+          For the oncologist reviewing a case between visits: an agent reasons across labs, imaging and biomarkers
+          together, flags an emerging concern, and grounds it in a matching trial — always for you to approve, edit
+          or dismiss.
         </p>
         <div className="cta-row">
-          <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
-            Submit your idea on GitHub →
-          </a>
-          <a className="button ghost" href={ideasUrl} target="_blank" rel="noreferrer">
-            See other ideas
-          </a>
+          <label>
+            Synthetic patient
+            <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
+              {patientOptions.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.id} · {p.name}
+                  {p.diagnosis ? ` · ${p.diagnosis}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="button primary" type="button" onClick={showOutcomeRisk} disabled={outcomeLoading}>
+            {outcomeLoading ? 'Assessing…' : 'Show outcome risk'}
+          </button>
         </div>
-      </section>
 
-      <section className="steps">
-        {steps.map((step, index) => (
-          <article key={step.title} className="step">
-            <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </article>
-        ))}
+        {outcomeError && <p className="error">{outcomeError}</p>}
+
+        {outcomeResult && (
+          <div className="result" aria-live="polite">
+            <div className="result-header">
+              <h3>{outcomeResult.headline}</h3>
+              <span className={`mode mode-${outcomeResult.mode}`}>
+                {outcomeResult.mode === 'copilot' ? 'Live Copilot SDK agent' : 'Deterministic demo'}
+              </span>
+            </div>
+            {outcomeResult.note && <p className="note">{outcomeResult.note}</p>}
+            {outcomeRiskBlocks.length > 0 ? (
+              <div className="blocks">
+                {outcomeRiskBlocks.map((block, index) => (
+                  <RenderBlock key={index} block={block} />
+                ))}
+              </div>
+            ) : (
+              <p className="note">No outcome-risk concern flagged for this patient right now.</p>
+            )}
+          </div>
+        )}
       </section>
 
       <section id="canvas" className="canvas">
@@ -113,7 +153,7 @@ export default function App() {
             <label>
               Synthetic patient
               <select value={patientId} onChange={(e) => setPatientId(e.target.value)}>
-                {(patients.length ? patients : [{ id: 'P-001', name: 'P-001', age: 0, diagnosis: '' }]).map((p) => (
+                {patientOptions.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.id} · {p.name}
                     {p.diagnosis ? ` · ${p.diagnosis}` : ''}
