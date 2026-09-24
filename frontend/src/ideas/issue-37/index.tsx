@@ -71,9 +71,9 @@ export default function EuropeanLearningNetwork() {
   }, []);
 
   const refreshLog = () => {
-    fetch('/api/ideas/37/log')
-      .then((r) => r.json())
-      .then((entries: unknown[]) => setLogCount(entries.length))
+    api
+      .networkLearningLog()
+      .then((entries) => setLogCount(entries.length))
       .catch(() => undefined);
   };
 
@@ -84,16 +84,12 @@ export default function EuropeanLearningNetwork() {
     setLoading(true);
     setStarted(true);
     try {
-      const response = await fetch('/api/ideas/37/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      setResult(
+        await api.queryEuNetwork({
           task: 'Find patients like mine across the European network, show the treatment approaches taken and what happened, and flag weak evidence.',
           patient_id: PATIENT_ID,
         }),
-      });
-      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-      setResult(await response.json());
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The network query could not be reached.');
     } finally {
@@ -327,15 +323,11 @@ function DecidePanel({ onRecorded, logCount }: { onRecorded: () => void; logCoun
   const record = async () => {
     setBusy(true);
     try {
-      await fetch('/api/ideas/37/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patient_id: PATIENT_ID,
-          approach_category: approach,
-          chosen_treatment: treatment,
-          outcome_note: outcome,
-        }),
+      await api.recordNetworkFeedback({
+        patient_id: PATIENT_ID,
+        approach_category: approach,
+        chosen_treatment: treatment,
+        outcome_note: outcome,
       });
       setRecorded(true);
       onRecorded();

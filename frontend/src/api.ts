@@ -52,6 +52,16 @@ export type PatientRecord = {
   open_questions: string[];
 };
 
+export type NetworkFeedbackEntry = {
+  id: string;
+  patient_id: string;
+  approach_category: string;
+  approach_label: string;
+  chosen_treatment: string;
+  outcome_note: string;
+  recorded_at: string;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -68,4 +78,18 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  // Issue #37 – A Europe-wide learning treatment system.
+  queryEuNetwork: (body: { task: string; patient_id: string }) =>
+    request<AgentResult>('/api/ideas/37/query', { method: 'POST', body: JSON.stringify(body) }),
+  recordNetworkFeedback: (body: {
+    patient_id: string;
+    approach_category: string;
+    chosen_treatment: string;
+    outcome_note: string;
+  }) =>
+    request<{ entry: NetworkFeedbackEntry; total_learning_entries: number }>('/api/ideas/37/feedback', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  networkLearningLog: () => request<NetworkFeedbackEntry[]>('/api/ideas/37/log'),
 };

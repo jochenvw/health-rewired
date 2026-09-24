@@ -46,6 +46,27 @@ def test_query_eu_network_tool_finds_comparable_patients_and_flags_evidence():
     assert "no raw patient records" in body["privacy_note"]
 
 
+def test_prepare_outcome_feedback_drafts_without_saving():
+    import json
+
+    from app.ideas.issue_37 import _LEARNING_LOG, PrepareFeedbackParams, _prepare_outcome_feedback
+
+    entries_before = len(_LEARNING_LOG)
+    result = _prepare_outcome_feedback(
+        PrepareFeedbackParams(
+            patient_id="P-002",
+            approach_category="biopsy_or_liquid_first",
+            chosen_treatment="Liquid biopsy then continue osimertinib",
+            outcome_note="Pending",
+        )
+    )
+    body = json.loads(result)
+    assert body["draft"] is True
+    assert body["approach_label"] == "Confirm with (liquid) biopsy before changing therapy"
+    assert body["patient_id"] == "P-002"
+    assert len(_LEARNING_LOG) == entries_before
+
+
 def test_query_endpoint_falls_back_without_token(client):
     response = client.post("/api/ideas/37/query", json={"task": "Find comparable patients", "patient_id": "P-002"})
     assert response.status_code == 200
@@ -75,3 +96,11 @@ def test_feedback_rejects_unknown_approach_category(client):
         json={"patient_id": "P-002", "approach_category": "not-a-real-category", "chosen_treatment": "x"},
     )
     assert response.status_code == 400
+
+
+def test_feedback_rejects_invalid_patient_id(client):
+    response = client.post(
+        "/api/ideas/37/feedback",
+        json={"patient_id": "not a valid id!", "approach_category": "biopsy_or_liquid_first", "chosen_treatment": "x"},
+    )
+    assert response.status_code == 422

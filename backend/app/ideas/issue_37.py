@@ -161,14 +161,7 @@ def _query_eu_network(params: PatientIdParams) -> str:
     )
 
 
-@define_tool(
-    description=(
-        "Draft an outcome-feedback entry for the shared learning system (does not save it). "
-        "The oncologist must confirm it in the UI before it is recorded."
-    ),
-    skip_permission=True,
-)
-def prepare_outcome_feedback(params: PrepareFeedbackParams) -> str:
+def _prepare_outcome_feedback(params: PrepareFeedbackParams) -> str:
     return json.dumps(
         {
             "draft": True,
@@ -191,6 +184,17 @@ query_eu_network = define_tool(
     ),
     handler=_query_eu_network,
     params_type=PatientIdParams,
+    skip_permission=True,
+)
+
+prepare_outcome_feedback = define_tool(
+    "prepare_outcome_feedback",
+    description=(
+        "Draft an outcome-feedback entry for the shared learning system (does not save it). "
+        "The oncologist must confirm it in the UI before it is recorded."
+    ),
+    handler=_prepare_outcome_feedback,
+    params_type=PrepareFeedbackParams,
     skip_permission=True,
 )
 
