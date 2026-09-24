@@ -6,7 +6,8 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    # `edited` catches the Copilot coding agent dropping "[WIP]" from the title when it finishes.
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   workflow_dispatch:
 
 permissions:
@@ -21,16 +22,20 @@ env:
 
 jobs:
   ci:
+    # Body-only edits need neither CI nor a deploy.
+    if: github.event.action != 'edited' || github.event.changes.title != null
     uses: ./.github/workflows/ci.yml
 
   deploy:
     name: Deploy to Azure Container Apps
     needs: ci
     # No Azure credentials for forks or Dependabot; they get CI only.
+    # "[WIP]" PRs are still being written by the Copilot coding agent; deploy once it renames them.
     if: >-
       github.event_name != 'pull_request' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-       github.actor != 'dependabot[bot]')
+       github.actor != 'dependabot[bot]' &&
+       !startsWith(github.event.pull_request.title, '[WIP]'))
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
