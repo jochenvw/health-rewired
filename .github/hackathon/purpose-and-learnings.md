@@ -54,23 +54,21 @@ scenario, step by step, so they understand *how this could actually work*.
 | 3 | Assigned to Copilot | "🛠️ Building your prototype" comment |
 | 4 | Copilot builds a pull request | Nothing to do – silence is fine, the status comment explains |
 | 5 | Deployed preview | Comment "✅ live · v1.0" with a direct link to `/#/idea/<N>` |
-| 6 | Participant feedback | Reply on the idea issue; the feedback relay passes up to two focused revision rounds to Copilot |
+| 6 | Participant feedback | Reply on the idea issue; the feedback relay keeps passing focused revisions to Copilot until the participant is satisfied |
 | 7 | Each new build | "🆕 New version live · v1.N" comment on the issue |
 | 8 | Participant finishes the prototype | Reply `/architecture`, `ready for architecture`, or `prototype is done` on the issue |
 | 9 | Architecture coach | Asks only missing real-world questions, then posts an Azure architecture diagram, five-pillar Well-Architected review and staged delivery path |
-| 10 | Audience presentation | Reply `/presentation`; receive an editable PowerPoint, then use `/presentation revise` for at most two focused audience-story revisions |
+| 10 | Audience presentation | Reply `/presentation`; receive an editable PowerPoint, then use `/presentation revise` until the audience story feels finished |
 
 Rule: **the participant should never wonder whether something is happening.** Acknowledge fast,
 report progress, link straight to the result.
 
-Hackathon limit: the first preview may receive at most **two automatic revision rounds**. Further
-feedback stays on the issue rather than triggering more builds. When the prototype communicates the
-idea well enough, the participant can start the separate architecture-coaching phase; it plans a
-future implementation but does not change the demo.
-
-The same time-box applies to the final story: allow at most **two automatic presentation
-revisions**. The editor may clarify or refocus slide copy, but it cannot invent evidence, change the
-prototype, or redesign the approved future architecture.
+Participant feedback remains active until the participant explicitly moves on. Prototype comments
+continue to trigger focused revisions until they reply `/architecture`; that starts the separate
+architecture-coaching phase and stops prototype changes. Presentation comments continue to trigger
+focused revisions for as long as the participant asks. The editor may clarify or refocus slide
+copy, but it cannot invent evidence, change the prototype, or redesign the approved future
+architecture.
 
 ## 3. What a good prototype looks like
 
@@ -109,7 +107,7 @@ Each learning states the failure we saw and the rule that prevents it.
 | The acknowledgement arrived quickly, but substantive coaching consistently took 3–4 min | Promise an honest 3–5 min rather than "a minute or two" |
 | A ready issue stayed unbuilt while the overall workflow was green because assignment used an unsupported agent alias | Assign exactly `copilot`; watchdog every `ready-for-build` handoff and fail visibly when no agent is assigned |
 | Participants had to leave their idea issue and understand a pull request to request changes | Keep the issue as the participant surface and relay feedback to the linked build |
-| Open-ended revision requests could consume the event while repeatedly destabilising a working demo | Allow at most two focused automatic revisions, then keep further feedback for facilitator discussion |
+| Participants may need more than two attempts to recognise their idea in the result | Keep feedback focused but unlimited; the participant explicitly ends prototype iteration with `/architecture` and ends presentation iteration by saying the deck is done |
 | Preview link was posted while the PR held only the "Initial plan" commit | Deploy only once Copilot drops `[WIP]` from the title; say "building" first, link second |
 | Idea code was appended below the landing page; participant saw no difference | Each idea lives in `frontend/src/ideas/issue-<N>/` and `backend/app/ideas/issue_<N>.py`; never edit `App.tsx` or `main.py` |
 | The idea only appeared after typing a specific prompt into the starter agent | The idea's main screen must show immediately on `/#/idea/<N>` |

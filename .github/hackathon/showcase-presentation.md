@@ -9,9 +9,8 @@ change the prototype or architecture.
 After reviewing the first deck, the participant can reply `/presentation revise` followed by one
 focused request, for example “make the patient impact clearer” or “simplify the architecture for a
 non-technical audience”. The presentation editor turns that feedback into bounded slide-copy
-overrides and the deterministic generator posts a new editable PowerPoint. Allow at most **two**
-automatic presentation revisions; further feedback remains on the issue for local editing with a
-facilitator.
+overrides and the deterministic generator posts a new editable PowerPoint. Participants can keep
+requesting focused revisions until they say the presentation is done.
 
 ## Audience story
 
