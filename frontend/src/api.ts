@@ -67,4 +67,7 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  /** Idea-specific agent endpoints, e.g. `/api/ideas/34/analyze`. */
+  runIdeaAgent: (path: string, body: { task: string; patient_id?: string; role?: string }) =>
+    request<AgentResult>(path, { method: 'POST', body: JSON.stringify(body) }),
 };

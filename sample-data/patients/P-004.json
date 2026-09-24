@@ -1,0 +1,30 @@
+{
+  "synthetic": true,
+  "id": "P-004",
+  "name": "Julia Vogel",
+  "age": 61,
+  "sex": "female",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Invasive ductal carcinoma, right breast",
+    "date": "2025-03-10",
+    "stage": "cT2 cN1 M0 (stage IIB)",
+    "grade": 3,
+    "biomarkers": { "ER": "positive (85%)", "PR": "positive (30%)", "HER2": "negative (IHC 2+, ISH negative)", "Ki-67": "38%" }
+  },
+  "comorbidities": [],
+  "medications": [],
+  "treatments": [
+    { "type": "Neoadjuvant chemotherapy", "regimen": "EC x4 then paclitaxel x12", "start": "2025-04-01", "status": "completed" },
+    { "type": "Surgery", "regimen": "Breast-conserving surgery + SLNB", "start": "2025-08-20", "status": "completed" }
+  ],
+  "labs": [],
+  "patient_reported": [],
+  "timeline": [
+    { "date": "2025-03-10", "event": "Core biopsy: IDC grade 3, HER2 IHC 2+ (equivocal)" },
+    { "date": "2025-03-24", "event": "Reflex ISH: HER2 not amplified – reported HER2-negative" },
+    { "date": "2025-04-01", "event": "Neoadjuvant EC then paclitaxel started (no anti-HER2 therapy)" },
+    { "date": "2025-08-10", "event": "Surgery: near-complete pathologic response" }
+  ],
+  "open_questions": []
+}

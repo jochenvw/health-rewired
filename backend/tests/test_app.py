@@ -63,6 +63,29 @@ def test_unescape_restores_double_escaped_unicode():
     assert _unescape({"a": ["CEA 2.1\\u21924.6"], "b": 1}) == {"a": ["CEA 2.1\u21924.6"], "b": 1}
 
 
+def test_tumour_board_analyze_falls_back_without_token(client):
+    response = client.post("/api/ideas/34/analyze", json={"task": "Prepare pre-board analysis", "patient_id": "P-001"})
+    body = response.json()
+    assert response.status_code == 200
+    assert body["mode"] == "fallback"
+    assert body["blocks"]
+
+
+def test_find_similar_patients_matches_keyword_and_excludes_self():
+    from app.ideas.issue_34 import similar_patients
+
+    ids = {p["id"] for p in similar_patients("breast", exclude_patient_id="P-001")}
+    assert "P-004" in ids
+    assert "P-001" not in ids
+
+
+def test_find_similar_patients_handles_blank_and_unmatched_keyword():
+    from app.ideas.issue_34 import similar_patients
+
+    assert similar_patients("") == []
+    assert similar_patients("melanoma") == []
+
+
 def test_idea_routers_are_discovered_and_mounted(client):
     from fastapi import APIRouter
 
