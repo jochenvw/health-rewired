@@ -84,3 +84,14 @@ def test_idea_routers_are_discovered_and_mounted(client):
     mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
+
+
+def test_issue_35_trial_engine_falls_back_without_token(client):
+    response = client.post("/api/ideas/35/run", json={"site_id": "MIL"})
+    body = response.json()
+    assert response.status_code == 200
+    assert body["mode"] == "fallback"
+    assert body["headline"].startswith("Istituto Oncologico Milano screened")
+    assert any(step["tool"] == "screen_trial_engine" for step in body["trace"])
+    block_titles = {block["title"] for block in body["blocks"]}
+    assert {"Recruitment bottleneck", "Screening explanations", "Human approval needed"} <= block_titles

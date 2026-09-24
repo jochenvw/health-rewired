@@ -67,4 +67,6 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  runTrialEngine35: (body: { site_id: string }) =>
+    request<AgentResult>('/api/ideas/35/run', { method: 'POST', body: JSON.stringify(body) }),
 };
