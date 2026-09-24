@@ -10,8 +10,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-BlockType = Literal["summary", "patient_card", "timeline", "evidence", "alert", "actions"]
+BlockType = Literal["summary", "patient_card", "timeline", "evidence", "alert", "actions", "specialist_debate"]
 Severity = Literal["info", "warning", "critical"]
+Confidence = Literal["low", "medium", "high"]
+ConsensusGroup = Literal["agreed", "disputed", "missing", "human_decision"]
 
 
 class UIItem(BaseModel):
@@ -20,6 +22,29 @@ class UIItem(BaseModel):
     date: str | None = Field(default=None, description="ISO date for timeline items")
     source: str | None = Field(default=None, description="Where this comes from, e.g. a sample-data file")
     severity: Severity | None = None
+    group: ConsensusGroup | None = Field(
+        default=None,
+        description=(
+            "Only for specialist_debate consensus items: 'agreed', 'disputed', 'missing' (before MDT) "
+            "or 'human_decision' (what the board must decide)."
+        ),
+    )
+
+
+class SpecialistView(BaseModel):
+    role: str = Field(description="Specialist role, e.g. 'Oncologist', 'Radiologist', 'Pathologist'")
+    hypothesis: str = Field(description="This specialist's initial read/hypothesis on the case")
+    evidence: str = Field(description="The finding(s) this hypothesis rests on")
+    confidence: Confidence = Field(description="How confident this specialist is in their hypothesis")
+    source: str | None = Field(default=None, description="Where the evidence comes from, e.g. a sample-data file")
+
+
+class ChallengeView(BaseModel):
+    challenger: str = Field(description="Role of the specialist raising the challenge")
+    challenged: str = Field(description="Role of the specialist whose hypothesis is being challenged")
+    contested_evidence: str = Field(description="The specific finding or claim being disputed")
+    detail: str = Field(description="Why the challenger disagrees, and what it would change")
+    resolved: bool = Field(default=False, description="Whether this disagreement has since been resolved")
 
 
 class UIBlock(BaseModel):
@@ -27,13 +52,21 @@ class UIBlock(BaseModel):
         description=(
             "summary: short narrative. patient_card: key facts as items. timeline: dated items. "
             "evidence: items with sources. alert: something needing attention (set severity). "
-            "actions: proposed actions a human must approve, edit or dismiss."
+            "actions: proposed actions a human must approve, edit or dismiss. specialist_debate: "
+            "specialists with hypotheses, their challenges to each other, and a consensus board "
+            "(items with `group` set to agreed/disputed/missing/human_decision)."
         )
     )
     title: str
     body: str | None = Field(default=None, description="Optional paragraph of plain text")
     severity: Severity | None = None
     items: list[UIItem] = Field(default_factory=list)
+    specialists: list[SpecialistView] = Field(
+        default_factory=list, description="Only for specialist_debate: one entry per specialist persona"
+    )
+    challenges: list[ChallengeView] = Field(
+        default_factory=list, description="Only for specialist_debate: direct disagreements between specialists"
+    )
 
 
 class RenderUIParams(BaseModel):

@@ -1,4 +1,6 @@
 export type Severity = 'info' | 'warning' | 'critical';
+export type Confidence = 'low' | 'medium' | 'high';
+export type ConsensusGroup = 'agreed' | 'disputed' | 'missing' | 'human_decision';
 
 export type UIItem = {
   label: string;
@@ -6,6 +8,24 @@ export type UIItem = {
   date?: string | null;
   source?: string | null;
   severity?: Severity | null;
+  /** Only for specialist_debate consensus items. */
+  group?: ConsensusGroup | null;
+};
+
+export type SpecialistView = {
+  role: string;
+  hypothesis: string;
+  evidence: string;
+  confidence: Confidence;
+  source?: string | null;
+};
+
+export type ChallengeView = {
+  challenger: string;
+  challenged: string;
+  contested_evidence: string;
+  detail: string;
+  resolved: boolean;
 };
 
 export type UIBlock = {
@@ -14,6 +34,9 @@ export type UIBlock = {
   body?: string | null;
   severity?: Severity | null;
   items: UIItem[];
+  /** Only for specialist_debate blocks. */
+  specialists?: SpecialistView[];
+  challenges?: ChallengeView[];
 };
 
 export type AgentResult = {

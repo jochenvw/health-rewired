@@ -40,16 +40,17 @@ const story: StoryStep[] = [
   {
     id: 'analysis',
     title: 'Convene the AI specialists',
-    explain: 'Radiology, pathology, molecular, treatment and trials/RWE personas inspect the case and challenge each other.',
+    explain:
+      'Six specialists state a hypothesis, challenge each other directly, then converge into a consensus board.',
   },
 ];
 
 const debateStages: Stage[] = [
-  { label: 'Pathology reviewing histology and receptor status', detail: 'ER 90%, PR 40%, HER2 IHC 2+ – ISH pending', ms: 700 },
-  { label: 'Molecular/genomics checking outstanding testing', detail: 'HER2 ISH not yet resulted', ms: 700 },
-  { label: 'Treatment weighing regimen options against comorbidities', detail: 'Diabetic neuropathy vs. taxane choice', ms: 800 },
-  { label: 'Trials & RWE screening trials.csv and comparable synthetic patients', detail: 'find_similar_patients("breast")', ms: 900 },
-  { label: 'Specialists comparing notes – flagging agreement and conflict', detail: 'Drafting the pre-board hypothesis' },
+  { label: 'Six specialists forming initial hypotheses', detail: 'Oncologist, radiologist, pathologist, molecular, trial, RWE', ms: 700 },
+  { label: 'Molecular specialist checking outstanding testing', detail: 'HER2 ISH not yet resulted', ms: 700 },
+  { label: 'Trial specialist screening trials.csv against toxicity grade', detail: 'find_similar_patients("breast")', ms: 800 },
+  { label: 'Challenge round: specialists contesting each other\u2019s evidence', detail: 'Naming who challenges whom, and why', ms: 900 },
+  { label: 'Converging into the consensus board', detail: 'Agreed · disputed · missing · human decision' },
 ];
 
 export default function TumourBoardAgent() {
@@ -332,7 +333,7 @@ function Analysis({
         running={started}
         holdLast
         release={!loading}
-        note="Radiology, pathology, molecular, treatment and trials/RWE personas are one Copilot SDK agent reasoning through five angles (or the deterministic demo fallback without a token)."
+        note="Six specialist personas (oncologist, radiologist, pathologist, molecular, trial, real-world-evidence) are one Copilot SDK agent reasoning through six angles, then a fixed demo debate without a token."
       />
       {!result && !error && !started && (
         <span className="hx-empty">

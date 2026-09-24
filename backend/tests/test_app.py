@@ -69,6 +69,20 @@ def test_tumour_board_analyze_falls_back_without_token(client):
     assert response.status_code == 200
     assert body["mode"] == "fallback"
     assert body["blocks"]
+    block = body["blocks"][0]
+    assert block["type"] == "specialist_debate"
+    assert len(block["specialists"]) == 6
+    assert {s["role"] for s in block["specialists"]} == {
+        "Oncologist",
+        "Radiologist",
+        "Pathologist",
+        "Molecular specialist",
+        "Trial specialist",
+        "Real-world-evidence specialist",
+    }
+    assert len(block["challenges"]) >= 2
+    groups = {item["group"] for item in block["items"]}
+    assert {"agreed", "disputed", "missing", "human_decision"} <= groups
 
 
 def test_find_similar_patients_matches_keyword_and_excludes_self():

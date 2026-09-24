@@ -4,6 +4,7 @@ import { ActionsBlock } from './ActionsBlock';
 import { AlertBlock } from './AlertBlock';
 import { EvidenceBlock } from './EvidenceBlock';
 import { PatientCardBlock } from './PatientCardBlock';
+import { SpecialistDebateBlock } from './SpecialistDebateBlock';
 import { SummaryBlock } from './SummaryBlock';
 import { TimelineBlock } from './TimelineBlock';
 
@@ -20,6 +21,7 @@ const registry: Record<string, ComponentType<BlockProps>> = {
   evidence: EvidenceBlock,
   alert: AlertBlock,
   actions: ActionsBlock,
+  specialist_debate: SpecialistDebateBlock,
 };
 
 export function RenderBlock({ block }: BlockProps) {
