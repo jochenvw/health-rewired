@@ -1,0 +1,7 @@
+/* Issue #37 – A Europe-wide learning treatment system. Uses the shared hx/hospital theme;
+   only small idea-specific touches live here. */
+
+.hx .result .note {
+  color: var(--muted);
+  font-style: italic;
+}

@@ -1,0 +1,15 @@
+{
+  "synthetic": true,
+  "note": "Fictional participating hospitals for the simulated privacy-preserving European oncology network. No real institutions, patients or data.",
+  "hospitals": [
+    { "id": "DE-01", "name": "Klinikum Rewired München", "country": "Germany" },
+    { "id": "DE-02", "name": "Charité Comprehensive Cancer Center Berlin", "country": "Germany" },
+    { "id": "AT-01", "name": "AKH Wien Onkologie", "country": "Austria" },
+    { "id": "FR-01", "name": "Institut Gustave Roussy", "country": "France" },
+    { "id": "NL-01", "name": "Antoni van Leeuwenhoek", "country": "Netherlands" },
+    { "id": "IT-01", "name": "Istituto Europeo di Oncologia Milano", "country": "Italy" },
+    { "id": "ES-01", "name": "Hospital Clínic Barcelona", "country": "Spain" },
+    { "id": "PL-01", "name": "Centrum Onkologii Warszawa", "country": "Poland" },
+    { "id": "SE-01", "name": "Karolinska Comprehensive Cancer Center", "country": "Sweden" }
+  ]
+}
