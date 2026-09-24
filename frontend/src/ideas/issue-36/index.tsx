@@ -133,6 +133,10 @@ export default function CancerDigitalTwin() {
               setSection('compare');
               return;
             }
+            if (id === 'compare' && !simulation && !loading) {
+              compare();
+              return;
+            }
             setSection(id as Section);
           }}
           nextLabel={section === 'worklist' ? 'Open Maria López' : section === 'twin' ? 'Compare next treatment paths' : undefined}
@@ -538,6 +542,13 @@ function CompareAndDecide({
   const chosen = simulation?.paths.find((p) => p.id === chosenPathId);
   return (
     <>
+      {/* Defensive empty state: this section should never render blank, even if it is reached
+          without the simulation fetch having started (e.g. a guided-demo jump). */}
+      {!started && !simulation && (
+        <Panel title="Compare next treatment paths">
+          <p className="hx-empty">The comparison has not been built yet.</p>
+        </Panel>
+      )}
       <Backstage
         title="Behind the scenes - building the digital twin"
         stages={gatherStages}
