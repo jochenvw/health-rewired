@@ -11,7 +11,11 @@ applyTo: "frontend/**"
   each `type` to a component. To add a block type: create `frontend/src/blocks/<Name>Block.tsx`,
   register it, and add the same type to `backend/app/agent/ui.py`. Unknown types must degrade
   gracefully (the registry already falls back to a generic card).
-- Keep the visual language: use CSS variables from `src/styles.css` (`--accent`, `--surface`, …).
+- Idea pages render full-bleed as **hospital software**: wrap them in `HospitalShell` from
+  `src/hospital/HospitalShell.tsx` and use its `Panel`, `DataTable`, `Tabs`, `Pill` and `hx-btn`
+  styles. Inside `.hx` the design tokens switch to a light clinical theme, so existing blocks adapt.
+  Fill screens with plenty of synthetic data and working interactions (local state is fine).
+- The landing page keeps its own visual language: CSS variables from `src/styles.css`.
   No UI framework or CSS framework is needed; add one only with a strong reason.
 - Keep the "Hackathon prototype – synthetic data – not for clinical use" notice visible.
 - Human-in-the-loop actions (approve / edit / dismiss) must be explicit buttons, not implied.

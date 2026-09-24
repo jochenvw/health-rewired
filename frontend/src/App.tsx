@@ -31,6 +31,24 @@ export default function App() {
   const ideaId = route.startsWith('idea/') ? route.slice('idea/'.length) : null;
   const idea = ideaId ? findIdea(ideaId) : undefined;
 
+  // Idea pages render full-bleed as hospital software; only a thin hackathon strip stays on top.
+  if (idea) {
+    return (
+      <div className="idea-shell">
+        <div className="idea-strip" role="note">
+          <a href="#/">← All ideas</a>
+          <strong>{idea.meta.title}</strong>
+          <span className="idea-strip-tagline">{idea.meta.tagline}</span>
+          <span className="idea-strip-note">
+            Hackathon prototype · synthetic data
+            {status?.preview_label ? ` · preview ${status.preview_label}` : ''}
+          </span>
+        </div>
+        <idea.default />
+      </div>
+    );
+  }
+
   return (
     <div className="page">
       <div className="disclaimer" role="note">
@@ -55,47 +73,36 @@ export default function App() {
         </nav>
       </header>
 
-      {idea ? (
-        <main className="idea-page">
-          <a className="back-link" href="#/">
-            ← All ideas
+      <main>
+        <section className="hero">
+          <h1>
+            Bring your oncology idea. <span className="accent">We'll build it.</span>
+          </h1>
+          <p className="lede">
+            Describe it in a GitHub issue. An AI coach sharpens it with you, then GitHub Copilot builds a prototype
+            you can click through.
+          </p>
+          {ideaId && <p className="note">That idea is not part of this version yet. Pick one below.</p>}
+          <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
+            Submit your idea on GitHub →
           </a>
-          <h1>{idea.meta.title}</h1>
-          <p className="lede">{idea.meta.tagline}</p>
-          <idea.default />
-        </main>
-      ) : (
-        <main>
-          <section className="hero">
-            <h1>
-              Bring your oncology idea. <span className="accent">We'll build it.</span>
-            </h1>
-            <p className="lede">
-              Describe it in a GitHub issue. An AI coach sharpens it with you, then GitHub Copilot builds a prototype
-              you can click through.
-            </p>
-            {ideaId && <p className="note">That idea is not part of this version yet. Pick one below.</p>}
-            <a className="button primary" href={newIdeaUrl} target="_blank" rel="noreferrer">
-              Submit your idea on GitHub →
-            </a>
-          </section>
+        </section>
 
-          <section aria-labelledby="ideas-title">
-            <h2 id="ideas-title" className="section-title">
-              Ideas
-            </h2>
-            <div className="idea-grid">
-              {ideas.map(({ meta }) => (
-                <a key={meta.id} className="idea-card" href={`#/idea/${meta.id}`}>
-                  {meta.issue && <span className="step-index">Idea #{meta.issue}</span>}
-                  <h3>{meta.title}</h3>
-                  <p>{meta.tagline}</p>
-                </a>
-              ))}
-            </div>
-          </section>
-        </main>
-      )}
+        <section aria-labelledby="ideas-title">
+          <h2 id="ideas-title" className="section-title">
+            Ideas
+          </h2>
+          <div className="idea-grid">
+            {ideas.map(({ meta }) => (
+              <a key={meta.id} className="idea-card" href={`#/idea/${meta.id}`}>
+                {meta.issue && <span className="step-index">Idea #{meta.issue}</span>}
+                <h3>{meta.title}</h3>
+                <p>{meta.tagline}</p>
+              </a>
+            ))}
+          </div>
+        </section>
+      </main>
 
       <footer className="footer">
         <span>Health Rewired · Oncology Hackathon 2026 · Munich</span>
