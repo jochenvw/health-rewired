@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { request, type AgentResult, type UIItem } from '../../api';
 import { DataTable, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
-import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
+import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 
 export const meta: IdeaMeta = {
@@ -202,8 +202,6 @@ export default function EuropeanCohortNetwork() {
     setError(null);
     setResult(null);
     setQueryApproved(false);
-    setNetworkStarted(false);
-    setNetworkFinished(false);
     const res = await callAgent();
     if (res) {
       setResult(res);
@@ -236,17 +234,24 @@ export default function EuropeanCohortNetwork() {
     setBuildingCohort(false);
   };
 
+  // Every wait shows something immediately: set the visible "working" flags *before* any await,
+  // in the same tick as the section switch, so the network/candidates panels never render empty.
   const goTo = async (id: string) => {
     const next = id as Section;
     setSection(next);
     if (!selectedTrial) return;
+
     if (next === 'query' && !result && !loadingQuery) {
       await runQuery();
-    } else if (next === 'network' || next === 'candidates') {
+      return;
+    }
+
+    if (next === 'network' || next === 'candidates') {
+      if (!networkStarted) setNetworkStarted(true);
       const base = result ?? (await runQuery());
       if (base && !base.blocks.some((b) => b.type === 'cohort')) await ensureCohortBuilt(base);
     }
-    if (next === 'network' && !networkStarted) setNetworkStarted(true);
+
     if (next === 'tracker' && !trackerStarted) setTrackerStarted(true);
   };
 
@@ -283,11 +288,15 @@ export default function EuropeanCohortNetwork() {
     ...network.candidates.map((c) => ({ key: c.key, label: c.key, site: c.site })),
   ].filter((row) => selected.has(row.key));
 
-  const hospitalStages: Stage[] = network.screened.map(({ site, screened, matches }) => ({
-    label: site,
-    detail: `${screened} records screened · ${matches} pseudonymised matches · data stays on site`,
-    ms: 550,
-  }));
+  const hospitalStages: Stage[] = [
+    ...network.screened.map(({ site, screened, matches }) => ({
+      label: site,
+      detail: `${screened} records screened · ${matches} pseudonymised matches · data stays on site`,
+      ms: 550,
+    })),
+    { label: 'Compiling the matched cohort', detail: 'Classifying every candidate against the approved query' },
+  ];
+  const cohortReady = !!cohortBlock;
 
   const trackerStages: Stage[] = [
     { label: 'Day 2 — invitations reach treating physicians', detail: `${invited.length} letters delivered`, ms: 800 },
@@ -335,8 +344,13 @@ export default function EuropeanCohortNetwork() {
               onChange={(e) => {
                 setTrialId(e.target.value);
                 setResult(null);
+                setQueryFields({});
                 setQueryApproved(false);
+                setNetworkStarted(false);
+                setNetworkFinished(false);
                 setSelected(new Set());
+                setLettersSent(false);
+                setTrackerStarted(false);
               }}
             >
               {trials.map((t) => (
@@ -358,6 +372,12 @@ export default function EuropeanCohortNetwork() {
       {error && (
         <Panel title="Error">
           <p className="error">{error}</p>
+        </Panel>
+      )}
+
+      {section === 'trial' && !selectedTrial && (
+        <Panel title="Synthetic trials open across the network">
+          <Working label="Loading the synthetic trial list" />
         </Panel>
       )}
 
@@ -390,7 +410,16 @@ export default function EuropeanCohortNetwork() {
 
       {section === 'query' && (
         <Panel title={`Structured query · ${selectedTrial?.trial_id ?? ''}`}>
-          {loadingQuery && <p>Reading the trial's free-text criteria…</p>}
+          {loadingQuery && (
+            <>
+              <button type="button" className="hx-btn primary" disabled>
+                <span className="hx-spinner" aria-hidden /> Structuring the query…
+              </button>
+              <div style={{ marginTop: 12 }}>
+                <Working label="Reading the trial's free-text criteria" hint="AI answers can take up to a minute" />
+              </div>
+            </>
+          )}
           {!loadingQuery && Object.keys(queryFields).length > 0 && (
             <>
               <table className="hx-table">
@@ -440,6 +469,8 @@ export default function EuropeanCohortNetwork() {
             title="Behind the scenes — federated query"
             stages={hospitalStages}
             running={networkStarted}
+            holdLast
+            release={cohortReady}
             onFinished={() => setNetworkFinished(true)}
             note="Simulated for this prototype: only aggregate counts and pseudonymised matches ever leave a hospital."
           />
@@ -455,7 +486,12 @@ export default function EuropeanCohortNetwork() {
       {section === 'candidates' && (
         <div className="hx-grid" style={{ gridTemplateColumns: '1fr' }}>
           <Panel title="Pre-selected candidates (ranked, pseudonymised)">
-            {buildingCohort && !cohortBlock && <p>Finalising classification against the trial's structured criteria…</p>}
+            {!cohortReady && (
+              <Working
+                label={buildingCohort ? 'Finalising classification against the approved query' : 'Reading the trial and network results'}
+                hint="AI answers can take up to a minute"
+              />
+            )}
             <div className="cohort-stats">
               <div className="cohort-stat" data-status="eligible">
                 <strong>{localEligible.length + network.candidates.length}</strong>
@@ -519,7 +555,7 @@ export default function EuropeanCohortNetwork() {
                 reason: i.detail ?? '',
                 outcome: outcomeFor(i) ?? '',
               }))}
-              empty="No excluded patients recorded at this site for this trial."
+              empty={cohortReady ? 'No excluded patients recorded at this site for this trial.' : 'Waiting for the cohort classification…'}
               columns={[
                 { key: 'label', label: 'Patient', render: (r) => <strong>{r.label}</strong> },
                 {
