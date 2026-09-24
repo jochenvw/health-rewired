@@ -119,6 +119,8 @@ The final comment must include:
 - a pilot → multi-site → production delivery path;
 - a builder-ready prompt and link to the Azure Architecture Diagram Builder:
   `https://azure-diagram-builder-vnet.thankfulbeach-7e8f01bc.eastus2.azurecontainerapps.io/`.
+- a final invitation to reply `/presentation` for an editable audience PowerPoint covering the
+  idea, process, demo, outcome, architecture and real-world delivery plan.
 
 Keep the architecture understandable in the issue even if the external builder is unavailable.
 Use plain language first, with technical detail for the future delivery team underneath.
