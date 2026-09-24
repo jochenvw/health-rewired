@@ -87,7 +87,7 @@ def test_idea_routers_are_discovered_and_mounted(client):
 
 
 def test_issue_35_trial_engine_falls_back_without_token(client):
-    response = client.post("/api/ideas/35/run", json={"site_id": "MIL"})
+    response = client.post("/api/ideas/35/run", json={"site_id": "mil"})
     body = response.json()
     assert response.status_code == 200
     assert body["mode"] == "fallback"
@@ -95,3 +95,9 @@ def test_issue_35_trial_engine_falls_back_without_token(client):
     assert any(step["tool"] == "screen_trial_engine" for step in body["trace"])
     block_titles = {block["title"] for block in body["blocks"]}
     assert {"Recruitment bottleneck", "Screening explanations", "Human approval needed"} <= block_titles
+
+
+def test_issue_35_trial_engine_rejects_unknown_site(client):
+    response = client.post("/api/ideas/35/run", json={"site_id": "XYZ"})
+    assert response.status_code == 422
+    assert "Unknown synthetic trial site" in response.json()["detail"]

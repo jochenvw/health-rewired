@@ -37,6 +37,8 @@ type Candidate = {
   comparator: boolean;
 };
 
+const DEFAULT_SITE_ID = 'MIL';
+
 const story: StoryStep[] = [
   {
     id: 'launch',
@@ -201,7 +203,7 @@ const trial = {
 
 export default function TrialEngineIdea() {
   const [section, setSection] = useState<Section>('launch');
-  const [selectedSite, setSelectedSite] = useState('MIL');
+  const [selectedSite, setSelectedSite] = useState(DEFAULT_SITE_ID);
   const [tab, setTab] = useState('patients');
   const [queried, setQueried] = useState(false);
   const [assistantStarted, setAssistantStarted] = useState(false);
@@ -210,19 +212,21 @@ export default function TrialEngineIdea() {
   const [assistantResult, setAssistantResult] = useState<AgentResult | null>(null);
   const [assistantError, setAssistantError] = useState<string | null>(null);
   const [candidateStatus, setCandidateStatus] = useState<Record<string, Status>>({});
+  const [comparatorStatus, setComparatorStatus] = useState<Record<string, Status>>({});
   const [outreachStatus, setOutreachStatus] = useState<Status>('pending');
   const [cohortStatus, setCohortStatus] = useState<Status>('pending');
 
-  const site = sites.find((item) => item.id === selectedSite) ?? sites[1];
+  const defaultSite = sites.find((item) => item.id === DEFAULT_SITE_ID) ?? sites[0];
+  const site = sites.find((item) => item.id === selectedSite) ?? defaultSite;
   const sitePatients = useMemo(() => candidates.filter((candidate) => candidate.site === selectedSite), [selectedSite]);
   const approvedMatches = sitePatients.filter((candidate) => candidateStatus[candidate.id] === 'approved').length;
-  const approvedControls = candidates.filter((candidate) => candidate.comparator && candidateStatus[candidate.id] === 'approved').length;
+  const approvedControls = candidates.filter((candidate) => candidate.comparator && comparatorStatus[candidate.id] === 'approved').length;
   const forecastAfterActions = trial.forecast + approvedMatches * 3 + (outreachStatus === 'approved' ? 5 : 0);
 
   const go = (id: string) => {
     setSection(id as Section);
     if (id === 'sites') setQueried(true);
-    if (id === 'screening' && selectedSite === 'MUC') setSelectedSite('MIL');
+    if (id === 'screening' && selectedSite === 'MUC') setSelectedSite(DEFAULT_SITE_ID);
   };
 
   const runAssistant = async () => {
@@ -310,8 +314,8 @@ export default function TrialEngineIdea() {
         <Actions
           site={site}
           patients={sitePatients}
-          candidateStatus={candidateStatus}
-          onCandidateStatus={(id, value) => setCandidateStatus((current) => ({ ...current, [id]: value }))}
+          comparatorStatus={comparatorStatus}
+          onComparatorStatus={(id, value) => setComparatorStatus((current) => ({ ...current, [id]: value }))}
           outreachStatus={outreachStatus}
           setOutreachStatus={setOutreachStatus}
           cohortStatus={cohortStatus}
@@ -460,7 +464,7 @@ function Screening({
         active={tab}
         onChange={onTab}
         tabs={[
-          { id: 'patients', label: `Patients at ${site.country}` },
+          { id: 'patients', label: `Patients at ${site.name}` },
           { id: 'bottleneck', label: 'Bottleneck' },
         ]}
       />
@@ -505,8 +509,8 @@ function Screening({
 function Actions({
   site,
   patients,
-  candidateStatus,
-  onCandidateStatus,
+  comparatorStatus,
+  onComparatorStatus,
   outreachStatus,
   setOutreachStatus,
   cohortStatus,
@@ -520,8 +524,8 @@ function Actions({
 }: {
   site: Site;
   patients: Candidate[];
-  candidateStatus: Record<string, Status>;
-  onCandidateStatus: (id: string, value: Status) => void;
+  comparatorStatus: Record<string, Status>;
+  onComparatorStatus: (id: string, value: Status) => void;
   outreachStatus: Status;
   setOutreachStatus: (value: Status) => void;
   cohortStatus: Status;
@@ -575,14 +579,18 @@ This is a hackathon prototype using synthetic data only.`}</pre>
                 key: 'decision',
                 label: 'Decision',
                 render: (patient) => (
-                  <DecisionButtons value={candidateStatus[patient.id] ?? 'pending'} onChange={(value) => onCandidateStatus(patient.id, value)} />
+                  <DecisionButtons
+                    value={comparatorStatus[patient.id] ?? 'pending'}
+                    onChange={(value) => onComparatorStatus(patient.id, value)}
+                  />
                 ),
               },
             ]}
           />
-          <p>
-            Cohort design status: <DecisionButtons value={cohortStatus} onChange={setCohortStatus} />
-          </p>
+          <div className="trial-engine-actions">
+            <span>Cohort design status:</span>
+            <DecisionButtons value={cohortStatus} onChange={setCohortStatus} />
+          </div>
         </Panel>
       </div>
       <Panel title={assistantResult ? assistantResult.headline : 'Assistant reasoning'}>

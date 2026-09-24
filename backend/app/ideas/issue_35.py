@@ -3,7 +3,7 @@
 import json
 
 from copilot import define_tool
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.agent import AgentRequest, AgentResult, run_agent
@@ -150,7 +150,7 @@ SYSTEM_PROMPT = (
 
 
 class TrialEngineRequest(BaseModel):
-    site_id: str = Field(default="MIL", pattern=r"^[A-Z]{3}$")
+    site_id: str = Field(default="MIL", pattern=r"^[A-Za-z]{3}$")
     task: str = Field(
         default="Screen this lagging site, draft outreach, and propose comparable synthetic real-world controls.",
         min_length=3,
@@ -160,8 +160,10 @@ class TrialEngineRequest(BaseModel):
 
 @router.post("/run")
 async def run_trial_engine(request: TrialEngineRequest) -> AgentResult:
+    site_id = request.site_id.upper()
+    _site_for(site_id)
     prompt = (
-        f"Screen site {request.site_id} for trial EU-LUNG-17. {request.task} "
+        f"Screen site {site_id} for trial EU-LUNG-17. {request.task} "
         "Return blocks for: site bottleneck, patient matches/exclusions, outreach draft, and comparator "
         "cohort proposals."
     )
@@ -173,12 +175,19 @@ async def run_trial_engine(request: TrialEngineRequest) -> AgentResult:
     )
     if result.mode == "copilot":
         return result
-    return _fallback_result(request.site_id, result.note or "Copilot SDK not configured; showing deterministic demo.")
+    return _fallback_result(site_id, result.note or "Copilot SDK not configured; showing deterministic demo.")
+
+
+def _site_for(site_id: str) -> dict:
+    site = next((site for site in TRIAL_ENGINE_DATA["sites"] if site["id"] == site_id), None)
+    if site is None:
+        raise HTTPException(status_code=422, detail=f"Unknown synthetic trial site '{site_id}'.")
+    return site
 
 
 def _fallback_result(site_id: str, note: str) -> AgentResult:
     site_id = site_id.upper()
-    site = next(site for site in TRIAL_ENGINE_DATA["sites"] if site["id"] == site_id)
+    site = _site_for(site_id)
     patients = [patient for patient in TRIAL_ENGINE_DATA["patients"] if patient["site"] == site_id]
     matches = [patient for patient in patients if patient["status"] == "match"]
     needs_data = [patient for patient in patients if patient["status"] == "needs data"]
