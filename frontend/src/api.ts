@@ -6,6 +6,7 @@ export type UIItem = {
   date?: string | null;
   source?: string | null;
   severity?: Severity | null;
+  status?: 'eligible' | 'ineligible' | 'unknown' | null;
 };
 
 export type UIBlock = {
@@ -54,7 +55,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   status: () => request<Status>('/api/status'),
   patients: () => request<PatientSummary[]>('/api/patients'),
-  trials: () => request<TrialSummary[]>('/api/sample-data/trials.csv'),
+  trials: () => request<TrialSummary[]>('/api/trials'),
   runAgent: (
     body: {
       task: string;

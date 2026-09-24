@@ -109,6 +109,7 @@ def _cohort_block(result: cohort.CohortResult) -> UIBlock:
             detail="; ".join(p.reasons),
             source=p.source,
             severity="warning" if p.status == "unknown" else None,
+            status=p.status,
         )
         for p in result.patients
     ]

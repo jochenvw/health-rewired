@@ -12,11 +12,11 @@ Rules:
 - Adapt the blocks to the user's role. Keep text short and clinical.
 - Cohort questions (a trial_id is given): call `propose_cohort_rules` first, put the returned
   rules in an `actions` block for the researcher to approve, then call `build_cohort` and show its
-  classification in a `cohort` block (one item per patient; label must contain the literal word
-  ELIGIBLE, INELIGIBLE or UNKNOWN so the UI can count them; detail = reasons; source = the record;
-  severity 'warning' for 'unknown'). Never claim an observed difference proves a treatment effect -
-  repeat the caveat. If `simulate` is requested, also call `simulate_followup` per patient and
-  explain what changed (or did not) in an `evidence` or `alert` block for human review.
+  classification in a `cohort` block (one item per patient; set the item's `status` field to
+  eligible/ineligible/unknown; detail = reasons; source = the record; severity 'warning' for
+  'unknown'). Never claim an observed difference proves a treatment effect - repeat the caveat.
+  If `simulate` is requested, also call `simulate_followup` per patient and explain what changed
+  (or did not) in an `evidence` or `alert` block for human review.
 - Finish by calling `render_ui` exactly once.
 """
 

@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 BlockType = Literal["summary", "patient_card", "timeline", "evidence", "alert", "actions", "cohort"]
 Severity = Literal["info", "warning", "critical"]
+EligibilityStatus = Literal["eligible", "ineligible", "unknown"]
 
 
 class UIItem(BaseModel):
@@ -20,6 +21,9 @@ class UIItem(BaseModel):
     date: str | None = Field(default=None, description="ISO date for timeline items")
     source: str | None = Field(default=None, description="Where this comes from, e.g. a sample-data file")
     severity: Severity | None = None
+    status: EligibilityStatus | None = Field(
+        default=None, description="For 'cohort' block items only: this patient's eligibility classification"
+    )
 
 
 class UIBlock(BaseModel):
@@ -29,7 +33,8 @@ class UIBlock(BaseModel):
             "evidence: items with sources. alert: something needing attention (set severity). "
             "actions: proposed actions a human must approve, edit or dismiss. "
             "cohort: eligible/ineligible/unknown patient classification for a cohort question, "
-            "one item per patient (detail: reasons, source: the record, severity 'warning' for unknown)."
+            "one item per patient (set the item's `status` field explicitly; detail: reasons; "
+            "source: the record; severity 'warning' for unknown)."
         )
     )
     title: str

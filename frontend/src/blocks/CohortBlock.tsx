@@ -3,10 +3,12 @@ import type { BlockProps } from './registry';
 
 /**
  * Cohort-explorer summary: eligible / ineligible / unknown patient counts, each item traceable to
- * its record. The agent (live or deterministic) is free to phrase labels; we recognise the status
- * word wherever it appears rather than assuming an exact format.
+ * its record. Prefers the item's explicit `status` field (set by the deterministic cohort engine
+ * and requested from the live agent); falls back to scanning the label/detail text in case an
+ * older or less careful agent response omitted it.
  */
 function classify(item: UIItem): 'eligible' | 'ineligible' | 'unknown' | undefined {
+  if (item.status) return item.status;
   const text = `${item.label} ${item.detail ?? ''}`.toLowerCase();
   if (text.includes('ineligible')) return 'ineligible';
   if (text.includes('unknown')) return 'unknown';

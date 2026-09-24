@@ -31,6 +31,14 @@ def test_sample_data_is_listed_and_path_safe(client):
     assert client.get("/api/sample-data/../pyproject.toml").status_code == 404
 
 
+def test_trials_endpoint_returns_structured_criteria(client):
+    trials = client.get("/api/trials").json()
+    trial_ids = {t["trial_id"] for t in trials}
+    assert "SYN-LU-310" in trial_ids
+    lung_trial = next(t for t in trials if t["trial_id"] == "SYN-LU-310")
+    assert lung_trial["requires_regimen_keyword"] == "osimertinib"
+
+
 def test_agent_falls_back_without_token(client):
     response = client.post("/api/agent/run", json={"task": "Prepare this case for the MDT", "patient_id": "P-002"})
     body = response.json()
@@ -137,5 +145,4 @@ def test_cohort_engine_never_declares_causality():
     from app.agent import cohort
 
     result = cohort.build_cohort("SYN-CRC-120", "surveillance", "resected stage III", "lab trend")
-    assert "not evidence" in result.caveat
-    assert "cause" not in result.caveat.lower() or "not" in result.caveat.lower()
+    assert "not evidence that a treatment caused" in result.caveat

@@ -45,6 +45,12 @@ async def patients() -> list[dict]:
     return sample_data.list_patients()
 
 
+@app.get("/api/trials")
+async def trials() -> list[dict]:
+    """Synthetic trials, including the structured eligibility columns the cohort explorer uses."""
+    return sample_data.read("trials.csv")
+
+
 @app.get("/api/sample-data")
 async def sample_data_index() -> list[str]:
     return sample_data.list_files()
