@@ -63,15 +63,18 @@ type Scorecard = {
 
 const PATIENT = 'P-048';
 
-async function post<T>(path: string, body: unknown): Promise<T> {
+// Idea-local API calls, so this prototype stays in its own folder (see the build rules).
+async function call<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
-    method: 'POST',
+    method: body === undefined ? 'GET' : 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   return (await response.json()) as T;
 }
+
+const post = <T,>(path: string, body: unknown) => call<T>(path, body);
 
 // Tomorrow's tumour board list; only Sofia Ricci has the synthetic four-language record.
 const board = [
@@ -124,11 +127,15 @@ export default function ConfirmOnce() {
     if (running || ready) return;
     setRunning(true);
     setLoaded(false);
-    fetch(`/api/ideas/48/dataset/${PATIENT}`)
-      .then((r) => r.json())
-      .then((d: Dataset) => setData(d))
-      .catch(() => setNotice('The synthetic record could not be loaded.'))
-      .finally(() => setLoaded(true));
+    call<Dataset>(`/api/ideas/48/dataset/${PATIENT}`)
+      .then((d) => {
+        setData(d);
+        setLoaded(true);
+      })
+      .catch(() => {
+        setNotice('The synthetic record could not be loaded – use "Prepare for MDT" to try again.');
+        setRunning(false);
+      });
   }, [running, ready]);
 
   useEffect(() => {
