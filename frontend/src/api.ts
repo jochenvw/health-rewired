@@ -30,6 +30,7 @@ export type Issue56WorklistRow = {
   patient_id: string;
   name: string;
   age: number;
+  sex: string;
   ward: string;
   reason: string;
   sofa: number;

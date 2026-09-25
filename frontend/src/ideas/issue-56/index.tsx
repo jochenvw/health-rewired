@@ -166,7 +166,7 @@ export default function Issue56OncoIcu() {
         id: selected.patient_id,
         name: selected.name,
         age: selected.age,
-        sex: 'male',
+        sex: selected.sex,
         diagnosis: scenario.onco_icu_card.tumour,
         ward: `${selected.ward} · ${selected.reason}`,
         allergies: 'NKDA recorded',
@@ -360,6 +360,7 @@ function OncoIcuCard({
         )}
       </div>
       <Panel title="Behind the scenes and assistant output">
+        {/* Keep the final compile stage spinning until the agent response arrives, then release it as completed. */}
         <Backstage
           key={compiling ? 'running' : compiled ? 'done' : 'idle'}
           title="Compiling from separate oncology and ICU sources"
@@ -409,8 +410,8 @@ function Outcomes({
       <Panel
         title="Federated descriptive outcomes · data stays, insights travel"
         actions={
-          <button type="button" className="hx-btn primary" disabled={running && !done} onClick={onStart}>
-            {running && !done ? <><span className="hx-spinner" aria-hidden /> Querying hospitals…</> : 'Query connected hospitals'}
+          <button type="button" className="hx-btn primary" disabled={running} onClick={onStart}>
+            {running ? <><span className="hx-spinner" aria-hidden /> Querying hospitals…</> : 'Query connected hospitals'}
           </button>
         }
       >

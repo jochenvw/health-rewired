@@ -2,33 +2,137 @@
   "synthetic": true,
   "scenario": "2am ICU consultation for a deteriorating cancer patient",
   "worklist": [
-    { "time": "01:12", "id": "ICU-219", "patient_id": "X-219", "name": "Helga Neumann", "age": 71, "ward": "ED resus", "reason": "Community pneumonia, NIV started", "sofa": 5, "status": "Reviewing" },
-    { "time": "02:07", "id": "ICU-256", "patient_id": "P-056", "name": "Emil Schneider", "age": 63, "ward": "Surgical ward 7C", "reason": "Post-op metastatic colorectal cancer; shock", "sofa": 9, "status": "New call" },
-    { "time": "02:21", "id": "ICU-241", "patient_id": "X-241", "name": "Daria Wolf", "age": 54, "ward": "Oncology 3B", "reason": "Neutropenic fever, oxygen 4 L", "sofa": 4, "status": "Awaiting labs" },
-    { "time": "02:44", "id": "ICU-263", "patient_id": "X-263", "name": "Thomas Brandt", "age": 69, "ward": "Recovery", "reason": "Respiratory failure after oesophagectomy", "sofa": 7, "status": "Anaesthetics present" }
+    {
+      "time": "01:12",
+      "id": "ICU-219",
+      "patient_id": "X-219",
+      "name": "Helga Neumann",
+      "age": 71,
+      "ward": "ED resus",
+      "reason": "Community pneumonia, NIV started",
+      "sofa": 5,
+      "status": "Reviewing",
+      "sex": "female"
+    },
+    {
+      "time": "02:07",
+      "id": "ICU-256",
+      "patient_id": "P-056",
+      "name": "Emil Schneider",
+      "age": 63,
+      "ward": "Surgical ward 7C",
+      "reason": "Post-op metastatic colorectal cancer; shock",
+      "sofa": 9,
+      "status": "New call",
+      "sex": "male"
+    },
+    {
+      "time": "02:21",
+      "id": "ICU-241",
+      "patient_id": "X-241",
+      "name": "Daria Wolf",
+      "age": 54,
+      "ward": "Oncology 3B",
+      "reason": "Neutropenic fever, oxygen 4 L",
+      "sofa": 4,
+      "status": "Awaiting labs",
+      "sex": "female"
+    },
+    {
+      "time": "02:44",
+      "id": "ICU-263",
+      "patient_id": "X-263",
+      "name": "Thomas Brandt",
+      "age": 69,
+      "ward": "Recovery",
+      "reason": "Respiratory failure after oesophagectomy",
+      "sofa": 7,
+      "status": "Anaesthetics present",
+      "sex": "male"
+    }
   ],
   "icu": {
     "consult_time": "2026-02-06 02:07",
     "location": "Surgical ward 7C",
     "reason": "Hypotension, tachypnoea and rising lactate on post-operative day 6",
     "vitals": [
-      { "label": "BP", "value": "82/48", "detail": "after 1.5 L crystalloid", "severity": "critical" },
-      { "label": "HR", "value": "128/min", "detail": "sinus tachycardia", "severity": "warning" },
-      { "label": "SpO₂", "value": "91%", "detail": "6 L mask", "severity": "warning" },
-      { "label": "Temp", "value": "38.9 °C", "detail": "new fever", "severity": "warning" },
-      { "label": "SOFA", "value": "9", "detail": "renal + cardiovascular + respiratory", "severity": "critical" }
+      {
+        "label": "BP",
+        "value": "82/48",
+        "detail": "after 1.5 L crystalloid",
+        "severity": "critical"
+      },
+      {
+        "label": "HR",
+        "value": "128/min",
+        "detail": "sinus tachycardia",
+        "severity": "warning"
+      },
+      {
+        "label": "SpO₂",
+        "value": "91%",
+        "detail": "6 L mask",
+        "severity": "warning"
+      },
+      {
+        "label": "Temp",
+        "value": "38.9 °C",
+        "detail": "new fever",
+        "severity": "warning"
+      },
+      {
+        "label": "SOFA",
+        "value": "9",
+        "detail": "renal + cardiovascular + respiratory",
+        "severity": "critical"
+      }
     ],
     "possible_causes": [
-      { "cause": "Anastomotic leak / intra-abdominal sepsis", "why": "POD 6, abdominal tenderness, lactate 4.1, CRP 286", "source": "Surgery note + labs", "severity": "critical" },
-      { "cause": "Hospital-acquired pneumonia", "why": "New oxygen need and bibasal crackles; CXR pending", "source": "Ward call", "severity": "warning" },
-      { "cause": "Treatment-related immunosuppression", "why": "No current cytotoxic treatment; bevacizumab stopped before surgery", "source": "Oncology treatment plan", "severity": "info" }
+      {
+        "cause": "Anastomotic leak / intra-abdominal sepsis",
+        "why": "POD 6, abdominal tenderness, lactate 4.1, CRP 286",
+        "source": "Surgery note + labs",
+        "severity": "critical"
+      },
+      {
+        "cause": "Hospital-acquired pneumonia",
+        "why": "New oxygen need and bibasal crackles; CXR pending",
+        "source": "Ward call",
+        "severity": "warning"
+      },
+      {
+        "cause": "Treatment-related immunosuppression",
+        "why": "No current cytotoxic treatment; bevacizumab stopped before surgery",
+        "source": "Oncology treatment plan",
+        "severity": "info"
+      }
     ]
   },
   "sources": [
-    { "name": "Oncology clinic letter", "path": "ideas/issue-56/oncology-note.md", "status": "summarised", "finding": "Partial response on first-line therapy; surgery was bridge to restart systemic therapy." },
-    { "name": "Pathology report", "path": "ideas/issue-56/pathology-report.md", "status": "summarised", "finding": "Resected colon primary pT4a pN2b; liver-only metastatic disease remains." },
-    { "name": "Treatment plan", "path": "ideas/issue-56/treatment-plan.md", "status": "summarised", "finding": "FOLFOXIRI + bevacizumab planned after recovery if performance status returns near baseline." },
-    { "name": "Treatment wishes note", "path": "ideas/issue-56/treatment-wishes-note.md", "status": "partial", "finding": "Patient wanted reversible ICU treatment discussed, but no signed limitation note is present." }
+    {
+      "name": "Oncology clinic letter",
+      "path": "ideas/issue-56/oncology-note.md",
+      "status": "summarised",
+      "finding": "Partial response on first-line therapy; surgery was bridge to restart systemic therapy."
+    },
+    {
+      "name": "Pathology report",
+      "path": "ideas/issue-56/pathology-report.md",
+      "status": "summarised",
+      "finding": "Resected colon primary pT4a pN2b; liver-only metastatic disease remains."
+    },
+    {
+      "name": "Treatment plan",
+      "path": "ideas/issue-56/treatment-plan.md",
+      "status": "summarised",
+      "finding": "FOLFOXIRI + bevacizumab planned after recovery if performance status returns near baseline."
+    },
+    {
+      "name": "Treatment wishes note",
+      "path": "ideas/issue-56/treatment-wishes-note.md",
+      "status": "partial",
+      "finding": "Patient wanted reversible ICU treatment discussed, but no signed limitation note is present."
+    }
   ],
   "onco_icu_card": {
     "tumour": "Metastatic colorectal adenocarcinoma, pMMR, KRAS G12V; liver-only metastases",
@@ -51,18 +155,52 @@
   "outcomes": {
     "query": "Adults with solid tumour, metastatic colorectal cancer or major cancer surgery, septic shock/respiratory failure, SOFA 7-11, ICU admission within 24h",
     "hospitals": [
-      { "site": "Klinikum Rewired München", "matched": 46, "icu_survival": "59%", "range": "48-70%", "note": "local surgical oncology ICU" },
-      { "site": "Charité synthetic node", "matched": 52, "icu_survival": "63%", "range": "52-73%", "note": "post-operative cases enriched" },
-      { "site": "Karolinska synthetic node", "matched": 38, "icu_survival": "55%", "range": "43-67%", "note": "higher SOFA at admission" },
-      { "site": "Institut Curie synthetic node", "matched": 31, "icu_survival": "61%", "range": "48-74%", "note": "solid-tumour sepsis cohort" }
+      {
+        "site": "Klinikum Rewired München",
+        "matched": 46,
+        "icu_survival": "59%",
+        "range": "48-70%",
+        "note": "local surgical oncology ICU"
+      },
+      {
+        "site": "Charité synthetic node",
+        "matched": 52,
+        "icu_survival": "63%",
+        "range": "52-73%",
+        "note": "post-operative cases enriched"
+      },
+      {
+        "site": "Karolinska synthetic node",
+        "matched": 38,
+        "icu_survival": "55%",
+        "range": "43-67%",
+        "note": "higher SOFA at admission"
+      },
+      {
+        "site": "Institut Curie synthetic node",
+        "matched": 31,
+        "icu_survival": "61%",
+        "range": "48-74%",
+        "note": "solid-tumour sepsis cohort"
+      }
     ],
-    "aggregate": { "matched": 167, "icu_survival": "60%", "range": "53-67%", "ward_alive_30d": "46%", "treatment_resumed_60d": "34%" },
+    "aggregate": {
+      "matched": 167,
+      "icu_survival": "60%",
+      "range": "53-67%",
+      "ward_alive_30d": "46%",
+      "treatment_resumed_60d": "34%"
+    },
     "disclaimer": "Descriptive synthetic outcomes only. They inform the conversation and do not recommend admission, escalation or limitation."
   },
   "follow_up": {
     "to": "Dr. Nadine Keller, Medical Oncology",
     "subject": "ICU admission update: Emil Schneider (synthetic MRN 00000056)",
     "draft": "Dear Dr. Keller,\n\nMr Schneider was admitted to ICU at 02:40 from surgical ward 7C with septic shock on post-operative day 6 after right hemicolectomy. The ICU team reviewed the Onco-ICU summary: metastatic colorectal cancer with prior partial response, systemic therapy planned after recovery, and no active cytotoxic treatment this week. Main reversible concern is intra-abdominal sepsis; CT abdomen and cultures are pending.\n\nTreatment wishes: the clinic note records that he would accept ICU treatment for reversible complications while oncological options remain. We could not find a signed ACP/treatment-limitation document in the ICU chart, so please confirm with his spouse and oncology team in the morning.\n\nCurrent ICU actions: norepinephrine started, broad-spectrum antibiotics given, surgical review requested, and ventilation plan discussed with the intensivist. We will update you after imaging and source-control decision.\n\nKind regards,\nICU night team",
-    "requires_approval": ["Confirm treatment-wishes interpretation", "Add CT/source-control outcome", "ICU consultant signs before sending"]
+    "requires_approval": [
+      "Confirm treatment-wishes interpretation",
+      "Add CT/source-control outcome",
+      "ICU consultant signs before sending"
+    ]
   }
 }

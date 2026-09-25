@@ -31,8 +31,11 @@ async def scenario() -> dict[str, Any]:
 @router.post("/agent")
 async def agent(request: AgentRequest) -> AgentResult:
     scenario_data = _scenario()
+    patient_id = "P-056"
     prompt = f"""
 Task from user role {request.role or "on-call intensivist"}: {request.task}
+
+This prototype always uses synthetic patient {patient_id}; ignore any other incoming patient id.
 
 Use these synthetic files as evidence:
 - patients/P-056.json
@@ -47,7 +50,7 @@ Return dense UI blocks that help the intensivist review, not decide. Include mis
 state that federated outcomes are descriptive synthetic aggregates with uncertainty.
 """
     return await run_agent(
-        AgentRequest(task=request.task, patient_id=request.patient_id or "P-056", role=request.role),
+        AgentRequest(task=request.task, patient_id=patient_id, role=request.role),
         system_prompt=SYSTEM_PROMPT,
         prompt=prompt,
     )
