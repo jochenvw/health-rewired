@@ -84,3 +84,26 @@ def test_idea_routers_are_discovered_and_mounted(client):
     mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
+
+
+def test_issue_51_snapshot_shows_model_validation_story(client):
+    body = client.get("/api/ideas/51/snapshot").json()
+    assert body["synthetic"] is True
+    assert body["model"]["name"].startswith("NSCLC immunotherapy")
+    assert len(body["hospitals"]) == 3
+    hospital_c = next(hospital for hospital in body["hospitals"] if hospital["id"] == "C")
+    assert hospital_c["calibration_slope"] < 0.8
+    assert "PD-L1" in hospital_c["likely_cause"]
+
+
+def test_issue_51_passport_falls_back_without_token(client):
+    response = client.post(
+        "/api/ideas/51/passport",
+        json={"hospital_id": "C", "committee_focus": "Choose whether to introduce or recalibrate"},
+    )
+    body = response.json()
+    assert response.status_code == 200
+    assert body["mode"] == "fallback"
+    assert "Hospital C" in body["headline"]
+    assert any(block["title"] == "Effect of recalibration" for block in body["blocks"])
+    assert any(step["tool"] == "get_model_validation_snapshot" for step in body["trace"])
