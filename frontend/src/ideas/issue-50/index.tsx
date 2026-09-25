@@ -144,6 +144,7 @@ export default function RecordOnceReuseEverywhere() {
   const extract = async () => {
     if (loading) return;
     setSection('dataset');
+    setError(null);
     setLoading(true);
     setExtracted(true);
     setRuns((n) => n + 1);
@@ -451,7 +452,7 @@ function FieldRow({
         {field.issue && <p style={{ margin: '0 0 6px' }}>{field.issue}</p>}
         <label style={{ display: 'block', marginBottom: 6 }}>
           Value for the record{' '}
-          <select value={decision.value} onChange={(e) => onDecide(field, decision.state, e.target.value)}>
+          <select value={decision.value} onChange={(e) => onDecide(field, 'pending', e.target.value)}>
             {field.options.map((o) => (
               <option key={o}>{o}</option>
             ))}
@@ -476,10 +477,10 @@ function FieldRow({
         </div>
         {showEvidence && (
           <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12 }}>
-            {field.evidence.map((e) => {
+            {field.evidence.map((e, index) => {
               const doc = document(e.document);
               return (
-                <li key={e.quote} style={{ marginBottom: 6 }}>
+                <li key={`${e.document}-${index}`} style={{ marginBottom: 6 }}>
                   <div>
                     <Pill tone="info">{doc?.flag}</Pill> “{e.quote}”
                   </div>
