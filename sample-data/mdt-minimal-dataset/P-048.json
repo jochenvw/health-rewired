@@ -1,0 +1,215 @@
+{
+  "synthetic": true,
+  "id": "P-048",
+  "name": "Sofia Ricci",
+  "age": 63,
+  "sex": "female",
+  "diagnosis": "Metastatic colorectal cancer (sigmoid)",
+  "dataset": "Health ReWireD minimal dataset – metastatic colorectal cancer (mCRC), v0.3",
+  "mdt": "Colorectal tumour board · Thursday 08:30 · Room MDT-2",
+  "documents": [
+    {
+      "id": "NL-PATH-2025-08-22",
+      "hospital": "Amsterdam Oncologisch Centrum (fictional)",
+      "language": "Dutch",
+      "lang": "nl",
+      "type": "Pathology report",
+      "date": "2025-08-22",
+      "text": "Biopt sigmoid: matig gedifferentieerd adenocarcinoom. Invasie tot in het pericolische vetweefsel (pT3). 2 van 14 lymfeklieren positief (pN1b). Geen lymfovasculaire invasie beschreven."
+    },
+    {
+      "id": "FR-CONS-2025-09-05",
+      "hospital": "CHU de Liège (fictional)",
+      "language": "French",
+      "lang": "fr",
+      "type": "Consultation note",
+      "date": "2025-09-05",
+      "text": "Dossier discuté en RCP. Sur le compte rendu initial, statut RAS sauvage. Début de FOLFOX avec bevacizumab le 12/09/2025, 8 cycles prévus. Patiente informée des effets indésirables."
+    },
+    {
+      "id": "DE-RAD-2026-01-28",
+      "hospital": "Klinikum München Süd (fictional)",
+      "language": "German",
+      "lang": "de",
+      "type": "CT report",
+      "date": "2026-01-28",
+      "text": "CT Thorax/Abdomen: multiple Lebermetastasen in Segment VI und VII, größenprogredient. Zusätzlich ein unklarer pulmonaler Rundherd von 6 mm im rechten Unterlappen, Kontrolle empfohlen. Kein Aszites."
+    },
+    {
+      "id": "IT-MOL-2026-02-10",
+      "hospital": "Istituto Oncologico Milano (fictional)",
+      "language": "Italian",
+      "lang": "it",
+      "type": "Molecular report",
+      "date": "2026-02-10",
+      "text": "Analisi NGS su tessuto sigmoideo: mutazione KRAS p.G12C confermata (VAF 31%). Stato dei microsatelliti: MSS (stabile). Nessuna analisi BRAF riportata in questo referto."
+    },
+    {
+      "id": "NL-NURS-2026-02-18",
+      "hospital": "Amsterdam Oncologisch Centrum (fictional)",
+      "language": "Dutch",
+      "lang": "nl",
+      "type": "Nursing note",
+      "date": "2026-02-18",
+      "text": "Patiënte is goed zelfredzaam, doet zelf de boodschappen en fietst korte stukken. Wel toenemende vermoeidheid in de middag."
+    }
+  ],
+  "fields": [
+    {
+      "id": "ras_status",
+      "label": "RAS / KRAS status",
+      "status": "conflict",
+      "proposed": "KRAS p.G12C mutated",
+      "confidence": 0.55,
+      "codes": "SNOMED CT 445019004 · OMOP measurement",
+      "options": ["KRAS p.G12C mutated", "RAS wild-type", "Unknown"],
+      "why": "Two documents disagree. The molecular report is newer and tissue-based; the earlier consultation note quotes an initial report.",
+      "evidence": [
+        {
+          "doc": "IT-MOL-2026-02-10",
+          "quote": "mutazione KRAS p.G12C confermata (VAF 31%)",
+          "translation": "KRAS p.G12C mutation confirmed (VAF 31%)"
+        },
+        {
+          "doc": "FR-CONS-2025-09-05",
+          "quote": "Sur le compte rendu initial, statut RAS sauvage.",
+          "translation": "On the initial report, RAS wild-type status."
+        }
+      ]
+    },
+    {
+      "id": "ecog",
+      "label": "Performance status (ECOG)",
+      "status": "uncertain",
+      "proposed": "Unknown – implied, not scored",
+      "confidence": 0.35,
+      "codes": "SNOMED CT 423740007",
+      "options": ["ECOG 0", "ECOG 1", "Unknown – implied, not scored"],
+      "why": "The note describes function, not a score. The assistant does not convert it into an ECOG value on its own.",
+      "evidence": [
+        {
+          "doc": "NL-NURS-2026-02-18",
+          "quote": "Patiënte is goed zelfredzaam, doet zelf de boodschappen en fietst korte stukken. Wel toenemende vermoeidheid in de middag.",
+          "translation": "Patient is fully self-sufficient, does her own shopping and cycles short distances. Increasing fatigue in the afternoon."
+        }
+      ]
+    },
+    {
+      "id": "braf_status",
+      "label": "BRAF status",
+      "status": "missing",
+      "proposed": "Unknown – not documented",
+      "confidence": 0.0,
+      "codes": "SNOMED CT 445019004",
+      "options": ["Unknown – not documented", "BRAF V600E mutated", "BRAF wild-type"],
+      "why": "No document reports a BRAF result. Left empty rather than assumed wild-type.",
+      "evidence": [
+        {
+          "doc": "IT-MOL-2026-02-10",
+          "quote": "Nessuna analisi BRAF riportata in questo referto.",
+          "translation": "No BRAF analysis reported in this document."
+        }
+      ]
+    },
+    {
+      "id": "diagnosis",
+      "label": "Primary diagnosis",
+      "status": "ok",
+      "proposed": "Adenocarcinoma of the sigmoid colon, moderately differentiated",
+      "confidence": 0.96,
+      "codes": "SNOMED CT 363406005 · ICD-O-3 8140/3",
+      "options": ["Adenocarcinoma of the sigmoid colon, moderately differentiated", "Unknown"],
+      "why": "Stated explicitly in the pathology report.",
+      "evidence": [
+        {
+          "doc": "NL-PATH-2025-08-22",
+          "quote": "Biopt sigmoid: matig gedifferentieerd adenocarcinoom.",
+          "translation": "Sigmoid biopsy: moderately differentiated adenocarcinoma."
+        }
+      ]
+    },
+    {
+      "id": "tnm",
+      "label": "Stage (TNM)",
+      "status": "ok",
+      "proposed": "pT3 pN1b M1 (stage IVA)",
+      "confidence": 0.88,
+      "codes": "TNM 8th edition · SNOMED CT 258228008",
+      "options": ["pT3 pN1b M1 (stage IVA)", "pT3 pN1b M0 (stage IIIB)", "Unknown"],
+      "why": "T and N from pathology, M1 from the German CT report describing liver metastases.",
+      "evidence": [
+        {
+          "doc": "NL-PATH-2025-08-22",
+          "quote": "Invasie tot in het pericolische vetweefsel (pT3). 2 van 14 lymfeklieren positief (pN1b).",
+          "translation": "Invasion into pericolic fat (pT3). 2 of 14 lymph nodes positive (pN1b)."
+        },
+        {
+          "doc": "DE-RAD-2026-01-28",
+          "quote": "multiple Lebermetastasen in Segment VI und VII, größenprogredient",
+          "translation": "multiple liver metastases in segments VI and VII, increasing in size"
+        }
+      ]
+    },
+    {
+      "id": "met_sites",
+      "label": "Metastatic sites",
+      "status": "uncertain",
+      "proposed": "Liver (multiple) – lung nodule indeterminate",
+      "confidence": 0.62,
+      "codes": "SNOMED CT 94381002 (liver) · OMOP condition",
+      "options": ["Liver (multiple) – lung nodule indeterminate", "Liver and lung", "Liver only", "Unknown"],
+      "why": "The 6 mm pulmonary nodule is described as unclear and scheduled for follow-up, so it is not counted as a metastasis.",
+      "evidence": [
+        {
+          "doc": "DE-RAD-2026-01-28",
+          "quote": "Zusätzlich ein unklarer pulmonaler Rundherd von 6 mm im rechten Unterlappen, Kontrolle empfohlen.",
+          "translation": "In addition an unclear 6 mm pulmonary nodule in the right lower lobe, follow-up recommended."
+        }
+      ]
+    },
+    {
+      "id": "msi",
+      "label": "Microsatellite status",
+      "status": "ok",
+      "proposed": "MSS (microsatellite stable)",
+      "confidence": 0.93,
+      "codes": "SNOMED CT 1148742000",
+      "options": ["MSS (microsatellite stable)", "MSI-high", "Unknown"],
+      "why": "Reported directly in the Italian molecular report.",
+      "evidence": [
+        {
+          "doc": "IT-MOL-2026-02-10",
+          "quote": "Stato dei microsatelliti: MSS (stabile).",
+          "translation": "Microsatellite status: MSS (stable)."
+        }
+      ]
+    },
+    {
+      "id": "prior_treatment",
+      "label": "Prior systemic treatment",
+      "status": "ok",
+      "proposed": "FOLFOX + bevacizumab, started 2025-09-12 (8 cycles planned)",
+      "confidence": 0.84,
+      "codes": "SNOMED CT 367336001 · OMOP drug_exposure",
+      "options": ["FOLFOX + bevacizumab, started 2025-09-12 (8 cycles planned)", "FOLFOX only", "Unknown"],
+      "why": "From the French consultation note; the number of cycles actually given is not confirmed anywhere.",
+      "evidence": [
+        {
+          "doc": "FR-CONS-2025-09-05",
+          "quote": "Début de FOLFOX avec bevacizumab le 12/09/2025, 8 cycles prévus.",
+          "translation": "Start of FOLFOX with bevacizumab on 12/09/2025, 8 cycles planned."
+        }
+      ]
+    }
+  ],
+  "answer_key": {
+    "ras_status": "KRAS p.G12C mutated",
+    "ecog": "Unknown – implied, not scored",
+    "braf_status": "Unknown – not documented",
+    "diagnosis": "Adenocarcinoma of the sigmoid colon, moderately differentiated",
+    "tnm": "pT3 pN1b M1 (stage IVA)",
+    "met_sites": "Liver (multiple) – lung nodule indeterminate",
+    "msi": "MSS (microsatellite stable)",
+    "prior_treatment": "FOLFOX + bevacizumab, started 2025-09-12 (8 cycles planned)"
+  }
+}

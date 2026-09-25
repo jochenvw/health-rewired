@@ -11,6 +11,7 @@
 | `patients/<id>.json` | JSON | One synthetic oncology patient: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
 | `notes/<id>-*.md` | Markdown | Free-text clinical notes (MDT notes, letters) for extraction/reasoning demos |
 | `trials.csv` | CSV | Synthetic clinical trials with simple eligibility criteria |
+| `mdt-minimal-dataset/<id>.json` | JSON | Multilingual documents (NL/FR/DE/IT), the extracted minimal dataset with evidence sentences, and a hidden answer key (idea #48) |
 
 ## How the app uses it
 
