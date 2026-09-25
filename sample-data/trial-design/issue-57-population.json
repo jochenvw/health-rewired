@@ -1,0 +1,168 @@
+{
+  "synthetic": true,
+  "scenario": "Second-line metastatic colorectal cancer trial across six European hospitals",
+  "registry_population": 960,
+  "strict_threshold": "eGFR ≥60 mL/min/1.73 m²",
+  "adjusted_threshold": "eGFR ≥45 mL/min/1.73 m² with renal safety review",
+  "centres": [
+    {
+      "id": "DE-MUC",
+      "name": "Klinikum Rewired München",
+      "country": "Germany",
+      "registry": 184,
+      "strict_eligible": 34,
+      "adjusted_eligible": 51,
+      "older_registry": 78,
+      "older_strict_eligible": 9,
+      "older_adjusted_eligible": 23,
+      "egfr_excluded": 38,
+      "egfr_excluded_older": 30
+    },
+    {
+      "id": "DE-HAM",
+      "name": "Hamburg Oncology Centre",
+      "country": "Germany",
+      "registry": 141,
+      "strict_eligible": 25,
+      "adjusted_eligible": 37,
+      "older_registry": 56,
+      "older_strict_eligible": 7,
+      "older_adjusted_eligible": 16,
+      "egfr_excluded": 29,
+      "egfr_excluded_older": 22
+    },
+    {
+      "id": "FR-LYO",
+      "name": "Centre Lyon Rhône",
+      "country": "France",
+      "registry": 159,
+      "strict_eligible": 31,
+      "adjusted_eligible": 45,
+      "older_registry": 63,
+      "older_strict_eligible": 8,
+      "older_adjusted_eligible": 20,
+      "egfr_excluded": 33,
+      "egfr_excluded_older": 25
+    },
+    {
+      "id": "NL-AMS",
+      "name": "Amsterdam Trial Network",
+      "country": "Netherlands",
+      "registry": 128,
+      "strict_eligible": 23,
+      "adjusted_eligible": 34,
+      "older_registry": 47,
+      "older_strict_eligible": 7,
+      "older_adjusted_eligible": 15,
+      "egfr_excluded": 25,
+      "egfr_excluded_older": 18
+    },
+    {
+      "id": "ES-BCN",
+      "name": "Barcelona Oncology Institute",
+      "country": "Spain",
+      "registry": 172,
+      "strict_eligible": 33,
+      "adjusted_eligible": 49,
+      "older_registry": 71,
+      "older_strict_eligible": 10,
+      "older_adjusted_eligible": 22,
+      "egfr_excluded": 36,
+      "egfr_excluded_older": 27
+    },
+    {
+      "id": "FR-PAR",
+      "name": "Paris Est Cancer Campus",
+      "country": "France",
+      "registry": 176,
+      "strict_eligible": 30,
+      "adjusted_eligible": 49,
+      "older_registry": 75,
+      "older_strict_eligible": 8,
+      "older_adjusted_eligible": 24,
+      "egfr_excluded": 41,
+      "egfr_excluded_older": 32
+    }
+  ],
+  "funnel": [
+    { "step": "Metastatic CRC registry population", "strict": 960, "adjusted": 960 },
+    { "step": "Second-line setting documented", "strict": 612, "adjusted": 612 },
+    { "step": "RAS/BRAF and prior treatment complete", "strict": 481, "adjusted": 481 },
+    { "step": "ECOG 0–1", "strict": 329, "adjusted": 329 },
+    { "step": "Kidney function threshold", "strict": 214, "adjusted": 303 },
+    { "step": "No conflicting comorbidity", "strict": 176, "adjusted": 265 }
+  ],
+  "disparities": [
+    {
+      "group": "Patients aged ≥70",
+      "registry_share": 41,
+      "strict_share": 28,
+      "adjusted_share": 45,
+      "strict_excluded_by_egfr": 49,
+      "adjusted_excluded_by_egfr": 24
+    },
+    {
+      "group": "ECOG performance status 1",
+      "registry_share": 52,
+      "strict_share": 46,
+      "adjusted_share": 49,
+      "strict_excluded_by_egfr": 21,
+      "adjusted_excluded_by_egfr": 10
+    },
+    {
+      "group": "Diabetes or hypertension",
+      "registry_share": 38,
+      "strict_share": 23,
+      "adjusted_share": 35,
+      "strict_excluded_by_egfr": 44,
+      "adjusted_excluded_by_egfr": 20
+    }
+  ],
+  "rules": [
+    {
+      "id": "diagnosis",
+      "label": "Histologically confirmed metastatic colorectal cancer",
+      "source": "Draft inclusion criterion 1",
+      "strict": "Required",
+      "adjusted": "Required"
+    },
+    {
+      "id": "line",
+      "label": "Progressed after one fluoropyrimidine-based regimen",
+      "source": "Draft inclusion criterion 2",
+      "strict": "Required",
+      "adjusted": "Required"
+    },
+    {
+      "id": "ecog",
+      "label": "Performance status",
+      "source": "Copied from previous protocol",
+      "strict": "ECOG 0–1",
+      "adjusted": "ECOG 0–1"
+    },
+    {
+      "id": "egfr",
+      "label": "Kidney function",
+      "source": "Safety threshold to review",
+      "strict": "eGFR ≥60",
+      "adjusted": "eGFR ≥45 with renal safety review"
+    },
+    {
+      "id": "comorbidity",
+      "label": "Conflicting comorbidity",
+      "source": "Draft exclusion criterion 3",
+      "strict": "Uncontrolled cardiac, hepatic or infectious condition",
+      "adjusted": "Same exclusions"
+    }
+  ],
+  "representativeness": {
+    "strict_similarity": 0.71,
+    "adjusted_similarity": 0.86,
+    "registry_age_70_plus": 41,
+    "strict_age_70_plus": 28,
+    "adjusted_age_70_plus": 45,
+    "registry_comorbidity": 38,
+    "strict_comorbidity": 23,
+    "adjusted_comorbidity": 35
+  }
+}
