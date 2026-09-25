@@ -10,6 +10,7 @@ import json
 from typing import Any
 
 from copilot import define_tool
+from copilot.tools import Tool
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
@@ -50,6 +51,7 @@ HEADINGS = {
     "German": {"cover": "Anschreiben", "evidence": "Eignungsnachweis"},
     "Italian": {"cover": "Lettera di accompagnamento", "evidence": "Verifica dei criteri di eleggibilità"},
     "Dutch": {"cover": "Begeleidende brief", "evidence": "Onderbouwing geschiktheid"},
+    "Spanish": {"cover": "Carta de presentación", "evidence": "Justificación de elegibilidad"},
 }
 
 
@@ -208,12 +210,19 @@ def get_molecular_case(params: NoParams) -> str:
     )
 
 
-@define_tool(
-    description="Get the European trial screening: each criterion marked met, not met or unknown, with its source.",
-    skip_permission=True,
-)
-def get_trial_screening(params: NoParams) -> str:
-    return json.dumps(evaluate())
+def build_screening_tool(answers: dict[str, str] | None = None) -> Tool:
+    """Screening tool bound to the values the oncologist added, so agent and screen agree."""
+
+    def get_trial_screening(params: NoParams) -> str:
+        return json.dumps(evaluate(answers))
+
+    return define_tool(
+        "get_trial_screening",
+        description="Get the European trial screening: each criterion marked met, not met or unknown, with its source.",
+        handler=get_trial_screening,
+        params_type=NoParams,
+        skip_permission=True,
+    )
 
 
 @define_tool(
@@ -255,7 +264,7 @@ async def interpret() -> AgentResult:
             "one `evidence` block with the alterations and their tiers (cite the report file as source), "
             "and one `alert` block for the missing cardiac assessment."
         ),
-        extra_tools=[get_molecular_case, get_trial_screening],
+        extra_tools=[get_molecular_case, build_screening_tool()],
     )
     return result if result.mode == "copilot" else _interpretation_demo(result.note)
 
@@ -279,7 +288,7 @@ async def referral(request: ReferralRequest) -> AgentResult:
             "met / not met / unknown and its source, and one `actions` block with what the oncologist "
             "must approve before anything is sent (nothing is sent automatically)."
         ),
-        extra_tools=[get_molecular_case, get_trial_screening, get_referral_template],
+        extra_tools=[get_molecular_case, build_screening_tool(request.answers), get_referral_template],
     )
     return result if result.mode == "copilot" else _referral_demo(trial, result.note)
 
@@ -384,6 +393,14 @@ def _referral_demo(trial: dict[str, Any] | None, note: str | None) -> AgentResul
             "whole-genome sequencing op 14-03-2026.\n\n"
             "Deze verwijzing is een concept voor de moleculaire tumorboard; het ontvangende studieteam "
             "beslist over de definitieve geschiktheid."
+        ),
+        "Spanish": (
+            f"Estimado equipo del estudio {trial['id']},\n\n"
+            "les remito a una paciente de 29 años con adenocarcinoma rectosigmoideo metastásico, RAS y "
+            "BRAF wild-type, MSS, con amplificación de HER2 (ERBB2) documentada por secuenciación del "
+            "genoma completo el 14/03/2026.\n\n"
+            "Esta derivación es un borrador preparado para el comité molecular de tumores; el centro "
+            "receptor decide la elegibilidad definitiva."
         ),
         "German": (
             f"Sehr geehrtes Studienteam der Studie {trial['id']},\n\n"

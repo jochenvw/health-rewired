@@ -15,19 +15,20 @@
 
 ## Section headings by language
 
-| Section | English | German | Italian | Dutch |
-|---|---|---|---|---|
-| Cover letter | Cover letter | Anschreiben | Lettera di accompagnamento | Begeleidende brief |
-| Patient summary | Patient summary | Patientenzusammenfassung | Sintesi clinica del paziente | Samenvatting van de patiënt |
-| Molecular result | Molecular result | Molekularer Befund | Risultato molecolare | Moleculaire uitslag |
-| Eligibility evidence | Eligibility evidence | Eignungsnachweis | Verifica dei criteri di eleggibilità | Onderbouwing geschiktheid |
-| Attachments | Attachments | Anlagen | Allegati | Bijlagen |
-| Administrative | Administrative | Verwaltung | Aspetti amministrativi | Administratief |
-| Consent | Consent and contact | Einwilligung und Kontakt | Consenso e contatti | Toestemming en contact |
+| Section | English | German | Italian | Dutch | Spanish |
+|---|---|---|---|---|---|
+| Cover letter | Cover letter | Anschreiben | Lettera di accompagnamento | Begeleidende brief | Carta de presentación |
+| Patient summary | Patient summary | Patientenzusammenfassung | Sintesi clinica del paziente | Samenvatting van de patiënt | Resumen clínico del paciente |
+| Molecular result | Molecular result | Molekularer Befund | Risultato molecolare | Moleculaire uitslag | Resultado molecular |
+| Eligibility evidence | Eligibility evidence | Eignungsnachweis | Verifica dei criteri di eleggibilità | Onderbouwing geschiktheid | Justificación de elegibilidad |
+| Attachments | Attachments | Anlagen | Allegati | Bijlagen | Anexos |
+| Administrative | Administrative | Verwaltung | Aspetti amministrativi | Administratief | Aspectos administrativos |
+| Consent | Consent and contact | Einwilligung und Kontakt | Consenso e contatti | Toestemming en contact | Consentimiento y contacto |
 
 ## Standard closing sentence
 
 - English: "This referral is a draft prepared for the molecular tumour board; the receiving trial team decides on final eligibility."
 - German: "Diese Überweisung ist ein Entwurf für das molekulare Tumorboard; die endgültige Eignung entscheidet das aufnehmende Studienteam."
 - Italian: "Questa proposta di invio è una bozza preparata per il molecular tumour board; l'idoneità definitiva è decisa dal centro ricevente."
+- Spanish: "Esta derivación es un borrador preparado para el comité molecular de tumores; el centro receptor decide la elegibilidad definitiva."
 - Dutch: "Deze verwijzing is een concept voor de moleculaire tumorboard; het ontvangende studieteam beslist over de definitieve geschiktheid."

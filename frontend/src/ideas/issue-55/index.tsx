@@ -446,7 +446,7 @@ export default function EuropeanTrialMatch() {
                         Add to the record
                       </button>
                       <button type="button" className="hx-btn primary" onClick={() => addValue(m.fact, String(m.suggested))}>
-                        Use {m.suggested}% from the cardiology echo
+                        Use {m.suggested} from {m.suggested_source}
                       </button>
                     </div>
                   </div>
