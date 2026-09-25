@@ -104,13 +104,8 @@ const passportStages: Stage[] = [
   { label: 'Drafting model passport', detail: 'Recommendation, traceable evidence and sign-off options' },
 ];
 
-function hospitalTone(hospital: Hospital): Tone {
-  return hospital.level;
-}
-
 function hospitalRowTone(hospital: Hospital): 'warn' | 'crit' | undefined {
-  const tone = hospitalTone(hospital);
-  return tone === 'ok' ? undefined : tone;
+  return hospital.level === 'ok' ? undefined : hospital.level;
 }
 
 export default function Issue51ModelCheck() {
@@ -119,6 +114,7 @@ export default function Issue51ModelCheck() {
   const [selectedHospitalId, setSelectedHospitalId] = useState('C');
   const [silentRunStarted, setSilentRunStarted] = useState(false);
   const [silentRunDone, setSilentRunDone] = useState(false);
+  const [silentRunRun, setSilentRunRun] = useState(0);
   const [passportRun, setPassportRun] = useState(0);
   const [passport, setPassport] = useState<AgentResult | null>(null);
   const [passportLoading, setPassportLoading] = useState(false);
@@ -148,7 +144,9 @@ export default function Issue51ModelCheck() {
     setPassport(null);
     setPassportRun((run) => run + 1);
     setPassportLoading(true);
-    setSignedDecision(null);
+    if (signedDecision) {
+      setNotice('Re-drafting the passport keeps the previous sign-off visible. Choose a new option if the decision changes.');
+    }
     try {
       setPassport(
         await apiRequest<AgentResult>('/api/ideas/51/passport', {
@@ -228,9 +226,11 @@ export default function Issue51ModelCheck() {
           snapshot={snapshot}
           started={silentRunStarted}
           done={silentRunDone}
+          run={silentRunRun}
           onStart={() => {
             setSilentRunStarted(true);
             setSilentRunDone(false);
+            setSilentRunRun((run) => run + 1);
           }}
           onDone={() => setSilentRunDone(true)}
           onSelect={(id) => {
@@ -297,6 +297,7 @@ function SilentRun({
   snapshot,
   started,
   done,
+  run,
   onStart,
   onDone,
   onSelect,
@@ -304,6 +305,7 @@ function SilentRun({
   snapshot: Snapshot;
   started: boolean;
   done: boolean;
+  run: number;
   onStart: () => void;
   onDone: () => void;
   onSelect: (id: string) => void;
@@ -313,7 +315,7 @@ function SilentRun({
       <Panel
         title="Silent-run control"
         actions={
-          <button type="button" className="hx-btn primary" onClick={onStart} disabled={started}>
+          <button type="button" className="hx-btn primary" onClick={onStart} disabled={started && !done}>
             {done ? (
               'Silent run complete'
             ) : started ? (
@@ -331,6 +333,7 @@ function SilentRun({
           prediction during validation.
         </p>
         <Backstage
+          key={run}
           title="Behind the scenes – local validation run"
           stages={silentRunStages}
           running={started}
@@ -367,6 +370,7 @@ function Compare({
   selectedHospital: Hospital;
   onSelect: (id: string) => void;
 }) {
+  const driftEvents = snapshot.drift_timeline.filter((event) => event.hospital === selectedHospital.id);
   const metrics = snapshot.hospitals.map((hospital) => ({
     ...hospital,
     calibrationGap: Math.abs(1 - hospital.calibration_slope),
@@ -379,7 +383,7 @@ function Compare({
             <span>Hospital {hospital.id}</span>
             <strong>{hospital.auc.toFixed(2)} AUC</strong>
             <span>Calibration slope {hospital.calibration_slope.toFixed(2)}</span>
-            <Pill tone={hospitalTone(hospital)}>{hospital.drift_flag}</Pill>
+            <Pill tone={hospital.level}>{hospital.drift_flag}</Pill>
           </button>
         ))}
       </div>
@@ -422,15 +426,13 @@ function Compare({
       </div>
       <Panel title={`Hospital ${selectedHospital.id} drift timeline`}>
         <ol className="issue51-timeline">
-          {snapshot.drift_timeline
-            .filter((event) => event.hospital === selectedHospital.id)
-            .map((event) => (
-              <li key={`${event.month}-${event.event}`} className={`issue51-${event.level}`}>
-                <strong>{event.month}</strong>
-                <span>{event.event}</span>
-              </li>
-            ))}
-          {snapshot.drift_timeline.filter((event) => event.hospital === selectedHospital.id).length === 0 && (
+          {driftEvents.map((event) => (
+            <li key={`${event.month}-${event.event}`} className={`issue51-${event.level}`}>
+              <strong>{event.month}</strong>
+              <span>{event.event}</span>
+            </li>
+          ))}
+          {driftEvents.length === 0 && (
             <li>
               <strong>No drift event</strong>
               <span>No assay or calibration drift event is recorded for this synthetic hospital.</span>

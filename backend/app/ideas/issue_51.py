@@ -1,6 +1,7 @@
 """Issue 51: silent-run model validation workspace."""
 
 import json
+from functools import lru_cache
 from typing import Any
 
 from copilot import define_tool
@@ -27,6 +28,7 @@ class NoParams(BaseModel):
     pass
 
 
+@lru_cache(maxsize=1)
 def _snapshot() -> dict[str, Any]:
     return sample_data.read(DATA_PATH)
 
