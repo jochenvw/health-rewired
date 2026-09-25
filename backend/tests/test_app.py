@@ -107,3 +107,9 @@ def test_issue_51_passport_falls_back_without_token(client):
     assert "Hospital C" in body["headline"]
     assert any(block["title"] == "Effect of recalibration" for block in body["blocks"])
     assert any(step["tool"] == "get_model_validation_snapshot" for step in body["trace"])
+
+
+def test_issue_51_passport_rejects_unknown_hospital(client):
+    response = client.post("/api/ideas/51/passport", json={"hospital_id": "Z"})
+    assert response.status_code == 404
+    assert "Unknown hospital_id" in response.json()["detail"]

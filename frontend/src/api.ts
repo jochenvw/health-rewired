@@ -51,7 +51,7 @@ export type PatientRecord = {
   open_questions: string[];
 };
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
@@ -61,10 +61,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  status: () => request<Status>('/api/status'),
-  patients: () => request<PatientSummary[]>('/api/patients'),
-  patient: (id: string) => request<PatientRecord>(`/api/sample-data/patients/${id}.json`),
-  sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
+  status: () => apiRequest<Status>('/api/status'),
+  patients: () => apiRequest<PatientSummary[]>('/api/patients'),
+  patient: (id: string) => apiRequest<PatientRecord>(`/api/sample-data/patients/${id}.json`),
+  sampleData: <T,>(path: string) => apiRequest<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
-    request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+    apiRequest<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
 };

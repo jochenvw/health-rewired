@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { AgentResult, UIBlock } from '../../api';
+import { apiRequest, type AgentResult, type UIBlock } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
@@ -102,13 +102,19 @@ const passportStages: Stage[] = [
   { label: 'Drafting model passport', detail: 'Recommendation, traceable evidence and sign-off options' },
 ];
 
-async function issue51Request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/ideas/51${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return (await response.json()) as T;
+function isMappingWarning(status: string) {
+  return status.includes('issue') || status.includes('uncertainty') || status.includes('drift');
+}
+
+function hospitalTone(hospital: Hospital): 'ok' | 'warn' | 'crit' {
+  if (hospital.calibration_slope < 0.8 || hospital.recommendation.startsWith('Do not')) return 'crit';
+  if (hospital.calibration_slope < 0.9 || hospital.input_coverage < 0.9 || hospital.drift_flag !== 'Stable') return 'warn';
+  return 'ok';
+}
+
+function hospitalRowTone(hospital: Hospital): 'warn' | 'crit' | undefined {
+  const tone = hospitalTone(hospital);
+  return tone === 'ok' ? undefined : tone;
 }
 
 export default function Issue51ModelCheck() {
@@ -124,7 +130,7 @@ export default function Issue51ModelCheck() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    issue51Request<Snapshot>('/snapshot')
+    apiRequest<Snapshot>('/api/ideas/51/snapshot')
       .then(setSnapshot)
       .catch(() => setNotice('Could not load the synthetic model-check data.'));
   }, []);
@@ -136,7 +142,7 @@ export default function Issue51ModelCheck() {
 
   const go = (id: string) => {
     setSection(id as Section);
-    if (id === 'run') {
+    if (id === 'run' && !silentRunStarted && !silentRunDone) {
       setSilentRunStarted(true);
       setSilentRunDone(false);
     }
@@ -153,7 +159,7 @@ export default function Issue51ModelCheck() {
     setSignedDecision(null);
     try {
       setPassport(
-        await issue51Request<AgentResult>('/passport', {
+        await apiRequest<AgentResult>('/api/ideas/51/passport', {
           method: 'POST',
           body: JSON.stringify({
             hospital_id: selectedHospitalId,
@@ -278,7 +284,7 @@ function Mapping({ snapshot }: { snapshot: Snapshot }) {
         <DataTable
           rows={snapshot.variable_mapping}
           rowKey={(row) => row.input}
-          rowTone={(row) => (row.status.includes('issue') || row.status.includes('uncertainty') || row.status.includes('drift') ? 'warn' : undefined)}
+          rowTone={(row) => (isMappingWarning(row.status) ? 'warn' : undefined)}
           columns={[
             { key: 'input', label: 'Model input', render: (row) => <strong>{row.input}</strong> },
             { key: 'local_field', label: 'Local field' },
@@ -292,7 +298,7 @@ function Mapping({ snapshot }: { snapshot: Snapshot }) {
 }
 
 function MappingStatus({ status }: { status: string }) {
-  const tone = status.includes('issue') || status.includes('uncertainty') || status.includes('drift') ? 'warn' : 'ok';
+  const tone = isMappingWarning(status) ? 'warn' : 'ok';
   return <Pill tone={tone}>{status}</Pill>;
 }
 
@@ -316,8 +322,10 @@ function SilentRun({
       <Panel
         title="Silent-run control"
         actions={
-          <button type="button" className="hx-btn primary" onClick={onStart} disabled={started && !done}>
-            {started && !done ? (
+          <button type="button" className="hx-btn primary" onClick={onStart} disabled={started}>
+            {done ? (
+              'Silent run complete'
+            ) : started ? (
               <>
                 <span className="hx-spinner" aria-hidden /> Running silently…
               </>
@@ -345,7 +353,7 @@ function SilentRun({
           rows={snapshot.hospitals}
           rowKey={(hospital) => hospital.id}
           onSelect={(hospital) => onSelect(hospital.id)}
-          rowTone={(hospital) => (hospital.id === 'C' ? 'crit' : hospital.id === 'B' ? 'warn' : undefined)}
+          rowTone={hospitalRowTone}
           columns={[
             { key: 'id', label: 'Site', render: (hospital) => <strong>Hospital {hospital.id}</strong> },
             { key: 'cohort_size', label: 'N' },
@@ -380,7 +388,7 @@ function Compare({
             <span>Hospital {hospital.id}</span>
             <strong>{hospital.auc.toFixed(2)} AUC</strong>
             <span>Calibration slope {hospital.calibration_slope.toFixed(2)}</span>
-            <Pill tone={hospital.id === 'C' ? 'crit' : hospital.id === 'B' ? 'warn' : 'ok'}>{hospital.drift_flag}</Pill>
+            <Pill tone={hospitalTone(hospital)}>{hospital.drift_flag}</Pill>
           </button>
         ))}
       </div>

@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 from copilot import define_tool
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app import sample_data
@@ -33,7 +33,11 @@ def _snapshot() -> dict[str, Any]:
 
 def _hospital(snapshot: dict[str, Any], hospital_id: str) -> dict[str, Any]:
     hospitals = snapshot["hospitals"]
-    return next((hospital for hospital in hospitals if hospital["id"] == hospital_id), hospitals[-1])
+    try:
+        return next(hospital for hospital in hospitals if hospital["id"] == hospital_id)
+    except StopIteration as exc:
+        known = ", ".join(hospital["id"] for hospital in hospitals)
+        raise HTTPException(status_code=404, detail=f"Unknown hospital_id '{hospital_id}'. Known ids: {known}") from exc
 
 
 def _passport_fallback(request: PassportRequest) -> AgentResult:
