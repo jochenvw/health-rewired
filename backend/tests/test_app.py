@@ -84,3 +84,24 @@ def test_idea_routers_are_discovered_and_mounted(client):
     mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
+
+
+def test_issue_56_scenario_endpoint(client):
+    response = client.get("/api/ideas/56/scenario")
+    body = response.json()
+    assert response.status_code == 200
+    assert body["synthetic"] is True
+    assert body["onco_icu_card"]["tumour"].startswith("Metastatic colorectal")
+    assert body["outcomes"]["aggregate"]["matched"] == 167
+    assert "No signed treatment-limitation" in body["onco_icu_card"]["missing_information"][0]
+
+
+def test_issue_56_agent_endpoint_falls_back_without_token(client):
+    response = client.post(
+        "/api/ideas/56/agent",
+        json={"task": "Compile the Onco-ICU card", "patient_id": "P-056", "role": "Intensivist"},
+    )
+    body = response.json()
+    assert response.status_code == 200
+    assert body["mode"] == "fallback"
+    assert any(step["tool"] == "get_patient" for step in body["trace"])
