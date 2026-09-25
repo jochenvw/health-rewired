@@ -1,0 +1,170 @@
+{
+  "synthetic": true,
+  "description": "Fictional rectal-cancer registry and pathway aggregates for the Oncology Hackathon 2026 Munich quality-improvement prototype. No real patient data.",
+  "quarter": "2026 Q2",
+  "next_quarter": "2026 Q3 simulated",
+  "indicators": [
+    { "key": "mdt_review", "label": "Pre-treatment MDT review", "unit": "%", "target": 90 },
+    { "key": "time_to_treatment", "label": "Treatment within 31 days", "unit": "%", "target": 80 },
+    { "key": "mri_complete", "label": "Complete MRI staging", "unit": "%", "target": 95 },
+    { "key": "organ_preserving", "label": "Organ-preserving treatment discussed", "unit": "%", "target": 20 },
+    { "key": "complications_30d", "label": "30-day complications", "unit": "%", "target": 10, "lower_is_better": true }
+  ],
+  "hospitals": [
+    {
+      "id": "A",
+      "name": "Hospital A",
+      "country": "DE",
+      "cases": 64,
+      "totals_only": true,
+      "indicators": { "mdt_review": 94, "time_to_treatment": 84, "mri_complete": 97, "organ_preserving": 23, "complications_30d": 7 },
+      "median_mri_wait_days": 8,
+      "patient_mix": { "locally_advanced": 42, "frailty_score_2plus": 18, "low_rectal_tumour": 30 },
+      "process": { "referral_to_mri_median_days": 8, "mri_to_mdt_median_days": 4, "mdt_to_treatment_median_days": 12 },
+      "next_quarter": { "time_to_treatment": 85, "median_mri_wait_days": 8 }
+    },
+    {
+      "id": "B",
+      "name": "Hospital B",
+      "country": "NL",
+      "cases": 59,
+      "totals_only": true,
+      "indicators": { "mdt_review": 91, "time_to_treatment": 81, "mri_complete": 96, "organ_preserving": 19, "complications_30d": 8 },
+      "median_mri_wait_days": 10,
+      "patient_mix": { "locally_advanced": 39, "frailty_score_2plus": 20, "low_rectal_tumour": 27 },
+      "process": { "referral_to_mri_median_days": 10, "mri_to_mdt_median_days": 5, "mdt_to_treatment_median_days": 13 },
+      "next_quarter": { "time_to_treatment": 82, "median_mri_wait_days": 9 }
+    },
+    {
+      "id": "C",
+      "name": "Hospital C",
+      "country": "AT",
+      "cases": 47,
+      "totals_only": true,
+      "indicators": { "mdt_review": 96, "time_to_treatment": 86, "mri_complete": 98, "organ_preserving": 25, "complications_30d": 6 },
+      "median_mri_wait_days": 7,
+      "patient_mix": { "locally_advanced": 41, "frailty_score_2plus": 17, "low_rectal_tumour": 29 },
+      "process": { "referral_to_mri_median_days": 7, "mri_to_mdt_median_days": 4, "mdt_to_treatment_median_days": 11 },
+      "next_quarter": { "time_to_treatment": 86, "median_mri_wait_days": 7 }
+    },
+    {
+      "id": "D",
+      "name": "Hospital D",
+      "country": "BE",
+      "cases": 52,
+      "totals_only": true,
+      "indicators": { "mdt_review": 93, "time_to_treatment": 83, "mri_complete": 95, "organ_preserving": 21, "complications_30d": 9 },
+      "median_mri_wait_days": 9,
+      "patient_mix": { "locally_advanced": 44, "frailty_score_2plus": 22, "low_rectal_tumour": 31 },
+      "process": { "referral_to_mri_median_days": 9, "mri_to_mdt_median_days": 5, "mdt_to_treatment_median_days": 12 },
+      "next_quarter": { "time_to_treatment": 84, "median_mri_wait_days": 9 }
+    },
+    {
+      "id": "E",
+      "name": "Hospital E",
+      "country": "DK",
+      "cases": 44,
+      "totals_only": true,
+      "indicators": { "mdt_review": 92, "time_to_treatment": 80, "mri_complete": 95, "organ_preserving": 18, "complications_30d": 8 },
+      "median_mri_wait_days": 11,
+      "patient_mix": { "locally_advanced": 43, "frailty_score_2plus": 19, "low_rectal_tumour": 28 },
+      "process": { "referral_to_mri_median_days": 11, "mri_to_mdt_median_days": 5, "mdt_to_treatment_median_days": 13 },
+      "next_quarter": { "time_to_treatment": 81, "median_mri_wait_days": 10 }
+    },
+    {
+      "id": "F",
+      "name": "Hospital F",
+      "country": "DE",
+      "cases": 58,
+      "totals_only": true,
+      "indicators": { "mdt_review": 90, "time_to_treatment": 61, "mri_complete": 94, "organ_preserving": 20, "complications_30d": 9 },
+      "median_mri_wait_days": 24,
+      "patient_mix": { "locally_advanced": 43, "frailty_score_2plus": 21, "low_rectal_tumour": 30 },
+      "process": { "referral_to_mri_median_days": 24, "mri_to_mdt_median_days": 5, "mdt_to_treatment_median_days": 12 },
+      "next_quarter": { "time_to_treatment": 78, "median_mri_wait_days": 13 }
+    },
+    {
+      "id": "G",
+      "name": "Hospital G",
+      "country": "CH",
+      "cases": 49,
+      "totals_only": true,
+      "indicators": { "mdt_review": 95, "time_to_treatment": 85, "mri_complete": 97, "organ_preserving": 24, "complications_30d": 7 },
+      "median_mri_wait_days": 8,
+      "patient_mix": { "locally_advanced": 40, "frailty_score_2plus": 18, "low_rectal_tumour": 29 },
+      "process": { "referral_to_mri_median_days": 8, "mri_to_mdt_median_days": 4, "mdt_to_treatment_median_days": 12 },
+      "next_quarter": { "time_to_treatment": 85, "median_mri_wait_days": 8 }
+    },
+    {
+      "id": "H",
+      "name": "Hospital H",
+      "country": "SE",
+      "cases": 55,
+      "totals_only": true,
+      "indicators": { "mdt_review": 92, "time_to_treatment": 82, "mri_complete": 96, "organ_preserving": 22, "complications_30d": 8 },
+      "median_mri_wait_days": 10,
+      "patient_mix": { "locally_advanced": 42, "frailty_score_2plus": 20, "low_rectal_tumour": 32 },
+      "process": { "referral_to_mri_median_days": 10, "mri_to_mdt_median_days": 5, "mdt_to_treatment_median_days": 12 },
+      "next_quarter": { "time_to_treatment": 83, "median_mri_wait_days": 9 }
+    }
+  ],
+  "audit_cases": [
+    {
+      "local_id": "F-RC-014",
+      "age_band": "60–69",
+      "tumour": "cT3N1 low rectum",
+      "mri_wait_days": 29,
+      "treatment_wait_days": 45,
+      "reason": "Typical tumour stage and fitness; delay begins before MRI slot assignment."
+    },
+    {
+      "local_id": "F-RC-019",
+      "age_band": "70–79",
+      "tumour": "cT2N0 mid rectum",
+      "mri_wait_days": 23,
+      "treatment_wait_days": 39,
+      "reason": "Lower-risk case still missed 31-day treatment window after MRI queue."
+    },
+    {
+      "local_id": "F-RC-026",
+      "age_band": "50–59",
+      "tumour": "cT3N0 upper rectum",
+      "mri_wait_days": 27,
+      "treatment_wait_days": 42,
+      "reason": "No patient-mix explanation; referral-to-MRI segment accounts for most delay."
+    },
+    {
+      "local_id": "F-RC-041",
+      "age_band": "60–69",
+      "tumour": "cT4N1 low rectum",
+      "mri_wait_days": 31,
+      "treatment_wait_days": 47,
+      "reason": "Complex case where earlier MRI would have allowed MDT decision one week sooner."
+    },
+    {
+      "local_id": "F-RC-052",
+      "age_band": "40–49",
+      "tumour": "cT3N2 mid rectum",
+      "mri_wait_days": 25,
+      "treatment_wait_days": 41,
+      "reason": "Young fit patient; delay pattern matches imaging capacity rather than comorbidity."
+    }
+  ],
+  "agenda": [
+    "Confirm whether the Hospital F deviation is clinically relevant for rectal-cancer pathway performance.",
+    "Review aggregate patient mix: stage, frailty and low-rectal-tumour share are similar to the network.",
+    "Audit five anonymised Hospital F cases and map referral-to-MRI hand-off delays.",
+    "Decide on one improvement action: reserve one extra rectal-cancer MRI slot per week for six weeks.",
+    "Review the following quarter before publishing any comparison beyond the working group."
+  ],
+  "intervention": {
+    "label": "Reserve one extra rectal-cancer MRI slot per week",
+    "expected_effect": "Hospital F median MRI wait falls from 24 to 13 days; treatment within 31 days rises from 61% to 78% next quarter."
+  },
+  "data_flow": [
+    { "step": "Local calculation", "detail": "Each hospital calculates indicators inside its own registry workspace." },
+    { "step": "Totals shared", "detail": "Only numerator, denominator and median pathway durations leave the hospital." },
+    { "step": "Agent investigation", "detail": "The agent compares aggregates, asks Hospital F for anonymised local case IDs, and never receives names." },
+    { "step": "Human approval", "detail": "The chair decides whether to audit and whether any comparison is published." }
+  ]
+}

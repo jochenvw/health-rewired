@@ -1,0 +1,193 @@
+.q53 {
+  min-height: calc(100vh - 32px);
+  background: #eef2f0;
+  color: #17231f;
+  font: 13px 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+.q53-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #18352d, #315f52);
+  color: #f6fbf8;
+  border-bottom: 1px solid #aabbb5;
+}
+
+.q53-header h1 {
+  margin: 2px 0 6px;
+  font-size: 24px;
+}
+
+.q53-header p {
+  margin: 0;
+  max-width: 820px;
+}
+
+.q53-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  opacity: 0.82;
+}
+
+.q53-signal-card {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+}
+
+.q53-signal-card span {
+  opacity: 0.82;
+}
+
+.q53-signal-card strong {
+  font-size: 16px;
+}
+
+.q53 .hx-story {
+  border-bottom-color: #b9c6c1;
+}
+
+.q53-body {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+}
+
+.q53-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: start;
+  padding: 8px;
+  background: #f8faf9;
+  border: 1px solid #c7d2ce;
+}
+
+.q53-tabs button {
+  padding: 8px 10px;
+  text-align: left;
+  font: inherit;
+  color: #17231f;
+  background: transparent;
+  border: 0;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+
+.q53-tabs button.active,
+.q53-tabs button:hover {
+  background: #e4ece8;
+  border-left-color: #2f6f5d;
+}
+
+.q53-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.q53-grid.wide {
+  grid-template-columns: 1fr;
+}
+
+.q53-bad {
+  color: #9b3a00;
+  font-weight: 700;
+}
+
+.q53-metric-grid,
+.q53-comparison,
+.q53-before-after {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.q53-metric,
+.q53-comparison > div,
+.q53-before-after > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  background: #f6f8f7;
+  border: 1px solid #d4ddd9;
+  border-radius: 3px;
+}
+
+.q53-metric span,
+.q53-comparison span,
+.q53-before-after span,
+.q53-metric small,
+.q53-comparison small,
+.q53-before-after small {
+  color: #5a6762;
+}
+
+.q53-metric strong,
+.q53-comparison strong,
+.q53-before-after strong {
+  font-size: 22px;
+}
+
+.q53-before-after .improved {
+  border-color: #2e7d32;
+  background: #edf7ed;
+}
+
+.q53-agent .blocks {
+  grid-template-columns: 1fr;
+}
+
+.q53-agent .block {
+  padding: 12px;
+}
+
+.q53-agenda,
+.q53-flow {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.q53-agenda li {
+  margin-bottom: 8px;
+}
+
+.q53-flow {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  padding-left: 0;
+}
+
+.q53-flow li {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border-left: 4px solid #2f6f5d;
+  background: #f6f8f7;
+}
+
+.q53-checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.q53-checklist p {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .q53-header,
+  .q53-body,
+  .q53-grid {
+    grid-template-columns: 1fr;
+  }
+}
