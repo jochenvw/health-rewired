@@ -136,7 +136,7 @@ export default function EuropeanTrialMatch() {
   const [data, setData] = useState<CaseData | null>(null);
   const [screening, setScreening] = useState<Screening | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [entered, setEntered] = useState('');
+  const [entered, setEntered] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<string | null>(null);
 
   const [interpretation, setInterpretation] = useState<AgentResult | null>(null);
@@ -188,7 +188,7 @@ export default function EuropeanTrialMatch() {
   const addValue = async (fact: string, value: string) => {
     const next = { ...answers, [fact]: value };
     setAnswers(next);
-    setEntered(value);
+    setEntered((current) => ({ ...current, [fact]: value }));
     try {
       const updated = await call<Screening>('/match', { answers: next });
       setScreening(updated);
@@ -224,7 +224,7 @@ export default function EuropeanTrialMatch() {
 
   const storyStep = useMemo(() => {
     if (section === 'referral') return approved ? 'approve' : 'referral';
-    if (section === 'trials') return blocked.length > 0 ? 'trials' : 'missing';
+    if (section === 'trials') return blocked.length > 0 ? 'missing' : 'trials';
     return 'report';
   }, [section, approved, blocked.length]);
 
@@ -431,13 +431,18 @@ export default function EuropeanTrialMatch() {
                         {m.label}{' '}
                         <input
                           style={{ width: 90 }}
-                          value={entered}
-                          onChange={(e) => setEntered(e.target.value)}
+                          value={entered[m.fact] ?? ''}
+                          onChange={(e) => setEntered((current) => ({ ...current, [m.fact]: e.target.value }))}
                           placeholder="e.g. 62"
                           inputMode="decimal"
                         />
                       </label>
-                      <button type="button" className="hx-btn" onClick={() => addValue(m.fact, entered)} disabled={!entered.trim()}>
+                      <button
+                        type="button"
+                        className="hx-btn"
+                        onClick={() => addValue(m.fact, entered[m.fact] ?? '')}
+                        disabled={!(entered[m.fact] ?? '').trim()}
+                      >
                         Add to the record
                       </button>
                       <button type="button" className="hx-btn primary" onClick={() => addValue(m.fact, String(m.suggested))}>

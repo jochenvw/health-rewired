@@ -44,6 +44,15 @@ class NoParams(BaseModel):
     pass
 
 
+# Section headings per site language, mirroring referrals/referral-package-template.md.
+HEADINGS = {
+    "English": {"cover": "Cover letter", "evidence": "Eligibility evidence"},
+    "German": {"cover": "Anschreiben", "evidence": "Eignungsnachweis"},
+    "Italian": {"cover": "Lettera di accompagnamento", "evidence": "Verifica dei criteri di eleggibilità"},
+    "Dutch": {"cover": "Begeleidende brief", "evidence": "Onderbouwing geschiktheid"},
+}
+
+
 class MatchRequest(BaseModel):
     """Values the oncologist added by hand, keyed by fact name (e.g. ``{"lvef": "62"}``)."""
 
@@ -117,10 +126,13 @@ def _check(criterion: dict[str, Any], fact: dict[str, Any] | None) -> str:
             return "met" if not bool(value) else "not_met"
         case "eq":
             return "met" if str(value).lower() == str(expected).lower() else "not_met"
-        case "min":
-            return "met" if float(value) >= float(expected) else "not_met"
-        case "max":
-            return "met" if float(value) <= float(expected) else "not_met"
+        case "min" | "max":
+            try:
+                observed, limit = float(value), float(expected)
+            except (TypeError, ValueError):
+                # A value that is not a number tells us nothing; it stays unknown, never a no.
+                return "unknown"
+            return "met" if (observed >= limit if op == "min" else observed <= limit) else "not_met"
     return "unknown"
 
 
@@ -350,6 +362,9 @@ def _referral_demo(trial: dict[str, Any] | None, note: str | None) -> AgentResul
         )
         for c in trial["criteria"]
     ]
+    lvef = next((c["observed"] for c in trial["criteria"] if c["fact"] == "lvef" and c["observed"]), None)
+    lvef_number = lvef.split()[0] if lvef else None
+    lvef_it = f"FEVS {lvef_number}% (ecocardiogramma)." if lvef_number else "FEVS non ancora documentata."
     cover = {
         "Italian": (
             f"Gentile Équipe dello studio {trial['id']},\n\n"
@@ -357,7 +372,7 @@ def _referral_demo(trial: dict[str, Any] | None, note: str | None) -> AgentResul
             "rettosigmoideo metastatico, RAS e BRAF wild-type, MSS, con amplificazione di HER2 (ERBB2, "
             "numero di copie 11.4) documentata mediante sequenziamento dell'intero genoma il 14/03/2026. "
             "La paziente ha ricevuto due linee di terapia sistemica (FOLFOX + bevacizumab, poi FOLFIRI) "
-            "con progressione radiologica il 02/03/2026. FEVS 62% (ecocardiogramma del 12/03/2026). "
+            f"con progressione radiologica il 02/03/2026. {lvef_it} "
             "In allegato il referto molecolare, le immagini recenti e gli esami di laboratorio.\n\n"
             "Questa proposta di invio è una bozza preparata per il molecular tumour board; l'idoneità "
             "definitiva è decisa dal centro ricevente."
@@ -378,16 +393,13 @@ def _referral_demo(trial: dict[str, Any] | None, note: str | None) -> AgentResul
             "entscheidet das aufnehmende Studienteam."
         ),
     }.get(trial["language"], "Cover letter draft.")
+    headings = HEADINGS.get(trial["language"], HEADINGS["English"])
     return AgentResult(
         mode="fallback",
         headline=f"Draft referral package · {trial['site']} · {trial['language']}",
         blocks=[
-            UIBlock(
-                type="summary", title=f"Lettera di accompagnamento / Cover letter ({trial['language']})", body=cover
-            ),
-            UIBlock(
-                type="evidence", title="Verifica dei criteri di eleggibilità / Eligibility evidence", items=criteria
-            ),
+            UIBlock(type="summary", title=f"{headings['cover']} / Cover letter ({trial['language']})", body=cover),
+            UIBlock(type="evidence", title=f"{headings['evidence']} / Eligibility evidence", items=criteria),
             UIBlock(
                 type="actions",
                 title="Before anything is sent – your decision",

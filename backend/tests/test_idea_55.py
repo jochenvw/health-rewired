@@ -33,6 +33,12 @@ def test_adding_the_missing_value_turns_the_blocked_trial_into_a_match(client):
     assert all(c["status"] != "unknown" for c in italy["criteria"])
 
 
+def test_a_non_numeric_answer_stays_unknown_instead_of_failing(client):
+    screening = client.post("/api/ideas/55/match", json={"answers": {"lvef": "not done"}}).json()
+    italy = next(t for t in screening["shortlist"] if t["country"] == "Italy")
+    assert italy["verdict"] == "blocked"
+
+
 def test_interpretation_and_referral_work_without_a_copilot_token(client):
     interpretation = client.post("/api/ideas/55/interpret").json()
     assert interpretation["mode"] == "fallback"
