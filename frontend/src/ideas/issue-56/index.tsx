@@ -86,6 +86,8 @@ export default function Issue56OncoIcu() {
       .catch(() => setNotice('Could not load the synthetic Onco-ICU scenario.'));
   }, []);
 
+  const noticeIsError = notice?.startsWith('Assistant could not') ?? false;
+
   const selected = useMemo(
     () =>
       scenario?.worklist.find((row) => row.patient_id === selectedId) ??
@@ -195,7 +197,11 @@ export default function Issue56OncoIcu() {
         </>
       }
     >
-      {notice && <Panel title="Information">{notice}</Panel>}
+      {notice && (
+        <Panel title={noticeIsError ? 'Assistant unavailable' : 'Information'}>
+          {noticeIsError ? <><Pill tone="crit">Error</Pill> {notice}</> : notice}
+        </Panel>
+      )}
       {section === 'worklist' && <Worklist rows={scenario.worklist} selected={selectedId} onSelect={openCase} />}
       {section === 'card' && (
         <OncoIcuCard
@@ -424,7 +430,7 @@ function Outcomes({
           onFinished={onDone}
           note="Only aggregate counts and uncertainty ranges are returned in this synthetic demo."
         />
-        {(done || running) && (
+        {done && (
           <div className="issue56-outcome-summary">
             <div><span>Matched patients</span><strong>{aggregate.matched}</strong></div>
             <div><span>ICU survival</span><strong>{aggregate.icu_survival}</strong><small>{aggregate.range}</small></div>

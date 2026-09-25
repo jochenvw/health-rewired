@@ -1,5 +1,6 @@
 """Issue #56 – The cancer patient in the ICU."""
 
+from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter
@@ -18,6 +19,7 @@ follow-up message. Never recommend ICU admission or treatment limits; make human
 Finish by calling render_ui exactly once."""
 
 
+@lru_cache(maxsize=1)
 def _scenario() -> dict[str, Any]:
     return sample_data.read(SCENARIO_PATH)
 
