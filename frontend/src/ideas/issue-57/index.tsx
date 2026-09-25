@@ -153,6 +153,11 @@ export default function Issue57TrialDesign() {
     setNetworkDone(false);
   };
 
+  const finishNetwork = () => {
+    setNetworkRunning(false);
+    setNetworkDone(true);
+  };
+
   const go = (id: string) => {
     const next = id as Section;
     setSection(next);
@@ -254,7 +259,7 @@ export default function Issue57TrialDesign() {
             running={networkRunning}
             done={networkDone}
             onRun={startNetwork}
-            onDone={() => setNetworkDone(true)}
+            onDone={finishNetwork}
           />
         )}
         {snapshot && section === 'equity' && <EquitySection snapshot={snapshot} />}
@@ -413,7 +418,12 @@ function NetworkSection({
           onFinished={onDone}
           note="Simulated federated query: no patient-level data leaves a hospital."
         />
-        {!running && <span className="hx-empty">Run the federated count query to fill the table.</span>}
+        {!running && !done && <span className="hx-empty">Run the federated count query to fill the table.</span>}
+        {!running && done && (
+          <p className="issue57-filed">
+            <Pill tone="ok">Counts returned</Pill> Six centres answered with aggregate counts only.
+          </p>
+        )}
       </Panel>
       {(running || done) && (
         <div className="hx-grid issue57-network">
@@ -447,7 +457,7 @@ function NetworkSection({
 }
 
 function Funnel({ snapshot }: { snapshot: Snapshot }) {
-  const max = snapshot.funnel[0]?.strict ?? 1;
+  const max = Math.max(1, ...snapshot.funnel.flatMap((step) => [step.strict, step.adjusted]));
   return (
     <Panel title="Eligibility funnel">
       <div className="issue57-funnel">
@@ -613,9 +623,10 @@ function AgentBlocks({ result }: { result: AgentResult }) {
 }
 
 function Bar({ label, value, max, tone }: { label: string; value: number; max: number; tone: 'strict' | 'adjusted' }) {
+  const width = Math.min(100, Math.max(8, (value / max) * 100));
   return (
     <div className={`issue57-bar ${tone}`}>
-      <span style={{ width: `${Math.max(8, (value / max) * 100)}%` }} />
+      <span style={{ width: `${width}%` }} />
       <strong>{label}</strong>
     </div>
   );

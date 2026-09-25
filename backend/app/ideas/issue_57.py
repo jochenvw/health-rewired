@@ -36,6 +36,13 @@ def _snapshot() -> dict[str, Any]:
     return data
 
 
+def _older_patient_disparity(snapshot: dict[str, Any]) -> dict[str, Any]:
+    return next(
+        (row for row in snapshot["disparities"] if "aged ≥70" in row["group"]),
+        snapshot["disparities"][0],
+    )
+
+
 @define_tool(description="Run synthetic federated trial-feasibility counts for issue 57.", skip_permission=True)
 def federated_trial_feasibility(params: TrialQueryParams) -> str:
     snapshot = _snapshot()
@@ -75,7 +82,7 @@ Draft criteria:
         return result
 
     snapshot = _snapshot()
-    older_egfr_exclusion = snapshot["disparities"][0]["strict_excluded_by_egfr"]
+    older_egfr_exclusion = _older_patient_disparity(snapshot)["strict_excluded_by_egfr"]
     return AgentResult(
         mode="fallback",
         headline="Draft criteria converted to reviewable trial rules",
