@@ -1,0 +1,54 @@
+{
+  "synthetic": true,
+  "id": "P-004",
+  "name": "Nora Lindqvist",
+  "age": 29,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Adenocarcinoma of the rectosigmoid, metastatic (liver, lung)",
+    "date": "2024-11-08",
+    "stage": "cT4a cN2 M1c (stage IVB)",
+    "grade": 2,
+    "biomarkers": {
+      "HER2 (ERBB2)": "amplified (copy number 11.4, WGS 2026-03-14)",
+      "RAS": "wild-type (KRAS/NRAS)",
+      "BRAF": "wild-type",
+      "MSI": "MSS / pMMR",
+      "TMB": "7.2 mut/Mb"
+    }
+  },
+  "comorbidities": ["Adolescent and young adult (AYA) patient, fertility preservation completed 2024"],
+  "medications": ["Pantoprazole 40 mg QD", "Ondansetron as needed"],
+  "treatments": [
+    { "type": "First line", "regimen": "FOLFOX + bevacizumab", "start": "2024-12-02", "status": "completed", "cycle": "12 of 12" },
+    { "type": "Second line", "regimen": "FOLFIRI", "start": "2025-09-15", "status": "stopped for progression", "cycle": "8 of 12" }
+  ],
+  "labs": [
+    { "date": "2026-02-18", "test": "CEA", "value": 42.7, "unit": "ng/mL", "ref": "<5.0", "flag": "high" },
+    { "date": "2026-03-10", "test": "Creatinine clearance", "value": 96, "unit": "mL/min", "ref": ">60" },
+    { "date": "2026-03-10", "test": "Bilirubin", "value": 0.9, "unit": "mg/dL", "ref": "<1.2" },
+    { "date": "2026-03-10", "test": "ANC", "value": 3.1, "unit": "10^9/L", "ref": "1.8-7.5" },
+    { "date": "2026-03-10", "test": "Platelets", "value": 212, "unit": "10^9/L", "ref": "150-400" }
+  ],
+  "imaging": [
+    { "date": "2026-03-02", "modality": "CT chest/abdomen", "result": "Progression: 3 liver lesions (largest 42 mm), 2 lung nodules; measurable per RECIST 1.1" },
+    { "date": "2026-03-04", "modality": "MRI brain", "result": "No brain metastases" }
+  ],
+  "patient_reported": [
+    { "date": "2026-03-05", "symptom": "Fatigue", "grade": 1 },
+    { "date": "2026-03-12", "symptom": "Abdominal discomfort", "grade": 1 }
+  ],
+  "timeline": [
+    { "date": "2024-11-08", "event": "Colonoscopy biopsy: rectosigmoid adenocarcinoma, synchronous liver metastases" },
+    { "date": "2024-12-02", "event": "FOLFOX + bevacizumab started" },
+    { "date": "2025-09-15", "event": "FOLFIRI started after progression" },
+    { "date": "2026-03-02", "event": "CT: progression on second line" },
+    { "date": "2026-03-14", "event": "Whole-genome sequencing reported: ERBB2 (HER2) amplification" },
+    { "date": "2026-03-17", "event": "Molecular tumour board scheduled" }
+  ],
+  "open_questions": [
+    "HER2 amplification found on WGS – which European trials are open and is she eligible?",
+    "No echocardiogram in the record; several anti-HER2 trials require a documented LVEF."
+  ]
+}

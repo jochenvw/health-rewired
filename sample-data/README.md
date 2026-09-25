@@ -10,7 +10,10 @@
 |---|---|---|
 | `patients/<id>.json` | JSON | One synthetic oncology patient: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
 | `notes/<id>-*.md` | Markdown | Free-text clinical notes (MDT notes, letters) for extraction/reasoning demos |
+| `genomics/<id>-*.md` | Markdown | Synthetic sequencing reports (variants, TMB, MSI) for molecular tumour board demos |
 | `trials.csv` | CSV | Synthetic clinical trials with simple eligibility criteria |
+| `trials/*.json` | JSON | Synthetic European trials with criteria in the site language and fictional drug availability |
+| `referrals/*.md` | Markdown | Templates for referral packages (sections and phrases per language) |
 
 ## How the app uses it
 
