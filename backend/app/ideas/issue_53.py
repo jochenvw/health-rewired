@@ -12,6 +12,7 @@ from app.agent.ui import UIBlock, UIItem
 router = APIRouter(prefix="/api/ideas/53", tags=["idea-53"])
 
 DATA_PATH = "rectal-quality-network.json"
+FLAGGED_HOSPITAL_ID = "F"
 
 
 class NoParams(BaseModel):
@@ -30,11 +31,12 @@ def _network_average(hospitals: list[dict], key: str) -> float:
 def _build_snapshot() -> dict:
     data = _raw_data()
     hospitals = data["hospitals"]
-    hospital_f = next(hospital for hospital in hospitals if hospital["id"] == "F")
+    hospital_f = next(hospital for hospital in hospitals if hospital["id"] == FLAGGED_HOSPITAL_ID)
     time_to_treatment = next(indicator for indicator in data["indicators"] if indicator["key"] == "time_to_treatment")
     network_time_to_treatment = _network_average(hospitals, "time_to_treatment")
     peer_mri_wait = round(
-        sum(hospital["median_mri_wait_days"] for hospital in hospitals if hospital["id"] != "F") / (len(hospitals) - 1),
+        sum(hospital["median_mri_wait_days"] for hospital in hospitals if hospital["id"] != FLAGGED_HOSPITAL_ID)
+        / (len(hospitals) - 1),
         1,
     )
     return {
@@ -43,7 +45,7 @@ def _build_snapshot() -> dict:
             indicator["key"]: _network_average(hospitals, indicator["key"]) for indicator in data["indicators"]
         },
         "signal": {
-            "hospital_id": "F",
+            "hospital_id": FLAGGED_HOSPITAL_ID,
             "indicator": "time_to_treatment",
             "headline": "Hospital F time-to-treatment deviation",
             "observed": hospital_f["indicators"]["time_to_treatment"],

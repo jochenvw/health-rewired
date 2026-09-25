@@ -148,7 +148,7 @@ export default function Issue53QualityLoop() {
   };
 
   const go = (id: string) => {
-    if (id === 'investigate' && !assistant && !investigating) {
+    if (id === 'investigate' && !assistant && !investigating && !started) {
       void runInvestigation();
       return;
     }
@@ -513,9 +513,9 @@ function ActionView({
           </div>
           <div className={approved ? 'improved' : undefined}>
             <span>{snapshot.next_quarter}</span>
-            <strong>{approved ? hospitalF.next_quarter.time_to_treatment : '—'}%</strong>
+            <strong>{approved ? `${hospitalF.next_quarter.time_to_treatment}%` : '—'}</strong>
             <small>Treatment within 31 days</small>
-            <strong>{approved ? hospitalF.next_quarter.median_mri_wait_days : '—'} days</strong>
+            <strong>{approved ? `${hospitalF.next_quarter.median_mri_wait_days} days` : '—'}</strong>
             <small>Median MRI wait</small>
           </div>
         </div>
