@@ -38,6 +38,7 @@
       "brier": 0.168,
       "fairness_flag": "No subgroup gap above alert threshold",
       "drift_flag": "Stable",
+      "level": "ok",
       "likely_cause": "Local cohort resembles the publication cohort.",
       "recommendation": "Introduce with routine quarterly silent monitoring."
     },
@@ -54,6 +55,7 @@
       "brier": 0.184,
       "fairness_flag": "Albumin missingness affects ECOG 2+ subgroup",
       "drift_flag": "Watch",
+      "level": "warn",
       "likely_cause": "Albumin values often arrive after the model would run.",
       "recommendation": "Run three more months silently; fix albumin feed before go-live."
     },
@@ -70,25 +72,26 @@
       "brier": 0.214,
       "fairness_flag": "Predicted benefit overestimated for age 75+",
       "drift_flag": "PD-L1 assay change in Jul 2025",
+      "level": "crit",
       "likely_cause": "PD-L1 test method changed halfway through the period; high TPS values increased without matching outcome shift.",
       "recommendation": "Do not introduce without local recalibration and assay-specific monitoring."
     }
   ],
   "variable_mapping": [
-    { "input": "age", "local_field": "EHR demographics.birth_date", "status": "Mapped", "evidence": "412/412 records at Hospital A" },
-    { "input": "ecog", "local_field": "Oncology note structured ECOG", "status": "Mapped with extraction", "evidence": "AI extracted missing ECOG from clinic letters for 9% of records" },
-    { "input": "histology", "local_field": "Pathology SNOMED", "status": "Mapped", "evidence": "Adenocarcinoma/squamous labels harmonised" },
-    { "input": "smoking_history", "local_field": "Social history text", "status": "Mapped with uncertainty", "evidence": "Unknown in 14% at Hospital B" },
-    { "input": "pdl1_tps", "local_field": "Molecular diagnostics PD-L1 TPS", "status": "Mapped; drift alert", "evidence": "Hospital C switched assay in Jul 2025" },
-    { "input": "albumin", "local_field": "Lab ALB g/L", "status": "Coverage issue", "evidence": "Missing at model time in 18% at Hospital B" },
-    { "input": "neutrophil_lymphocyte_ratio", "local_field": "Derived from same-day FBC", "status": "Calculated", "evidence": "Formula checked against 30 records" },
-    { "input": "line_of_therapy", "local_field": "Systemic therapy regimen history", "status": "Mapped", "evidence": "First vs later line from e-prescribing" }
+    { "input": "age", "local_field": "EHR demographics.birth_date", "status": "Mapped", "level": "ok", "evidence": "412/412 records at Hospital A" },
+    { "input": "ecog", "local_field": "Oncology note structured ECOG", "status": "Mapped with extraction", "level": "ok", "evidence": "AI extracted missing ECOG from clinic letters for 9% of records" },
+    { "input": "histology", "local_field": "Pathology SNOMED", "status": "Mapped", "level": "ok", "evidence": "Adenocarcinoma/squamous labels harmonised" },
+    { "input": "smoking_history", "local_field": "Social history text", "status": "Mapped with uncertainty", "level": "warn", "evidence": "Unknown in 14% at Hospital B" },
+    { "input": "pdl1_tps", "local_field": "Molecular diagnostics PD-L1 TPS", "status": "Mapped; drift alert", "level": "warn", "evidence": "Hospital C switched assay in Jul 2025" },
+    { "input": "albumin", "local_field": "Lab ALB g/L", "status": "Coverage issue", "level": "warn", "evidence": "Missing at model time in 18% at Hospital B" },
+    { "input": "neutrophil_lymphocyte_ratio", "local_field": "Derived from same-day FBC", "status": "Calculated", "level": "ok", "evidence": "Formula checked against 30 records" },
+    { "input": "line_of_therapy", "local_field": "Systemic therapy regimen history", "status": "Mapped", "level": "ok", "evidence": "First vs later line from e-prescribing" }
   ],
   "subgroups": [
-    { "group": "Age <75", "n": 684, "auc": 0.78, "calibration_slope": 0.91, "signal": "Within expected range" },
-    { "group": "Age ≥75", "n": 352, "auc": 0.72, "calibration_slope": 0.67, "signal": "Hospital C overestimates response" },
-    { "group": "PD-L1 TPS ≥50%", "n": 418, "auc": 0.77, "calibration_slope": 0.64, "signal": "Assay change creates calibration drift" },
-    { "group": "ECOG 2+", "n": 191, "auc": 0.70, "calibration_slope": 0.82, "signal": "Missing albumin reduces confidence" }
+    { "group": "Age <75", "n": 684, "auc": 0.78, "calibration_slope": 0.91, "level": "ok", "signal": "Within expected range" },
+    { "group": "Age ≥75", "n": 352, "auc": 0.72, "calibration_slope": 0.67, "level": "crit", "signal": "Hospital C overestimates response" },
+    { "group": "PD-L1 TPS ≥50%", "n": 418, "auc": 0.77, "calibration_slope": 0.64, "level": "crit", "signal": "Assay change creates calibration drift" },
+    { "group": "ECOG 2+", "n": 191, "auc": 0.70, "calibration_slope": 0.82, "level": "warn", "signal": "Missing albumin reduces confidence" }
   ],
   "drift_timeline": [
     { "month": "2025-04", "hospital": "C", "event": "Calibration slope 0.88", "level": "stable" },

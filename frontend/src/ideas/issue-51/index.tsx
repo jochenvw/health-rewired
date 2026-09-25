@@ -26,12 +26,14 @@ type Hospital = {
   brier: number;
   fairness_flag: string;
   drift_flag: string;
+  level: 'ok' | 'warn' | 'crit';
   likely_cause: string;
   recommendation: string;
 };
 
-type MappingRow = { input: string; local_field: string; status: string; evidence: string };
-type SubgroupRow = { group: string; n: number; auc: number; calibration_slope: number; signal: string };
+type Tone = 'ok' | 'warn' | 'crit';
+type MappingRow = { input: string; local_field: string; status: string; level: Tone; evidence: string };
+type SubgroupRow = { group: string; n: number; auc: number; calibration_slope: number; level: Tone; signal: string };
 type DriftEvent = { month: string; hospital: string; event: string; level: 'stable' | 'change' | 'warning' | 'critical' };
 type Snapshot = {
   synthetic: boolean;
@@ -102,14 +104,8 @@ const passportStages: Stage[] = [
   { label: 'Drafting model passport', detail: 'Recommendation, traceable evidence and sign-off options' },
 ];
 
-function isMappingWarning(status: string) {
-  return status.includes('issue') || status.includes('uncertainty') || status.includes('drift');
-}
-
-function hospitalTone(hospital: Hospital): 'ok' | 'warn' | 'crit' {
-  if (hospital.calibration_slope < 0.8 || hospital.recommendation.startsWith('Do not')) return 'crit';
-  if (hospital.calibration_slope < 0.9 || hospital.input_coverage < 0.9 || hospital.drift_flag !== 'Stable') return 'warn';
-  return 'ok';
+function hospitalTone(hospital: Hospital): Tone {
+  return hospital.level;
 }
 
 function hospitalRowTone(hospital: Hospital): 'warn' | 'crit' | undefined {
@@ -142,10 +138,6 @@ export default function Issue51ModelCheck() {
 
   const go = (id: string) => {
     setSection(id as Section);
-    if (id === 'run' && !silentRunStarted && !silentRunDone) {
-      setSilentRunStarted(true);
-      setSilentRunDone(false);
-    }
     if (id === 'passport' && !passport && !passportLoading) {
       void draftPassport();
     }
@@ -187,7 +179,7 @@ export default function Issue51ModelCheck() {
   return (
     <HospitalShell
       module="AI model check workspace"
-      guide={<StoryGuide steps={steps} current={section} onGo={go} nextLabel={section === 'mapping' ? 'Start silent run' : undefined} />}
+      guide={<StoryGuide steps={steps} current={section} onGo={go} nextLabel={section === 'mapping' ? 'Open silent-run screen' : undefined} />}
       nav={[
         { id: 'mapping', label: 'Variable map', badge: snapshot.variable_mapping.length },
         { id: 'run', label: 'Silent run', badge: snapshot.hospitals.reduce((sum, hospital) => sum + hospital.cohort_size, 0) },
@@ -248,7 +240,7 @@ export default function Issue51ModelCheck() {
         />
       )}
       {section === 'compare' && <Compare snapshot={snapshot} selectedHospital={selectedHospital} onSelect={setSelectedHospitalId} />}
-      {section === 'recalibrate' && <Recalibration snapshot={snapshot} />}
+      {section === 'recalibrate' && <Recalibration snapshot={snapshot} selectedHospital={selectedHospital} onSelectHospital={setSelectedHospitalId} />}
       {section === 'passport' && (
         <Passport
           snapshot={snapshot}
@@ -284,11 +276,11 @@ function Mapping({ snapshot }: { snapshot: Snapshot }) {
         <DataTable
           rows={snapshot.variable_mapping}
           rowKey={(row) => row.input}
-          rowTone={(row) => (isMappingWarning(row.status) ? 'warn' : undefined)}
+          rowTone={(row) => (row.level === 'ok' ? undefined : row.level)}
           columns={[
             { key: 'input', label: 'Model input', render: (row) => <strong>{row.input}</strong> },
             { key: 'local_field', label: 'Local field' },
-            { key: 'status', label: 'Status', render: (row) => <MappingStatus status={row.status} /> },
+            { key: 'status', label: 'Status', render: (row) => <MappingStatus status={row.status} level={row.level} /> },
             { key: 'evidence', label: 'Evidence' },
           ]}
         />
@@ -297,9 +289,8 @@ function Mapping({ snapshot }: { snapshot: Snapshot }) {
   );
 }
 
-function MappingStatus({ status }: { status: string }) {
-  const tone = isMappingWarning(status) ? 'warn' : 'ok';
-  return <Pill tone={tone}>{status}</Pill>;
+function MappingStatus({ status, level }: { status: string; level: Tone }) {
+  return <Pill tone={level}>{status}</Pill>;
 }
 
 function SilentRun({
@@ -418,7 +409,7 @@ function Compare({
           <DataTable
             rows={snapshot.subgroups}
             rowKey={(row) => row.group}
-            rowTone={(row) => (row.signal.includes('overestimates') || row.signal.includes('drift') ? 'crit' : row.signal.includes('Missing') ? 'warn' : undefined)}
+            rowTone={(row) => (row.level === 'ok' ? undefined : row.level)}
             columns={[
               { key: 'group', label: 'Subgroup', render: (row) => <strong>{row.group}</strong> },
               { key: 'n', label: 'N' },
@@ -429,26 +420,52 @@ function Compare({
           />
         </Panel>
       </div>
-      <Panel title="Hospital C drift timeline">
+      <Panel title={`Hospital ${selectedHospital.id} drift timeline`}>
         <ol className="issue51-timeline">
-          {snapshot.drift_timeline.map((event) => (
-            <li key={`${event.month}-${event.event}`} className={`issue51-${event.level}`}>
-              <strong>{event.month}</strong>
-              <span>{event.event}</span>
+          {snapshot.drift_timeline
+            .filter((event) => event.hospital === selectedHospital.id)
+            .map((event) => (
+              <li key={`${event.month}-${event.event}`} className={`issue51-${event.level}`}>
+                <strong>{event.month}</strong>
+                <span>{event.event}</span>
+              </li>
+            ))}
+          {snapshot.drift_timeline.filter((event) => event.hospital === selectedHospital.id).length === 0 && (
+            <li>
+              <strong>No drift event</strong>
+              <span>No assay or calibration drift event is recorded for this synthetic hospital.</span>
             </li>
-          ))}
+          )}
         </ol>
       </Panel>
     </>
   );
 }
 
-function Recalibration({ snapshot }: { snapshot: Snapshot }) {
+function Recalibration({
+  snapshot,
+  selectedHospital,
+  onSelectHospital,
+}: {
+  snapshot: Snapshot;
+  selectedHospital: Hospital;
+  onSelectHospital: (id: string) => void;
+}) {
   const before = snapshot.recalibration.before;
   const after = snapshot.recalibration.after;
+  const isHospitalC = selectedHospital.id === 'C';
   return (
     <div className="hx-grid">
-      <Panel title="Recalibration test · Hospital C">
+      <Panel
+        title={isHospitalC ? 'Recalibration test · Hospital C' : `Recalibration scenario · Hospital C (currently viewing Hospital ${selectedHospital.id})`}
+        actions={
+          !isHospitalC && (
+            <button type="button" className="hx-btn" onClick={() => onSelectHospital('C')}>
+              Switch to Hospital C
+            </button>
+          )
+        }
+      >
         <p className="issue51-note">{snapshot.recalibration.method}</p>
         <div className="issue51-recalibration">
           <Metric label="Calibration slope before" value={before.calibration_slope} tone="crit" />

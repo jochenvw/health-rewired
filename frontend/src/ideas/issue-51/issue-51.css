@@ -83,16 +83,16 @@
   color: var(--muted);
 }
 
-.issue51-change {
-  border-left-color: var(--accent) !important;
+.issue51-timeline li.issue51-change {
+  border-left-color: var(--accent);
 }
 
-.issue51-warning {
-  border-left-color: var(--warning) !important;
+.issue51-timeline li.issue51-warning {
+  border-left-color: var(--warning);
 }
 
-.issue51-critical {
-  border-left-color: var(--critical) !important;
+.issue51-timeline li.issue51-critical {
+  border-left-color: var(--critical);
 }
 
 .issue51-recalibration {

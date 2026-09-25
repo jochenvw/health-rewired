@@ -117,8 +117,8 @@ async def passport(request: PassportRequest) -> AgentResult:
     if settings.copilot_auth_mode == "not-configured":
         return _passport_fallback(request)
 
-    snapshot = _snapshot()
-    hospital = _hospital(snapshot, request.hospital_id)
+    validation_snapshot = _snapshot()
+    hospital = _hospital(validation_snapshot, request.hospital_id)
     prompt = f"""
 Draft the model passport for the hospital AI decision committee.
 
@@ -135,7 +135,10 @@ Return concise UI blocks with:
 Make clear that silent-run predictions are not shown to clinicians or patients.
 """
     return await run_agent(
-        AgentRequest(task=request.committee_focus, role="Hospital AI implementation team"),
+        AgentRequest(
+            task=f"Assess Hospital {hospital['id']} ({hospital['name']}): {request.committee_focus}",
+            role="Hospital AI implementation team",
+        ),
         system_prompt=(
             "You help a hospital AI decision committee validate an oncology prediction model. "
             "Use tools, cite synthetic evidence, and never imply the model is used for care during silent running."
