@@ -120,12 +120,14 @@ export default function ConfirmOnce() {
   const [score, setScore] = useState<Scorecard | null>(null);
   const [scoring, setScoring] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   const prepare = useCallback(() => {
     setSection('dataset');
     setNotice(null);
     if (running || ready) return;
     setRunning(true);
+    setFailed(false);
     setLoaded(false);
     call<Dataset>(`/api/ideas/48/dataset/${PATIENT}`)
       .then((d) => {
@@ -135,12 +137,13 @@ export default function ConfirmOnce() {
       .catch(() => {
         setNotice('The synthetic record could not be loaded – use "Prepare for MDT" to try again.');
         setRunning(false);
+        setFailed(true);
       });
   }, [running, ready]);
 
   useEffect(() => {
-    if (section === 'dataset' && !running && !data) prepare();
-  }, [section, running, data, prepare]);
+    if (section === 'dataset' && !running && !data && !failed) prepare();
+  }, [section, running, data, failed, prepare]);
 
   const decide = (field: Field, action: Decision['action'], value: string) => {
     setDecisions((d) => ({ ...d, [field.id]: { value, action } }));
@@ -201,7 +204,7 @@ export default function ConfirmOnce() {
           </span>
           <span className="hx-spacer" />
           <span>
-            Confirmed {confirmedCount} of {data?.counts.total ?? 8}
+            Confirmed {confirmedCount}{data ? ` of ${data.counts.total}` : ''}
           </span>
           <button type="button" className="hx-btn primary" onClick={prepare} disabled={running && !loaded}>
             {running && !loaded ? (
@@ -427,7 +430,7 @@ function FieldCard({
   decision?: Decision;
   onDecide: (field: Field, action: Decision['action'], value: string) => void;
 }) {
-  const [choice, setChoice] = useState(field.proposed);
+  const [choice, setChoice] = useState(decision?.value ?? field.proposed);
   const unknownOption = field.options.find((o) => o.toLowerCase().startsWith('unknown')) ?? 'Unknown';
   return (
     <article className={`i48-field ${decision ? 'confirmed' : field.status}`}>
