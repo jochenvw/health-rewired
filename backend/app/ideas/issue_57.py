@@ -17,7 +17,6 @@ DATA_PATH = "trial-design/issue-57-population.json"
 
 class TrialQueryParams(BaseModel):
     criteria: str = Field(description="Draft protocol eligibility criteria to evaluate")
-    kidney_threshold: int = Field(default=60, ge=30, le=90, description="eGFR threshold to test")
 
 
 def _snapshot() -> dict[str, Any]:
@@ -40,7 +39,6 @@ def _snapshot() -> dict[str, Any]:
 def federated_trial_feasibility(params: TrialQueryParams) -> str:
     snapshot = _snapshot()
     snapshot["requested_criteria"] = params.criteria
-    snapshot["tested_kidney_threshold"] = params.kidney_threshold
     return json.dumps(snapshot)
 
 
@@ -76,6 +74,7 @@ Draft criteria:
         return result
 
     snapshot = _snapshot()
+    older_egfr_exclusion = snapshot["disparities"][0]["strict_excluded_by_egfr"]
     return AgentResult(
         mode="fallback",
         headline="Draft criteria converted to reviewable trial rules",
@@ -101,8 +100,8 @@ Draft criteria:
                 title="Representativeness warning",
                 severity="warning",
                 body=(
-                    "The strict eGFR ≥60 rule excludes 49% of patients aged 70 or older in the "
-                    "synthetic registry before any patient is approached."
+                    f"The strict eGFR ≥60 rule excludes {older_egfr_exclusion}% of patients aged "
+                    "70 or older in the synthetic registry before any patient is approached."
                 ),
                 items=[
                     UIItem(

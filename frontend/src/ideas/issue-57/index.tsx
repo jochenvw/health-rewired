@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
-import type { AgentResult } from '../../api';
+import { request, type AgentResult } from '../../api';
 import type { IdeaMeta } from '../index';
 import './styles.css';
 
@@ -120,16 +120,8 @@ const networkStages: Stage[] = [
   { label: 'Paris Est Cancer Campus', detail: 'Local registry queried; count returned', ms: 550 },
 ];
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return (await response.json()) as T;
-}
-
 function percent(part: number, whole: number) {
+  if (whole === 0) return '–';
   return `${Math.round((part / whole) * 100)}%`;
 }
 
@@ -142,6 +134,7 @@ export default function Issue57TrialDesign() {
   const [agentStarted, setAgentStarted] = useState(false);
   const [networkRunning, setNetworkRunning] = useState(false);
   const [networkDone, setNetworkDone] = useState(false);
+  const [networkRunId, setNetworkRunId] = useState(0);
   const [approvedRules, setApprovedRules] = useState(false);
   const [decision, setDecision] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -153,6 +146,7 @@ export default function Issue57TrialDesign() {
   }, []);
 
   const startNetwork = () => {
+    setNetworkRunId((id) => id + 1);
     setNetworkRunning(true);
     setNetworkDone(false);
   };
@@ -221,7 +215,7 @@ export default function Issue57TrialDesign() {
       }
     >
       <div className="issue57">
-        {error && <Panel title="Information">{error}</Panel>}
+        {error && <Panel title="Could not load data">{error}</Panel>}
         {!snapshot && !error && (
           <Panel title="Loading feasibility workspace">
             <Working label="Loading synthetic trial registry" />
@@ -254,6 +248,7 @@ export default function Issue57TrialDesign() {
         {snapshot && section === 'network' && (
           <NetworkSection
             snapshot={snapshot}
+            runId={networkRunId}
             running={networkRunning}
             done={networkDone}
             onRun={startNetwork}
@@ -379,12 +374,14 @@ function RulesSection({
 
 function NetworkSection({
   snapshot,
+  runId,
   running,
   done,
   onRun,
   onDone,
 }: {
   snapshot: Snapshot;
+  runId: number;
   running: boolean;
   done: boolean;
   onRun: () => void;
@@ -407,6 +404,7 @@ function NetworkSection({
         }
       >
         <Backstage
+          key={runId}
           title="Behind the scenes – hospitals answer with counts only"
           stages={networkStages}
           running={running}
