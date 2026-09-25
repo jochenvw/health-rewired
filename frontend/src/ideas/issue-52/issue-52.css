@@ -1,0 +1,117 @@
+/* Idea 52 – post-MDT explanation. Small additions on top of the hospital theme. */
+
+.x52-sentence {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 8px;
+  align-items: start;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.x52-sentence.approved {
+  background: #f1f8f1;
+}
+
+.x52-sentence.editing {
+  background: #fffdf2;
+}
+
+.x52-sentence textarea {
+  width: 100%;
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+}
+
+.x52-sentence-text {
+  cursor: text;
+}
+
+.x52-sentence-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.x52-sentence-actions {
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.x52-num {
+  color: var(--muted);
+  font-size: 11px;
+  padding-top: 2px;
+}
+
+.x52-source {
+  white-space: pre-wrap;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  padding: 8px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.x52-timeline {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 6px 0 2px;
+  margin: 0;
+}
+
+.x52-timeline li {
+  list-style: none;
+  flex: 1 0 150px;
+  border-top: 2px solid var(--accent);
+  padding: 8px 8px 0 0;
+  position: relative;
+  font-size: 11px;
+}
+
+.x52-timeline li::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.x52-timeline li strong {
+  display: block;
+}
+
+.x52-letter p {
+  margin: 0 0 8px;
+}
+
+.x52-portal {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.x52-portal h4 {
+  margin: 0 0 10px;
+}
+
+.x52-portal p {
+  margin: 0 0 8px;
+}

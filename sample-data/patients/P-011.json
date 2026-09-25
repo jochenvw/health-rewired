@@ -1,0 +1,57 @@
+{
+  "synthetic": true,
+  "id": "P-011",
+  "name": "Giulia Moretti",
+  "age": 58,
+  "sex": "female",
+  "ecog": 1,
+  "communication": {
+    "preferred_language": "it",
+    "preferred_language_label": "Italiano (Italian)",
+    "health_literacy": "average – asks detailed questions, wants numbers",
+    "reading_level": "detailed",
+    "interpreter_needed": true,
+    "support_person": "Husband, speaks German"
+  },
+  "diagnosis": {
+    "primary": "Adenocarcinoma of the sigmoid colon with liver metastases",
+    "date": "2026-01-19",
+    "stage": "cT4a cN2 M1a (four liver metastases, right lobe)",
+    "grade": 2,
+    "biomarkers": { "RAS": "wild-type", "BRAF": "wild-type", "MMR": "proficient (pMMR)", "HER2": "negative" }
+  },
+  "comorbidities": ["Type 2 diabetes (diet-controlled)"],
+  "medications": ["Pantoprazole 40 mg QD"],
+  "treatments": [
+    {
+      "type": "First-line systemic therapy",
+      "regimen": "FOLFOX + panitumumab",
+      "start": "2026-03-16",
+      "status": "planned",
+      "cycle": "Cycle 1 planned"
+    }
+  ],
+  "labs": [
+    { "date": "2026-03-02", "test": "CEA", "value": 86.0, "unit": "ng/mL", "ref": "<5.0", "flag": "high" },
+    { "date": "2026-03-02", "test": "Bilirubin", "value": 0.9, "unit": "mg/dL", "ref": "<1.2" },
+    { "date": "2026-03-02", "test": "ANC", "value": 4.2, "unit": "10^9/L", "ref": "1.8-7.5" }
+  ],
+  "imaging": [
+    { "date": "2026-01-26", "modality": "CT chest/abdomen", "result": "Sigmoid mass, four liver metastases (largest 42 mm), no lung lesions" },
+    { "date": "2026-03-03", "modality": "MRI liver", "result": "Four segment VII/VIII lesions; potentially resectable after downsizing" }
+  ],
+  "patient_reported": [
+    { "date": "2026-03-04", "symptom": "Fatigue", "grade": 2 },
+    { "date": "2026-03-08", "symptom": "Did not understand the German letter from the hospital", "grade": 2 }
+  ],
+  "timeline": [
+    { "date": "2026-01-12", "event": "Abdominal pain and weight loss" },
+    { "date": "2026-01-19", "event": "Colonoscopy and biopsy: sigmoid adenocarcinoma" },
+    { "date": "2026-01-26", "event": "CT: liver metastases" },
+    { "date": "2026-02-09", "event": "NGS: RAS and BRAF wild-type" },
+    { "date": "2026-03-11", "event": "MDT: chemotherapy with antibody, liver surgery reassessed after 4 cycles" }
+  ],
+  "open_questions": [
+    "Patient received a German MDT letter she could not read – explanation and GP letter must match what she is told"
+  ]
+}

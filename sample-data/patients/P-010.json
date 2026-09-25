@@ -1,0 +1,60 @@
+{
+  "synthetic": true,
+  "id": "P-010",
+  "name": "Sanne de Vries",
+  "age": 62,
+  "sex": "female",
+  "ecog": 0,
+  "communication": {
+    "preferred_language": "nl",
+    "preferred_language_label": "Nederlands (Dutch)",
+    "health_literacy": "limited – left school at 16, prefers short sentences",
+    "reading_level": "simple",
+    "interpreter_needed": false,
+    "support_person": "Daughter joins consultations"
+  },
+  "diagnosis": {
+    "primary": "Adenocarcinoma of the mid rectum",
+    "date": "2025-10-07",
+    "stage": "cT3c cN1 M0 (mid rectum, 8 cm from anal verge)",
+    "grade": 2,
+    "biomarkers": { "MMR": "proficient (pMMR)", "RAS": "wild-type", "BRAF": "wild-type" }
+  },
+  "comorbidities": ["Hypertension", "Obesity (BMI 31)"],
+  "medications": ["Amlodipine 5 mg QD"],
+  "treatments": [
+    {
+      "type": "Neoadjuvant chemoradiotherapy",
+      "regimen": "Long-course capecitabine-CRT 50.4 Gy",
+      "start": "2025-11-10",
+      "status": "completed",
+      "cycle": "Completed 22 Dec 2025"
+    }
+  ],
+  "labs": [
+    { "date": "2026-01-12", "test": "CEA", "value": 4.1, "unit": "ng/mL", "ref": "<5.0" },
+    { "date": "2026-03-02", "test": "CEA", "value": 2.2, "unit": "ng/mL", "ref": "<5.0" },
+    { "date": "2026-03-02", "test": "Hb", "value": 11.4, "unit": "g/dL", "ref": "12.0-16.0", "flag": "low" }
+  ],
+  "imaging": [
+    { "date": "2025-10-14", "modality": "MRI rectum", "result": "cT3c cN1, mesorectal fascia free (>2 mm), EMVI negative" },
+    { "date": "2026-03-04", "modality": "MRI rectum (restaging)", "result": "mrTRG 2 – near-complete response, small residual scar" },
+    { "date": "2026-03-05", "modality": "Endoscopy", "result": "Flat white scar, no residual tumour seen; biopsies negative" }
+  ],
+  "patient_reported": [
+    { "date": "2026-02-24", "symptom": "Urgency to open bowels", "grade": 1 },
+    { "date": "2026-03-06", "symptom": "Worry about the decision", "grade": 2 }
+  ],
+  "timeline": [
+    { "date": "2025-09-22", "event": "Blood in stool – GP referral" },
+    { "date": "2025-10-07", "event": "Colonoscopy and biopsy: rectal adenocarcinoma" },
+    { "date": "2025-10-21", "event": "MDT: chemoradiotherapy before surgery" },
+    { "date": "2025-11-10", "event": "Chemoradiotherapy started" },
+    { "date": "2025-12-22", "event": "Chemoradiotherapy completed" },
+    { "date": "2026-03-04", "event": "Restaging MRI: near-complete response" },
+    { "date": "2026-03-10", "event": "MDT: watch-and-wait or surgery discussed with the patient" }
+  ],
+  "open_questions": [
+    "Patient must choose between watch-and-wait and surgery – needs the options in her own language and words"
+  ]
+}
