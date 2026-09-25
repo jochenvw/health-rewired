@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { AgentResult } from '../../api';
+import { api, type AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
@@ -52,6 +52,9 @@ type WorklistResponse = {
   patients: TriagePatient[];
 };
 
+const HIGH_RISK_PATIENT_ID = 'IOT-5401';
+const LOW_RISK_PATIENT_ID = 'IOT-5402';
+
 const story: StoryStep[] = [
   {
     id: 'worklist',
@@ -88,15 +91,6 @@ const assistantStages: Stage[] = [
   { label: 'Comparing similar synthetic cases', detail: 'Network outcomes; synthetic data only' },
 ];
 
-async function issue54Request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/ideas/54${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return (await response.json()) as T;
-}
-
 function toneFor(patient: TriagePatient): Tone {
   return patient.risk_tone === 'crit' ? 'crit' : patient.risk_tone === 'warn' ? 'warn' : 'ok';
 }
@@ -104,7 +98,7 @@ function toneFor(patient: TriagePatient): Tone {
 export default function Issue54ImmunotherapyTriage() {
   const [section, setSection] = useState<Section>('worklist');
   const [data, setData] = useState<WorklistResponse | null>(null);
-  const [selectedId, setSelectedId] = useState('IOT-5401');
+  const [selectedId, setSelectedId] = useState(HIGH_RISK_PATIENT_ID);
   const [tab, setTab] = useState('evidence');
   const [action, setAction] = useState<Action>('review');
   const [result, setResult] = useState<AgentResult | null>(null);
@@ -115,7 +109,7 @@ export default function Issue54ImmunotherapyTriage() {
   const [runs, setRuns] = useState(0);
 
   useEffect(() => {
-    issue54Request<WorklistResponse>('/worklist').then(setData).catch(() => setData(null));
+    api.idea<WorklistResponse>(54, '/worklist').then(setData).catch(() => setData(null));
   }, []);
 
   const patients = data?.patients ?? [];
@@ -128,11 +122,11 @@ export default function Issue54ImmunotherapyTriage() {
   const go = (id: string) => {
     const next = id as Section;
     if (next === 'low-risk') {
-      setSelectedId('IOT-5402');
+      setSelectedId(LOW_RISK_PATIENT_ID);
       setAction('dismiss');
       setTab('evidence');
     } else if (next !== 'worklist') {
-      setSelectedId('IOT-5401');
+      setSelectedId(HIGH_RISK_PATIENT_ID);
       if (action === 'dismiss') setAction('review');
     }
     setSection(next);
@@ -147,7 +141,7 @@ export default function Issue54ImmunotherapyTriage() {
     setFiled(false);
     setRuns((count) => count + 1);
     try {
-      const response = await issue54Request<AgentResult>('/assistant', {
+      const response = await api.idea<AgentResult>(54, '/assistant', {
         method: 'POST',
         body: JSON.stringify({ patient_id: selected.id, action: nextAction }),
       });
@@ -227,7 +221,7 @@ export default function Issue54ImmunotherapyTriage() {
       {!data && <Panel title="Loading synthetic triage worklist"><Working label="Loading issue-54 demo data" /></Panel>}
       {data && selected && section === 'worklist' && <Worklist data={data} selectedId={selected.id} onSelect={(patient) => { setSelectedId(patient.id); setSection('patient'); }} />}
       {data && selected && (section === 'patient' || section === 'low-risk') && (
-        <PatientEvidence patient={selected} tab={tab} onTab={setTab} />
+        <PatientEvidence patient={selected} tab={tab} onTab={setTab} onReview={() => setSection('decision')} />
       )}
       {data && selected && section === 'assistant' && (
         <AssistantPanel
@@ -294,7 +288,17 @@ function Worklist({ data, selectedId, onSelect }: { data: WorklistResponse; sele
   );
 }
 
-function PatientEvidence({ patient, tab, onTab }: { patient: TriagePatient; tab: string; onTab: (id: string) => void }) {
+function PatientEvidence({
+  patient,
+  tab,
+  onTab,
+  onReview,
+}: {
+  patient: TriagePatient;
+  tab: string;
+  onTab: (id: string) => void;
+  onReview: () => void;
+}) {
   return (
     <>
       <div className="issue54-alert-strip">
@@ -358,7 +362,7 @@ function PatientEvidence({ patient, tab, onTab }: { patient: TriagePatient; tab:
       {tab === 'note' && (
         <Panel title="Draft triage note for review">
           <p>{patient.draft_note}</p>
-          <button type="button" className="hx-btn primary">Review before filing</button>
+          <button type="button" className="hx-btn primary" onClick={onReview}>Review before filing</button>
         </Panel>
       )}
     </>

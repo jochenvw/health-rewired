@@ -25,7 +25,7 @@ Always end by rendering concise UI blocks for a nurse reviewing the selected pat
 
 
 class TriageAssistantRequest(BaseModel):
-    patient_id: str = Field(pattern=r"^IOT-54\d{2}$")
+    patient_id: str = Field(min_length=1, max_length=32)
     action: Literal["call", "tests", "same-day", "dismiss", "review"] = "review"
 
 
@@ -41,19 +41,26 @@ def _patients() -> list[dict[str, Any]]:
     return _data()["patients"]
 
 
-def _find_patient(patient_id: str) -> dict[str, Any]:
+def _lookup_patient(patient_id: str) -> dict[str, Any] | None:
     for patient in _patients():
         if patient["id"] == patient_id:
             return patient
+    return None
+
+
+def _find_patient(patient_id: str) -> dict[str, Any]:
+    patient = _lookup_patient(patient_id)
+    if patient:
+        return patient
     raise HTTPException(status_code=404, detail="Synthetic triage patient not found")
 
 
 @define_tool(description="Read one synthetic issue-54 immunotherapy triage case.", skip_permission=True)
 def get_issue54_triage_case(params: Issue54CaseParams) -> str:
-    try:
-        return json.dumps(_find_patient(params.patient_id))
-    except HTTPException:
-        return json.dumps({"error": "unknown patient", "known": [p["id"] for p in _patients()]})
+    patient = _lookup_patient(params.patient_id)
+    if patient:
+        return json.dumps(patient)
+    return json.dumps({"error": "unknown patient", "known": [p["id"] for p in _patients()]})
 
 
 @router.get("/worklist")
