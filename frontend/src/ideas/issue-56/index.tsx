@@ -183,7 +183,7 @@ export default function Issue56OncoIcu() {
               }}
             >
               {scenario.worklist.map((row) => (
-                <option key={row.patient_id} value={row.patient_id}>
+                <option key={row.patient_id} value={row.patient_id} disabled={row.patient_id !== 'P-056'}>
                   {row.time} · {row.name} · SOFA {row.sofa}
                 </option>
               ))}
@@ -213,7 +213,10 @@ export default function Issue56OncoIcu() {
           done={outcomesDone}
           runKey={outcomeRun}
           onStart={startOutcomes}
-          onDone={() => setOutcomesDone(true)}
+          onDone={() => {
+            setOutcomesDone(true);
+            setOutcomesRunning(false);
+          }}
         />
       )}
       {section === 'decision' && <Decision scenario={scenario} />}
@@ -451,7 +454,10 @@ function Decision({ scenario }: { scenario: Scenario }) {
     <div className="hx-grid">
       <Panel title="What the card informs">
         <ul className="issue56-checklist">
-          <li><Pill tone="info">Review</Pill> Reversible source-control question: {scenario.icu.possible_causes[0].cause}</li>
+          <li>
+            <Pill tone="info">Review</Pill> Reversible source-control question:{' '}
+            {scenario.icu.possible_causes[0]?.cause ?? 'source-control question not yet available'}
+          </li>
           <li><Pill tone="warn">Discuss</Pill> Missing signed treatment-wishes document before limitation decisions</li>
           <li><Pill tone="info">Context</Pill> Planned oncology treatment exists if recovery returns near baseline</li>
           <li><Pill tone="neutral">Descriptive only</Pill> Similar-patient outcomes are uncertainty-aware aggregates, not a recommendation</li>

@@ -4,8 +4,8 @@
   gap: 12px;
 }
 
-.issue56-card-facts {
-  margin-bottom: 10px !important;
+.hx dl.hx-facts.issue56-card-facts {
+  margin-bottom: 10px;
 }
 
 .issue56-alert-list {

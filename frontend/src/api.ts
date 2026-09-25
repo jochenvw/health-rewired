@@ -24,7 +24,6 @@ export type AgentResult = {
   note?: string | null;
 };
 
-
 export type Issue56WorklistRow = {
   time: string;
   id: string;

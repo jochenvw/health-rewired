@@ -8,7 +8,7 @@
   "diagnosis": {
     "primary": "Metastatic colorectal adenocarcinoma",
     "date": "2024-09-18",
-    "stage": "pT4a pN2b M1a (liver-only metastases), stage IV",
+    "stage": "ypT4a ypN2b M1a (liver-only metastases), stage IV",
     "biomarkers": {
       "MMR": "proficient (pMMR)",
       "RAS": "KRAS G12V mutated",
@@ -16,9 +16,23 @@
       "HER2": "negative"
     }
   },
-  "comorbidities": ["Hypertension", "Post-operative ileostomy", "Mild chronic kidney impairment (baseline eGFR 58)"],
-  "medications": ["Amlodipine 5 mg QD", "Loperamide PRN", "Pantoprazole 40 mg QD"],
+  "comorbidities": [
+    "Hypertension",
+    "Post-operative ileostomy",
+    "Mild chronic kidney impairment (baseline eGFR 58)"
+  ],
+  "medications": [
+    "Amlodipine 5 mg QD",
+    "Loperamide PRN",
+    "Pantoprazole 40 mg QD"
+  ],
   "treatments": [
+    {
+      "type": "First-line systemic therapy",
+      "regimen": "FOLFOX + bevacizumab",
+      "start": "2025-01-13",
+      "status": "held for surgery after partial response"
+    },
     {
       "type": "Surgery",
       "regimen": "Right hemicolectomy with diverting ileostomy",
@@ -33,18 +47,64 @@
     }
   ],
   "labs": [
-    { "date": "2026-02-06 01:42", "test": "Lactate", "value": 4.1, "unit": "mmol/L", "ref": "<2.0", "flag": "high" },
-    { "date": "2026-02-06 01:42", "test": "Creatinine", "value": 182, "unit": "µmol/L", "ref": "62-106", "flag": "high" },
-    { "date": "2026-02-06 01:42", "test": "CRP", "value": 286, "unit": "mg/L", "ref": "<5", "flag": "high" },
-    { "date": "2026-02-06 01:42", "test": "Neutrophils", "value": 10.8, "unit": "10^9/L", "ref": "1.8-7.5", "flag": "high" }
+    {
+      "date": "2026-02-06 01:42",
+      "test": "Lactate",
+      "value": 4.1,
+      "unit": "mmol/L",
+      "ref": "<2.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-02-06 01:42",
+      "test": "Creatinine",
+      "value": 182,
+      "unit": "µmol/L",
+      "ref": "62-106",
+      "flag": "high"
+    },
+    {
+      "date": "2026-02-06 01:42",
+      "test": "CRP",
+      "value": 286,
+      "unit": "mg/L",
+      "ref": "<5",
+      "flag": "high"
+    },
+    {
+      "date": "2026-02-06 01:42",
+      "test": "Neutrophils",
+      "value": 10.8,
+      "unit": "10^9/L",
+      "ref": "1.8-7.5",
+      "flag": "high"
+    }
   ],
   "timeline": [
-    { "date": "2024-09-18", "event": "Colonoscopy biopsy: colorectal adenocarcinoma" },
-    { "date": "2024-10-04", "event": "Staging CT: bilobar liver metastases" },
-    { "date": "2025-01-13", "event": "FOLFOX + bevacizumab started; later partial response" },
-    { "date": "2025-11-20", "event": "Progression at primary tumour with intermittent obstruction" },
-    { "date": "2026-01-31", "event": "Right hemicolectomy and diverting ileostomy" },
-    { "date": "2026-02-06", "event": "02:07 ICU review requested: hypotension, tachypnoea, lactate 4.1" }
+    {
+      "date": "2024-09-18",
+      "event": "Colonoscopy biopsy: colorectal adenocarcinoma"
+    },
+    {
+      "date": "2024-10-04",
+      "event": "Staging CT: bilobar liver metastases"
+    },
+    {
+      "date": "2025-01-13",
+      "event": "FOLFOX + bevacizumab started; later partial response"
+    },
+    {
+      "date": "2025-11-20",
+      "event": "Progression at primary tumour with intermittent obstruction"
+    },
+    {
+      "date": "2026-01-31",
+      "event": "Right hemicolectomy and diverting ileostomy"
+    },
+    {
+      "date": "2026-02-06",
+      "event": "02:07 ICU review requested: hypotension, tachypnoea, lactate 4.1"
+    }
   ],
   "open_questions": [
     "No signed treatment-limitation or advance-care-planning document found in ICU chart",
