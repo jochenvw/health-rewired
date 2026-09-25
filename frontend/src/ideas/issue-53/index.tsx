@@ -148,7 +148,7 @@ export default function Issue53QualityLoop() {
   };
 
   const go = (id: string) => {
-    if (id === 'investigate' && !assistant && !investigating && !started) {
+    if (id === 'investigate' && !assistant && !investigating && (!started || assistantError)) {
       void runInvestigation();
       return;
     }

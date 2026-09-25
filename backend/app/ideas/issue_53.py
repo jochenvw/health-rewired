@@ -106,7 +106,7 @@ def _fallback_agent_result(snapshot: dict, note: str) -> AgentResult:
     return AgentResult(
         mode="fallback",
         headline="Likely cause: Hospital F MRI waiting time",
-        trace=[TraceStep(tool="get_rectal_quality_signal", arguments=DATA_PATH)],
+        trace=[TraceStep(tool="get_rectal_quality_signal")],
         note=note,
         blocks=[
             UIBlock(
