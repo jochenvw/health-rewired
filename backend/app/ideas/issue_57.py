@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from typing import Any
 
 from copilot import define_tool
@@ -20,7 +21,7 @@ class TrialQueryParams(BaseModel):
 
 
 def _snapshot() -> dict[str, Any]:
-    data = sample_data.read(DATA_PATH)
+    data = deepcopy(sample_data.read(DATA_PATH))
     centres = data["centres"]
     data["totals"] = {
         "registry": sum(c["registry"] for c in centres),

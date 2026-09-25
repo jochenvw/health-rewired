@@ -120,6 +120,8 @@ const networkStages: Stage[] = [
   { label: 'Paris Est Cancer Campus', detail: 'Local registry queried; count returned', ms: 550 },
 ];
 
+const HIGH_EXCLUSION_THRESHOLD = 40;
+
 function percent(part: number, whole: number) {
   if (whole === 0) return '–';
   return `${Math.round((part / whole) * 100)}%`;
@@ -470,7 +472,7 @@ function EquitySection({ snapshot }: { snapshot: Snapshot }) {
         <DataTable
           rows={snapshot.disparities}
           rowKey={(row) => row.group}
-          rowTone={(row) => (row.strict_excluded_by_egfr >= 40 ? 'crit' : undefined)}
+          rowTone={(row) => (row.strict_excluded_by_egfr >= HIGH_EXCLUSION_THRESHOLD ? 'crit' : undefined)}
           columns={[
             { key: 'group', label: 'Group', render: (row) => <strong>{row.group}</strong> },
             { key: 'registry_share', label: 'Registry share', render: (row) => `${row.registry_share}%` },

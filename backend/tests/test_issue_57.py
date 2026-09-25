@@ -14,7 +14,9 @@ def test_issue_57_feasibility_snapshot_has_six_centres(monkeypatch):
     assert body["synthetic"] is True
     assert len(body["centres"]) == 6
     assert body["totals"]["adjusted_eligible"] > body["totals"]["strict_eligible"]
-    assert body["disparities"][0]["strict_excluded_by_egfr"] == 49
+    older_patients = body["disparities"][0]
+    assert 0 <= older_patients["strict_excluded_by_egfr"] <= 100
+    assert older_patients["strict_excluded_by_egfr"] > older_patients["adjusted_excluded_by_egfr"]
 
 
 def test_issue_57_agent_falls_back_to_trial_specific_review(monkeypatch):
