@@ -103,5 +103,5 @@ def test_issue_54_assistant_has_demo_path_without_copilot(client):
     assert response.status_code == 200
     assert body["mode"] == "fallback"
     assert any(block["type"] == "actions" for block in body["blocks"])
-    assert any(step["tool"] == "get_issue54_triage_case" for step in body["trace"])
+    assert any(step["tool"] == "load_issue54_triage_case" for step in body["trace"])
     assert "myocarditis" in body["blocks"][0]["title"].lower()

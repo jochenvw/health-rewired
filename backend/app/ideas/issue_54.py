@@ -65,6 +65,8 @@ def get_issue54_triage_case(params: Issue54CaseParams) -> str:
 
 @router.get("/worklist")
 async def worklist() -> dict[str, Any]:
+    """Return the synthetic triage worklist ranked by descending priority."""
+
     data = _data()
     patients = sorted(data["patients"], key=lambda row: row["priority"], reverse=True)
     return {**data, "patients": patients}
@@ -72,8 +74,8 @@ async def worklist() -> dict[str, Any]:
 
 def _deterministic_result(patient: dict[str, Any], action: str) -> AgentResult:
     trace = [
-        TraceStep(tool="read_sample_data", arguments=DATA_PATH),
-        TraceStep(tool="get_issue54_triage_case", arguments=patient["id"]),
+        TraceStep(tool="load_issue54_sample_data", arguments=DATA_PATH),
+        TraceStep(tool="load_issue54_triage_case", arguments=patient["id"]),
     ]
     action_label = {
         "call": "Nurse chose to call the patient",
@@ -154,6 +156,8 @@ def _deterministic_result(patient: dict[str, Any], action: str) -> AgentResult:
 
 @router.post("/assistant")
 async def assistant(request: TriageAssistantRequest) -> AgentResult:
+    """Run the issue-54 assistant, or return the deterministic demo path without Copilot auth."""
+
     patient = _find_patient(request.patient_id)
     if settings.copilot_auth_mode == "not-configured":
         return _deterministic_result(patient, request.action)

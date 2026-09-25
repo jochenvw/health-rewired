@@ -119,13 +119,13 @@ export default function Issue54ImmunotherapyTriage() {
   );
   const storyStep = section;
 
-  const go = (id: string) => {
+  const go = (id: string, opts: { story?: boolean } = {}) => {
     const next = id as Section;
     if (next === 'low-risk') {
       setSelectedId(LOW_RISK_PATIENT_ID);
       setAction('dismiss');
       setTab('evidence');
-    } else if (next !== 'worklist') {
+    } else if (opts.story && next !== 'worklist') {
       setSelectedId(HIGH_RISK_PATIENT_ID);
       if (action === 'dismiss') setAction('review');
     }
@@ -162,7 +162,14 @@ export default function Issue54ImmunotherapyTriage() {
   return (
     <HospitalShell
       module="Immunotherapy toxicity triage"
-      guide={<StoryGuide steps={story} current={storyStep} onGo={go} nextLabel={section === 'assistant' ? 'Choose triage action' : undefined} />}
+      guide={
+        <StoryGuide
+          steps={story}
+          current={storyStep}
+          onGo={(id) => go(id, { story: true })}
+          nextLabel={section === 'assistant' ? 'Choose triage action' : undefined}
+        />
+      }
       nav={[
         { id: 'worklist', label: 'Triage worklist', badge: patients.length || undefined },
         { id: 'patient', label: 'Combined evidence', badge: selected?.priority },
@@ -171,7 +178,7 @@ export default function Issue54ImmunotherapyTriage() {
         { id: 'low-risk', label: 'Low-risk example' },
       ]}
       active={section}
-      onNav={go}
+      onNav={(id) => go(id)}
       patient={
         selected
           ? {
