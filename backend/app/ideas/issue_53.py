@@ -59,7 +59,10 @@ def _build_snapshot() -> dict:
     }
 
 
-@define_tool(description="Return synthetic rectal-cancer network quality aggregates for issue 53.", skip_permission=True)
+@define_tool(
+    description="Return synthetic rectal-cancer network quality aggregates for issue 53.",
+    skip_permission=True,
+)
 def get_rectal_quality_signal(params: NoParams) -> str:
     return json.dumps(_build_snapshot())
 
