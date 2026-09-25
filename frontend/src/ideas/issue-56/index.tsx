@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import type { AgentResult } from '../../api';
+import { api, type AgentResult, type Issue56Scenario, type Issue56Severity, type Issue56WorklistRow } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
@@ -13,46 +13,9 @@ export const meta: IdeaMeta = {
   tagline: 'At 2am, the intensivist sees the oncology context, similar-patient outcomes and a handover draft in one place.',
 };
 
-type Severity = 'info' | 'warning' | 'critical';
-type WorklistRow = {
-  time: string;
-  id: string;
-  patient_id: string;
-  name: string;
-  age: number;
-  ward: string;
-  reason: string;
-  sofa: number;
-  status: string;
-};
-type Vital = { label: string; value: string; detail: string; severity: Severity };
-type Cause = { cause: string; why: string; source: string; severity: Severity };
-type Source = { name: string; path: string; status: string; finding: string };
-type HospitalOutcome = { site: string; matched: number; icu_survival: string; range: string; note: string };
-type Scenario = {
-  synthetic: boolean;
-  scenario: string;
-  worklist: WorklistRow[];
-  icu: { consult_time: string; location: string; reason: string; vitals: Vital[]; possible_causes: Cause[] };
-  sources: Source[];
-  onco_icu_card: {
-    tumour: string;
-    stage: string;
-    current_treatment: string;
-    response: string;
-    planned_next_treatment: string;
-    treatment_related_causes: string[];
-    wishes: string;
-    missing_information: string[];
-  };
-  outcomes: {
-    query: string;
-    hospitals: HospitalOutcome[];
-    aggregate: { matched: number; icu_survival: string; range: string; ward_alive_30d: string; treatment_resumed_60d: string };
-    disclaimer: string;
-  };
-  follow_up: { to: string; subject: string; draft: string; requires_approval: string[] };
-};
+type Severity = Issue56Severity;
+type WorklistRow = Issue56WorklistRow;
+type Scenario = Issue56Scenario;
 
 type Section = 'worklist' | 'card' | 'outcomes' | 'decision' | 'followup';
 
@@ -99,18 +62,6 @@ const outcomeStages: Stage[] = [
   { label: 'Combining uncertainty ranges', detail: '167 aggregated stays, shown as intervals not a decision rule', ms: 900 },
 ];
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return (await response.json()) as T;
-}
-
-const issue56Api = {
-  scenario: () => request<Scenario>('/api/ideas/56/scenario'),
-  agent: (body: { task: string; patient_id?: string; role?: string }) =>
-    request<AgentResult>('/api/ideas/56/agent', { method: 'POST', body: JSON.stringify(body) }),
-};
-
 export default function Issue56OncoIcu() {
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [section, setSection] = useState<Section>('worklist');
@@ -120,13 +71,14 @@ export default function Issue56OncoIcu() {
   const [agentResult, setAgentResult] = useState<AgentResult | null>(null);
   const [outcomesRunning, setOutcomesRunning] = useState(false);
   const [outcomesDone, setOutcomesDone] = useState(false);
+  const [outcomeRun, setOutcomeRun] = useState(0);
   const [draft, setDraft] = useState('');
   const [sent, setSent] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    issue56Api
-      .scenario()
+    api
+      .issue56Scenario()
       .then((data) => {
         setScenario(data);
         setDraft(data.follow_up.draft);
@@ -135,7 +87,10 @@ export default function Issue56OncoIcu() {
   }, []);
 
   const selected = useMemo(
-    () => scenario?.worklist.find((row) => row.patient_id === selectedId) ?? scenario?.worklist[1],
+    () =>
+      scenario?.worklist.find((row) => row.patient_id === selectedId) ??
+      scenario?.worklist.find((row) => row.patient_id === 'P-056') ??
+      scenario?.worklist[0],
     [scenario, selectedId],
   );
 
@@ -156,15 +111,15 @@ export default function Issue56OncoIcu() {
     setCardCompiled(false);
     setNotice(null);
     try {
-      const result = await issue56Api.agent({
+      const result = await api.issue56Agent({
         task: 'Compile the Onco-ICU card and handover context for the night ICU consultation.',
         patient_id: 'P-056',
         role: 'On-call intensivist',
       });
       setAgentResult(result);
       setCardCompiled(true);
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Assistant could not be reached. Showing the deterministic card.');
+    } catch {
+      setNotice('Assistant could not be reached. Showing the deterministic card.');
       setCardCompiled(true);
     } finally {
       setCompiling(false);
@@ -174,6 +129,7 @@ export default function Issue56OncoIcu() {
   const startOutcomes = () => {
     setOutcomesRunning(true);
     setOutcomesDone(false);
+    setOutcomeRun((run) => run + 1);
   };
 
   const go = (id: string) => {
@@ -219,7 +175,13 @@ export default function Issue56OncoIcu() {
         <>
           <label>
             ICU call{' '}
-            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
+            <select
+              value={selectedId}
+              onChange={(event) => {
+                const row = scenario.worklist.find((item) => item.patient_id === event.target.value);
+                if (row) openCase(row);
+              }}
+            >
               {scenario.worklist.map((row) => (
                 <option key={row.patient_id} value={row.patient_id}>
                   {row.time} · {row.name} · SOFA {row.sofa}
@@ -245,7 +207,14 @@ export default function Issue56OncoIcu() {
         />
       )}
       {section === 'outcomes' && (
-        <Outcomes scenario={scenario} running={outcomesRunning} done={outcomesDone} onStart={startOutcomes} onDone={() => setOutcomesDone(true)} />
+        <Outcomes
+          scenario={scenario}
+          running={outcomesRunning}
+          done={outcomesDone}
+          runKey={outcomeRun}
+          onStart={startOutcomes}
+          onDone={() => setOutcomesDone(true)}
+        />
       )}
       {section === 'decision' && <Decision scenario={scenario} />}
       {section === 'followup' && (
@@ -420,12 +389,14 @@ function Outcomes({
   scenario,
   running,
   done,
+  runKey,
   onStart,
   onDone,
 }: {
   scenario: Scenario;
   running: boolean;
   done: boolean;
+  runKey: number;
   onStart: () => void;
   onDone: () => void;
 }) {
@@ -442,7 +413,7 @@ function Outcomes({
       >
         <p><strong>Query:</strong> {scenario.outcomes.query}</p>
         <Backstage
-          key={running ? 'outcomes-running' : 'outcomes-idle'}
+          key={`outcomes-${runKey}`}
           title="Federated query"
           stages={outcomeStages}
           running={running}

@@ -24,6 +24,48 @@ export type AgentResult = {
   note?: string | null;
 };
 
+
+export type Issue56WorklistRow = {
+  time: string;
+  id: string;
+  patient_id: string;
+  name: string;
+  age: number;
+  ward: string;
+  reason: string;
+  sofa: number;
+  status: string;
+};
+export type Issue56Severity = 'info' | 'warning' | 'critical';
+export type Issue56Vital = { label: string; value: string; detail: string; severity: Issue56Severity };
+export type Issue56Cause = { cause: string; why: string; source: string; severity: Issue56Severity };
+export type Issue56Source = { name: string; path: string; status: string; finding: string };
+export type Issue56HospitalOutcome = { site: string; matched: number; icu_survival: string; range: string; note: string };
+export type Issue56Scenario = {
+  synthetic: boolean;
+  scenario: string;
+  worklist: Issue56WorklistRow[];
+  icu: { consult_time: string; location: string; reason: string; vitals: Issue56Vital[]; possible_causes: Issue56Cause[] };
+  sources: Issue56Source[];
+  onco_icu_card: {
+    tumour: string;
+    stage: string;
+    current_treatment: string;
+    response: string;
+    planned_next_treatment: string;
+    treatment_related_causes: string[];
+    wishes: string;
+    missing_information: string[];
+  };
+  outcomes: {
+    query: string;
+    hospitals: Issue56HospitalOutcome[];
+    aggregate: { matched: number; icu_survival: string; range: string; ward_alive_30d: string; treatment_resumed_60d: string };
+    disclaimer: string;
+  };
+  follow_up: { to: string; subject: string; draft: string; requires_approval: string[] };
+};
+
 export type Status = {
   event: string;
   city: string;
@@ -67,4 +109,7 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  issue56Scenario: () => request<Issue56Scenario>('/api/ideas/56/scenario'),
+  issue56Agent: (body: { task: string; patient_id?: string; role?: string }) =>
+    request<AgentResult>('/api/ideas/56/agent', { method: 'POST', body: JSON.stringify(body) }),
 };
