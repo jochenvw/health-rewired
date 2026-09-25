@@ -1,0 +1,315 @@
+{
+  "synthetic": true,
+  "generated_for": "Oncology Hackathon 2026 Munich issue 54",
+  "as_of": "2026-09-25T07:45:00+02:00",
+  "network_summary": {
+    "sites": 7,
+    "checkpoint_patients": 1842,
+    "similar_patterns_checked": 126,
+    "note": "Synthetic network outcomes; no real patient data. Similarity uses symptoms, interim labs, notes and emergency encounters."
+  },
+  "patients": [
+    {
+      "id": "IOT-5401",
+      "name": "Anna Weber",
+      "age": 62,
+      "sex": "F",
+      "diagnosis": "Metastatic NSCLC · pembrolizumab cycle 4",
+      "last_visit": "2026-09-16",
+      "next_visit": "2026-10-02",
+      "source": "Digital symptom report + interim lab feed",
+      "priority": 97,
+      "risk_label": "Same-day assessment",
+      "risk_tone": "crit",
+      "organ_signal": "Possible myocarditis",
+      "ctcae_grade": "Proposed CTCAE grade 2",
+      "grade_rationale": "New fatigue and chest tightness with troponin rising above the site reference range; no documented haemodynamic instability in notes.",
+      "protocol_step": "ICI myocarditis protocol: call patient now, repeat troponin/ECG, same-day oncology/cardiology assessment; clinician decides whether treatment is held.",
+      "network_match": { "similar": 31, "genuine": 22, "label": "22/31 similar synthetic patterns were genuine immune toxicity" },
+      "symptoms": [
+        { "date": "2026-09-18", "label": "Fatigue", "grade": 1, "source": "patient app" },
+        { "date": "2026-09-21", "label": "Chest tightness on stairs", "grade": 1, "source": "telephone note" },
+        { "date": "2026-09-24", "label": "No fever, no diarrhoea", "grade": 0, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-10", "test": "Troponin T", "value": "8", "unit": "ng/L", "flag": "normal" },
+        { "date": "2026-09-17", "test": "Troponin T", "value": "24", "unit": "ng/L", "flag": "high" },
+        { "date": "2026-09-24", "test": "Troponin T", "value": "61", "unit": "ng/L", "flag": "high" },
+        { "date": "2026-09-24", "test": "ALT", "value": "38", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-24", "test": "TSH", "value": "2.1", "unit": "mIU/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-21", "text": "Nurse call: tired on stairs, denies crushing chest pain; advised to report worsening symptoms.", "source": "triage note" },
+        { "date": "2026-09-23", "text": "External ED registration cancelled after patient felt better; no ECG visible in local chart.", "source": "network encounter feed" }
+      ],
+      "draft_note": "Synthetic draft: Mild symptoms plus a rising interim troponin create a possible immune-related myocarditis signal. Recommend nurse call now, repeat troponin and ECG, and arrange same-day assessment with oncology/cardiology review. Treatment changes remain clinician decisions."
+    },
+    {
+      "id": "IOT-5402",
+      "name": "Thomas Keller",
+      "age": 58,
+      "sex": "M",
+      "diagnosis": "Melanoma stage IV · nivolumab cycle 6",
+      "last_visit": "2026-09-14",
+      "next_visit": "2026-09-30",
+      "source": "Digital symptom report",
+      "priority": 18,
+      "risk_label": "Low-risk explanation",
+      "risk_tone": "ok",
+      "organ_signal": "No convincing immune-toxicity pattern",
+      "ctcae_grade": "Proposed CTCAE grade 1 symptom burden",
+      "grade_rationale": "Brief grade 1 pruritus, stable thyroid/liver results and no concerning note or emergency encounter.",
+      "protocol_step": "Continue routine monitoring; send safety-net advice and review at planned visit unless symptoms escalate.",
+      "network_match": { "similar": 44, "genuine": 2, "label": "2/44 similar synthetic patterns became genuine immune toxicity" },
+      "symptoms": [
+        { "date": "2026-09-22", "label": "Mild itching", "grade": 1, "source": "patient app" },
+        { "date": "2026-09-23", "label": "No dyspnoea, diarrhoea or chest pain", "grade": 0, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-12", "test": "Troponin T", "value": "7", "unit": "ng/L", "flag": "normal" },
+        { "date": "2026-09-23", "test": "Troponin T", "value": "8", "unit": "ng/L", "flag": "normal" },
+        { "date": "2026-09-23", "test": "ALT", "value": "29", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-23", "test": "TSH", "value": "1.8", "unit": "mIU/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-23", "text": "Patient reports gardening; rash limited to forearms, no systemic symptoms.", "source": "digital free text" }
+      ],
+      "draft_note": "Synthetic draft: Low-risk interim report. Mild isolated pruritus with stable troponin, liver and thyroid tests. Send safety-net advice; no same-day assessment proposed unless symptoms change."
+    },
+    {
+      "id": "IOT-5403",
+      "name": "Leyla Demir",
+      "age": 66,
+      "sex": "F",
+      "diagnosis": "Renal cell carcinoma · nivolumab/ipilimumab cycle 2",
+      "last_visit": "2026-09-08",
+      "next_visit": "2026-09-29",
+      "source": "Lab trend + telephone call",
+      "priority": 88,
+      "risk_label": "Call today",
+      "risk_tone": "crit",
+      "organ_signal": "Possible hepatitis",
+      "ctcae_grade": "Proposed CTCAE grade 2 hepatitis",
+      "grade_rationale": "ALT rose to around 3× upper limit with new right upper quadrant discomfort, but bilirubin remains normal.",
+      "protocol_step": "ICI hepatitis protocol: call today, repeat liver panel within 24 h, review medicines and alcohol, clinician to decide steroids/treatment pause.",
+      "network_match": { "similar": 28, "genuine": 17, "label": "17/28 similar synthetic patterns were genuine immune toxicity" },
+      "symptoms": [
+        { "date": "2026-09-20", "label": "Right upper quadrant discomfort", "grade": 1, "source": "telephone triage" }
+      ],
+      "labs": [
+        { "date": "2026-09-08", "test": "ALT", "value": "35", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-22", "test": "ALT", "value": "142", "unit": "U/L", "flag": "high" },
+        { "date": "2026-09-22", "test": "Bilirubin", "value": "12", "unit": "µmol/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-20", "text": "No paracetamol excess recorded; patient well enough at home.", "source": "triage note" }
+      ],
+      "draft_note": "Synthetic draft: Possible immune-related hepatitis. Call today and repeat liver tests within 24 hours; clinician to review treatment plan."
+    },
+    {
+      "id": "IOT-5404",
+      "name": "Helmut Brandt",
+      "age": 71,
+      "sex": "M",
+      "diagnosis": "NSCLC · atezolizumab cycle 5",
+      "last_visit": "2026-09-11",
+      "next_visit": "2026-10-04",
+      "source": "Lab trend",
+      "priority": 74,
+      "risk_label": "Order tests",
+      "risk_tone": "warn",
+      "organ_signal": "Possible thyroiditis",
+      "ctcae_grade": "Proposed CTCAE grade 1 endocrine toxicity",
+      "grade_rationale": "New low TSH with palpitations but patient remains active and afebrile.",
+      "protocol_step": "Endocrine protocol: call for symptoms, add free T4/T3, discuss beta blocker if symptomatic; oncology review at next clinic.",
+      "network_match": { "similar": 35, "genuine": 16, "label": "16/35 similar synthetic patterns were endocrine toxicity" },
+      "symptoms": [
+        { "date": "2026-09-22", "label": "Palpitations at night", "grade": 1, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-09", "test": "TSH", "value": "1.6", "unit": "mIU/L", "flag": "normal" },
+        { "date": "2026-09-23", "test": "TSH", "value": "0.04", "unit": "mIU/L", "flag": "low" },
+        { "date": "2026-09-23", "test": "ALT", "value": "31", "unit": "U/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-22", "text": "No chest pain or syncope; home pulse sometimes 98–105.", "source": "symptom chat" }
+      ],
+      "draft_note": "Synthetic draft: Thyroiditis signal. Add free hormones and nurse call for red flags; clinician to review results."
+    },
+    {
+      "id": "IOT-5405",
+      "name": "Mira Novak",
+      "age": 49,
+      "sex": "F",
+      "diagnosis": "Melanoma stage III adjuvant pembrolizumab cycle 3",
+      "last_visit": "2026-09-15",
+      "next_visit": "2026-10-06",
+      "source": "Patient app + external ED note",
+      "priority": 69,
+      "risk_label": "Call today",
+      "risk_tone": "warn",
+      "organ_signal": "Possible colitis",
+      "ctcae_grade": "Proposed CTCAE grade 2 diarrhoea",
+      "grade_rationale": "Four stools/day above baseline and an external ED hydration note; no fever or blood recorded.",
+      "protocol_step": "Colitis protocol: nurse call today, stool frequency diary, CRP/stool tests; same-day assessment if blood, fever or dehydration.",
+      "network_match": { "similar": 39, "genuine": 21, "label": "21/39 similar synthetic patterns were genuine immune toxicity" },
+      "symptoms": [
+        { "date": "2026-09-24", "label": "Diarrhoea, four stools above baseline", "grade": 2, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-18", "test": "ALT", "value": "22", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-18", "test": "TSH", "value": "2.4", "unit": "mIU/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-24", "text": "External ED note: oral fluids, discharged; no stool result yet.", "source": "network encounter feed" }
+      ],
+      "draft_note": "Synthetic draft: Possible grade 2 immune colitis; nurse call today and order stool/CRP tests."
+    },
+    {
+      "id": "IOT-5406",
+      "name": "Peter Schneider",
+      "age": 64,
+      "sex": "M",
+      "diagnosis": "Renal cell carcinoma · pembrolizumab/axitinib cycle 4",
+      "last_visit": "2026-09-17",
+      "next_visit": "2026-10-01",
+      "source": "Interim lab feed",
+      "priority": 54,
+      "risk_label": "Order tests",
+      "risk_tone": "warn",
+      "organ_signal": "Possible renal toxicity vs dehydration",
+      "ctcae_grade": "Proposed CTCAE grade 1 creatinine increase",
+      "grade_rationale": "Creatinine increased mildly with poor oral intake, no urinary symptoms in notes.",
+      "protocol_step": "Renal protocol: repeat creatinine/urinalysis and hydration advice; clinician review if worsening.",
+      "network_match": { "similar": 26, "genuine": 7, "label": "7/26 similar synthetic patterns were genuine immune toxicity" },
+      "symptoms": [
+        { "date": "2026-09-22", "label": "Reduced drinking during heat", "grade": 1, "source": "nurse note" }
+      ],
+      "labs": [
+        { "date": "2026-09-10", "test": "Creatinine", "value": "88", "unit": "µmol/L", "flag": "normal" },
+        { "date": "2026-09-24", "test": "Creatinine", "value": "119", "unit": "µmol/L", "flag": "high" }
+      ],
+      "notes": [
+        { "date": "2026-09-22", "text": "No dysuria, no flank pain; BP stable.", "source": "telephone triage" }
+      ],
+      "draft_note": "Synthetic draft: Low-moderate renal signal. Repeat renal panel/urinalysis and safety-net."
+    },
+    {
+      "id": "IOT-5407",
+      "name": "Sofia Ricci",
+      "age": 55,
+      "sex": "F",
+      "diagnosis": "NSCLC · durvalumab consolidation cycle 8",
+      "last_visit": "2026-09-13",
+      "next_visit": "2026-10-05",
+      "source": "Patient app",
+      "priority": 47,
+      "risk_label": "Call if persists",
+      "risk_tone": "warn",
+      "organ_signal": "Possible pneumonitis, weak signal",
+      "ctcae_grade": "Proposed CTCAE grade 1 respiratory symptom",
+      "grade_rationale": "Mild dry cough without dyspnoea, oxygen concern or fever; recent radiotherapy makes review prudent.",
+      "protocol_step": "Pneumonitis protocol: nurse call if cough persists/worsens, ask red flags, consider chest imaging if dyspnoea develops.",
+      "network_match": { "similar": 33, "genuine": 8, "label": "8/33 similar synthetic patterns were genuine immune toxicity" },
+      "symptoms": [
+        { "date": "2026-09-24", "label": "Dry cough", "grade": 1, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-22", "test": "ALT", "value": "25", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-22", "test": "Troponin T", "value": "6", "unit": "ng/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-24", "text": "No dyspnoea, walking dog normally.", "source": "digital free text" }
+      ],
+      "draft_note": "Synthetic draft: Weak pneumonitis signal; safety-net and reassess if worsening."
+    },
+    {
+      "id": "IOT-5408",
+      "name": "Jonas Meier",
+      "age": 60,
+      "sex": "M",
+      "diagnosis": "Melanoma stage IV · ipilimumab/nivolumab cycle 1",
+      "last_visit": "2026-09-19",
+      "next_visit": "2026-10-03",
+      "source": "Patient app + lab feed",
+      "priority": 36,
+      "risk_label": "Watch closely",
+      "risk_tone": "warn",
+      "organ_signal": "Rash, currently mild",
+      "ctcae_grade": "Proposed CTCAE grade 1 rash",
+      "grade_rationale": "Limited itchy rash, no mucosal involvement and stable labs.",
+      "protocol_step": "Skin toxicity protocol: topical advice and photo upload; call if spreading, painful or mucosal symptoms.",
+      "network_match": { "similar": 51, "genuine": 9, "label": "9/51 similar synthetic patterns escalated" },
+      "symptoms": [
+        { "date": "2026-09-24", "label": "Itchy rash on chest", "grade": 1, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-23", "test": "ALT", "value": "33", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-23", "test": "TSH", "value": "2.0", "unit": "mIU/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-24", "text": "Photo suggests limited maculopapular rash under 10% body surface area.", "source": "nurse inbox" }
+      ],
+      "draft_note": "Synthetic draft: Mild rash; give topical/safety-net advice and keep monitoring."
+    },
+    {
+      "id": "IOT-5409",
+      "name": "Emilia Fischer",
+      "age": 68,
+      "sex": "F",
+      "diagnosis": "NSCLC · pembrolizumab cycle 9",
+      "last_visit": "2026-09-12",
+      "next_visit": "2026-09-28",
+      "source": "Lab feed",
+      "priority": 29,
+      "risk_label": "Routine review",
+      "risk_tone": "ok",
+      "organ_signal": "Stable labs after previous thyroiditis",
+      "ctcae_grade": "No new CTCAE toxicity proposed",
+      "grade_rationale": "TSH now stable on replacement and no new symptoms reported.",
+      "protocol_step": "Continue planned thyroid replacement monitoring at next visit.",
+      "network_match": { "similar": 40, "genuine": 3, "label": "3/40 similar stable patterns needed escalation" },
+      "symptoms": [
+        { "date": "2026-09-23", "label": "No new symptoms", "grade": 0, "source": "patient app" }
+      ],
+      "labs": [
+        { "date": "2026-09-23", "test": "TSH", "value": "3.1", "unit": "mIU/L", "flag": "normal" },
+        { "date": "2026-09-23", "test": "ALT", "value": "27", "unit": "U/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-23", "text": "On levothyroxine; no palpitations or diarrhoea.", "source": "clinic message" }
+      ],
+      "draft_note": "Synthetic draft: Stable endocrine follow-up; routine review."
+    },
+    {
+      "id": "IOT-5410",
+      "name": "Oskar Bauer",
+      "age": 73,
+      "sex": "M",
+      "diagnosis": "Renal cell carcinoma · nivolumab cycle 11",
+      "last_visit": "2026-09-18",
+      "next_visit": "2026-10-09",
+      "source": "Telephone note",
+      "priority": 12,
+      "risk_label": "Low risk",
+      "risk_tone": "ok",
+      "organ_signal": "Likely intercurrent viral symptoms",
+      "ctcae_grade": "No immune-toxicity grade proposed",
+      "grade_rationale": "Runny nose after family contact, normal labs and improving symptoms.",
+      "protocol_step": "Routine safety-net advice; no immune-toxicity protocol step triggered.",
+      "network_match": { "similar": 58, "genuine": 1, "label": "1/58 similar synthetic patterns were genuine toxicity" },
+      "symptoms": [
+        { "date": "2026-09-24", "label": "Runny nose, mild sore throat", "grade": 1, "source": "telephone triage" }
+      ],
+      "labs": [
+        { "date": "2026-09-22", "test": "Troponin T", "value": "9", "unit": "ng/L", "flag": "normal" },
+        { "date": "2026-09-22", "test": "ALT", "value": "24", "unit": "U/L", "flag": "normal" },
+        { "date": "2026-09-22", "test": "TSH", "value": "2.6", "unit": "mIU/L", "flag": "normal" }
+      ],
+      "notes": [
+        { "date": "2026-09-24", "text": "Grandchild had cold; patient afebrile and improving.", "source": "telephone triage" }
+      ],
+      "draft_note": "Synthetic draft: Low-risk viral-symptom pattern with normal interim labs; safety-net only."
+    }
+  ]
+}

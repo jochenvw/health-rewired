@@ -1,0 +1,89 @@
+.issue54-disclaimer {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.issue54-workspace {
+  display: grid;
+  gap: 12px;
+}
+
+.issue54-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.issue54-metric {
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  padding: 8px;
+}
+
+.issue54-metric strong {
+  display: block;
+  font-size: 20px;
+}
+
+.issue54-metric span,
+.issue54-note,
+.issue54-note-list span {
+  color: var(--muted);
+}
+
+.issue54-alert-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 8px 10px;
+}
+
+.issue54-network-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d7b56d;
+  background: #fffbea;
+  padding: 10px;
+}
+
+.issue54-network-card > span {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--warning);
+}
+
+.issue54-network-card p,
+.issue54-note-list {
+  margin: 6px 0 0;
+}
+
+.issue54-note-list {
+  padding-left: 18px;
+}
+
+.issue54-note-list li + li {
+  margin-top: 4px;
+}
+
+.issue54-trend {
+  display: inline-block;
+  width: 84px;
+  height: 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #c8dfca, #e3f2e5);
+}
+
+.issue54-trend.high {
+  background: linear-gradient(90deg, #f5d29e, #c62828);
+}
+
+.issue54-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}

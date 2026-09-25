@@ -84,3 +84,24 @@ def test_idea_routers_are_discovered_and_mounted(client):
     mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
+
+
+def test_issue_54_worklist_ranks_myocarditis_signal(client):
+    response = client.get("/api/ideas/54/worklist")
+    body = response.json()
+    assert response.status_code == 200
+    assert body["synthetic"] is True
+    assert len(body["patients"]) == 10
+    assert body["patients"][0]["id"] == "IOT-5401"
+    assert body["patients"][0]["organ_signal"] == "Possible myocarditis"
+    assert "troponin" in body["patients"][0]["grade_rationale"].lower()
+
+
+def test_issue_54_assistant_has_demo_path_without_copilot(client):
+    response = client.post("/api/ideas/54/assistant", json={"patient_id": "IOT-5401", "action": "same-day"})
+    body = response.json()
+    assert response.status_code == 200
+    assert body["mode"] == "fallback"
+    assert any(block["type"] == "actions" for block in body["blocks"])
+    assert any(step["tool"] == "get_issue54_triage_case" for step in body["trace"])
+    assert "myocarditis" in body["blocks"][0]["title"].lower()
