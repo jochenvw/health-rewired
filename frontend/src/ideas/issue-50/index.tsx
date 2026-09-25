@@ -142,8 +142,8 @@ export default function RecordOnceReuseEverywhere() {
   const open = fields.filter((f) => decisionFor(f).state === 'pending').length;
 
   const extract = async () => {
-    setSection('dataset');
     if (loading) return;
+    setSection('dataset');
     setLoading(true);
     setExtracted(true);
     setRuns((n) => n + 1);
@@ -396,7 +396,6 @@ export default function RecordOnceReuseEverywhere() {
             <DataTable
               rowKey={(f) => f.id}
               rows={fields}
-              empty="Nothing to export yet."
               columns={[
                 { key: 'label', label: 'Variable', width: '190px' },
                 {

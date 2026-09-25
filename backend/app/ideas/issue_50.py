@@ -308,7 +308,7 @@ def _demo_review(note: str | None) -> AgentResult:
     ]
     return AgentResult(
         mode="fallback",
-        headline="3 of 8 dataset values need a human decision",
+        headline=f"{len(needs_decision)} of {len(FIELDS)} dataset values need a human decision",
         blocks=[
             UIBlock(
                 type="alert",
