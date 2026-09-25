@@ -10,6 +10,7 @@
 |---|---|---|
 | `patients/<id>.json` | JSON | One synthetic oncology patient: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
 | `notes/<id>-*.md` | Markdown | Free-text clinical notes (MDT notes, letters) for extraction/reasoning demos |
+| `multilingual/<id>-<lang>-*.md` | Markdown | Free-text reports for one patient in several languages (Dutch, French, Italian, German), with implicit, contradictory and missing information |
 | `trials.csv` | CSV | Synthetic clinical trials with simple eligibility criteria |
 
 ## How the app uses it
