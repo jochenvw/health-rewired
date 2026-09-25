@@ -31,6 +31,7 @@ def _build_snapshot() -> dict:
     data = _raw_data()
     hospitals = data["hospitals"]
     hospital_f = next(hospital for hospital in hospitals if hospital["id"] == "F")
+    time_to_treatment = next(indicator for indicator in data["indicators"] if indicator["key"] == "time_to_treatment")
     network_time_to_treatment = _network_average(hospitals, "time_to_treatment")
     peer_mri_wait = round(
         sum(hospital["median_mri_wait_days"] for hospital in hospitals if hospital["id"] != "F") / (len(hospitals) - 1),
@@ -47,7 +48,7 @@ def _build_snapshot() -> dict:
             "headline": "Hospital F time-to-treatment deviation",
             "observed": hospital_f["indicators"]["time_to_treatment"],
             "network_average": network_time_to_treatment,
-            "target": 80,
+            "target": time_to_treatment["target"],
             "gap": round(network_time_to_treatment - hospital_f["indicators"]["time_to_treatment"], 1),
             "likely_cause": "MRI waiting time",
             "cause_detail": (
@@ -74,7 +75,6 @@ async def quality_snapshot() -> dict:
 
 @router.post("/assistant")
 async def assistant(request: AgentRequest) -> AgentResult:
-    snapshot = _build_snapshot()
     prompt = (
         "You are helping a rectal-cancer tumour working group chair during a network quality meeting. "
         "Use get_rectal_quality_signal to inspect the synthetic aggregate data. Explain whether Hospital F's "
@@ -93,7 +93,10 @@ async def assistant(request: AgentRequest) -> AgentResult:
     )
     if result.mode == "copilot":
         return result
-    return _fallback_agent_result(snapshot, result.note or "Copilot SDK not configured; showing deterministic demo.")
+    return _fallback_agent_result(
+        _build_snapshot(),
+        result.note or "Copilot SDK not configured; showing deterministic demo.",
+    )
 
 
 def _fallback_agent_result(snapshot: dict, note: str) -> AgentResult:

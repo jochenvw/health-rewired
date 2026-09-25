@@ -148,7 +148,7 @@ export default function Issue53QualityLoop() {
   };
 
   const go = (id: string) => {
-    if (id === 'investigate' && !assistant && !assistantError) {
+    if (id === 'investigate' && !assistant && !investigating) {
       void runInvestigation();
       return;
     }
@@ -282,6 +282,10 @@ function SignalView({
   onInvestigate: () => void;
   investigating: boolean;
 }) {
+  const peerHospitals = snapshot.hospitals.filter((hospital) => hospital.id !== 'F');
+  const peerAverage = (read: (hospital: Hospital) => number) =>
+    Math.round((peerHospitals.reduce((sum, hospital) => sum + read(hospital), 0) / peerHospitals.length) * 10) / 10;
+
   return (
     <div className="q53-grid">
       <Panel
@@ -320,10 +324,30 @@ function SignalView({
         <DataTable
           rowKey={(row) => row.label}
           rows={[
-            { label: 'Locally advanced cases', hospital: `${hospitalF.patient_mix.locally_advanced}%`, network: '≈ 42%', finding: 'Similar' },
-            { label: 'Frailty score ≥2', hospital: `${hospitalF.patient_mix.frailty_score_2plus}%`, network: '≈ 19%', finding: 'Similar' },
-            { label: 'Low rectal tumour', hospital: `${hospitalF.patient_mix.low_rectal_tumour}%`, network: '≈ 29%', finding: 'Similar' },
-            { label: 'Median MRI wait', hospital: `${hospitalF.median_mri_wait_days} days`, network: '≈ 9 days', finding: 'Outlier' },
+            {
+              label: 'Locally advanced cases',
+              hospital: `${hospitalF.patient_mix.locally_advanced}%`,
+              network: `≈ ${peerAverage((hospital) => hospital.patient_mix.locally_advanced)}%`,
+              finding: 'Similar',
+            },
+            {
+              label: 'Frailty score ≥2',
+              hospital: `${hospitalF.patient_mix.frailty_score_2plus}%`,
+              network: `≈ ${peerAverage((hospital) => hospital.patient_mix.frailty_score_2plus)}%`,
+              finding: 'Similar',
+            },
+            {
+              label: 'Low rectal tumour',
+              hospital: `${hospitalF.patient_mix.low_rectal_tumour}%`,
+              network: `≈ ${peerAverage((hospital) => hospital.patient_mix.low_rectal_tumour)}%`,
+              finding: 'Similar',
+            },
+            {
+              label: 'Median MRI wait',
+              hospital: `${hospitalF.median_mri_wait_days} days`,
+              network: `≈ ${peerAverage((hospital) => hospital.median_mri_wait_days)} days`,
+              finding: 'Outlier',
+            },
           ]}
           rowTone={(row) => (row.finding === 'Outlier' ? 'warn' : undefined)}
           columns={[
