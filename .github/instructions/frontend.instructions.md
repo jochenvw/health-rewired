@@ -11,12 +11,16 @@ applyTo: "frontend/**"
   each `type` to a component. To add a block type: create `frontend/src/blocks/<Name>Block.tsx`,
   register it, and add the same type to `backend/app/agent/ui.py`. Unknown types must degrade
   gracefully (the registry already falls back to a generic card).
-- Idea pages render full-bleed as **hospital software**: wrap them in `HospitalShell` from
-  `src/hospital/HospitalShell.tsx` and use its `Panel`, `DataTable`, `Tabs`, `Pill` and `hx-btn`
-  styles. Inside `.hx` the design tokens switch to a light clinical theme, so existing blocks adapt.
-  Fill screens with plenty of synthetic data and working interactions (local state is fine).
-- Tell the idea's story with `StoryGuide` (guided steps, pass as `guide` to `HospitalShell`) and
-  `Backstage` (simulated behind-the-scenes stages) from `src/hospital/Story.tsx`.
+- Idea pages render full-bleed as **credible working software for the participant's role**.
+  Clinical patient workflows should use `HospitalShell` from `src/hospital/HospitalShell.tsx`
+  with its `Panel`, `DataTable`, `Tabs`, `Pill` and `hx-btn` styles. Research networks, trial
+  operations and Europe-wide learning systems may use a purpose-built, issue-local shell when the
+  proposal calls for it. In both cases follow `.github/hackathon/design-language.md`: reuse its
+  semantic `--cp-*` tokens, typography, spacing, status meanings, institutional chrome and
+  inspectability patterns. Keep it dense, functional and data-rich rather than a marketing page,
+  and do not change shared shell styles to achieve an idea-specific look.
+- Tell the idea's story with `StoryGuide` and `Backstage` from `src/hospital/Story.tsx`, or an
+  equally clear issue-local guided-step treatment when using a purpose-built shell.
 - Every wait (AI call, simulated process, loading) shows a spinner and label immediately:
   a spinner in the clicked button plus `Working` or a running `Backstage` in the result area.
 - The landing page keeps its own visual language: CSS variables from `src/styles.css`.
