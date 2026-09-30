@@ -62,6 +62,9 @@ type Snapshot = {
 
 type Section = 'mapping' | 'run' | 'compare' | 'recalibrate' | 'passport';
 type NavItem = { id: Section; label: string; badge?: string | number; detail: string };
+type Theme = 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'health-rewired-issue-51-theme';
 
 const steps: StoryStep[] = [
   {
@@ -109,7 +112,15 @@ function hospitalRowTone(hospital: Hospital): 'warn' | 'crit' | undefined {
   return hospital.level === 'ok' ? undefined : hospital.level;
 }
 
+function initialTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark';
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
 export default function Issue51ModelCheck() {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [section, setSection] = useState<Section>('mapping');
   const [selectedHospitalId, setSelectedHospitalId] = useState('C');
@@ -127,6 +138,10 @@ export default function Issue51ModelCheck() {
       .then(setSnapshot)
       .catch(() => setNotice('Could not load the synthetic model-check data.'));
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   const selectedHospital = useMemo(
     () => snapshot?.hospitals.find((hospital) => hospital.id === selectedHospitalId) ?? snapshot?.hospitals[0],
@@ -167,7 +182,7 @@ export default function Issue51ModelCheck() {
 
   if (!snapshot || !selectedHospital) {
     return (
-      <div className="issue51">
+      <div className="issue51" data-theme={theme}>
         <Panel title="Loading model-check workspace">
           <Working label="Loading synthetic cohorts" />
         </Panel>
@@ -184,7 +199,7 @@ export default function Issue51ModelCheck() {
   ];
 
   return (
-    <div className="issue51">
+    <div className="issue51" data-theme={theme}>
       <header className="issue51-chrome">
         <div className="issue51-mark" aria-hidden>
           MV
@@ -197,6 +212,14 @@ export default function Issue51ModelCheck() {
         <div className="issue51-chrome-state" aria-label="System state">
           <span>Munich validation sandbox</span>
           <Pill tone="ok">Connected</Pill>
+          <div className="issue51-theme-control" aria-label="Theme">
+            <button type="button" aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
+              Light
+            </button>
+            <button type="button" aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
+              Dark
+            </button>
+          </div>
         </div>
       </header>
 
