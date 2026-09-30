@@ -228,6 +228,15 @@ export default function Issue57TrialDesign() {
             <Working label="Loading synthetic trial registry" />
           </Panel>
         )}
+        {snapshot && (
+          <WorkspaceHeader
+            snapshot={snapshot}
+            section={section}
+            approvedRules={approvedRules}
+            networkDone={networkDone}
+            decision={decision}
+          />
+        )}
         {snapshot && section === 'criteria' && (
           <CriteriaSection
             criteria={criteria}
@@ -271,6 +280,57 @@ export default function Issue57TrialDesign() {
   );
 }
 
+function WorkspaceHeader({
+  snapshot,
+  section,
+  approvedRules,
+  networkDone,
+  decision,
+}: {
+  snapshot: Snapshot;
+  section: Section;
+  approvedRules: boolean;
+  networkDone: boolean;
+  decision: string | null;
+}) {
+  const activeStep = steps.findIndex((step) => step.id === section) + 1;
+  return (
+    <section className="issue57-context" aria-label="Current trial design context">
+      <div className="issue57-context-main">
+        <span className="issue57-eyebrow">CURRENT OBJECT</span>
+        <h1>Protocol CRC-2L-2026 feasibility review</h1>
+        <p>{snapshot.scenario}. Synthetic aggregate counts only; no patient records leave a centre.</p>
+      </div>
+      <dl className="issue57-facts" aria-label="Trial feasibility status">
+        <div>
+          <dt>Centres</dt>
+          <dd>{snapshot.centres.length} European hospitals</dd>
+        </div>
+        <div>
+          <dt>Registry</dt>
+          <dd>{snapshot.totals.registry} synthetic patients</dd>
+        </div>
+        <div>
+          <dt>Strict threshold</dt>
+          <dd>{snapshot.strict_threshold}</dd>
+        </div>
+        <div>
+          <dt>What-if threshold</dt>
+          <dd>{snapshot.adjusted_threshold}</dd>
+        </div>
+      </dl>
+      <div className="issue57-attention" role="status">
+        <Pill tone={decision ? 'ok' : networkDone ? 'warn' : approvedRules ? 'info' : 'neutral'}>
+          {decision ? 'Decision filed' : networkDone ? 'Human review required' : approvedRules ? 'Counts ready to run' : 'Rule review pending'}
+        </Pill>
+        <span>
+          Step {activeStep} of {steps.length}: the coordinator controls when criteria are approved, when counts run and what threshold goes forward.
+        </span>
+      </div>
+    </section>
+  );
+}
+
 function CriteriaSection({
   criteria,
   setCriteria,
@@ -289,6 +349,7 @@ function CriteriaSection({
   return (
     <div className="hx-grid issue57-two-col">
       <Panel title="Draft eligibility criteria">
+        <span className="issue57-eyebrow">PROTOCOL INPUT</span>
         <form className="issue57-criteria" onSubmit={(event) => void runAgent(event)}>
           <label>
             Protocol text
@@ -306,6 +367,7 @@ function CriteriaSection({
         </form>
       </Panel>
       <Panel title={result ? result.headline : 'Assistant work'}>
+        <span className="issue57-eyebrow">PUBLIC REASONING PATH</span>
         <Backstage
           title="Behind the scenes – criteria to executable rules"
           stages={agentStages}
@@ -353,6 +415,7 @@ function RulesSection({
           </>
         }
       >
+        <span className="issue57-eyebrow">HUMAN REVIEW REQUIRED</span>
         <DataTable
           rows={snapshot.rules}
           rowKey={(rule) => rule.id}
@@ -366,6 +429,7 @@ function RulesSection({
         />
       </Panel>
       <Panel title={result ? result.headline : 'AI review notes'}>
+        <span className="issue57-eyebrow">CLAIM → EVIDENCE → SOURCE</span>
         <Backstage
           title="Behind the scenes – rule conversion"
           stages={agentStages}
@@ -410,6 +474,7 @@ function NetworkSection({
           </button>
         }
       >
+        <span className="issue57-eyebrow">COUNTS ONLY · PATIENT DATA STAYS LOCAL</span>
         <Backstage
           key={runId}
           title="Behind the scenes – hospitals answer with counts only"
@@ -428,6 +493,7 @@ function NetworkSection({
       {(running || done) && (
         <div className="hx-grid issue57-network">
           <Panel title="Eligibility by centre">
+            <span className="issue57-eyebrow">SITE STATUS</span>
             <DataTable
               rows={snapshot.centres}
               rowKey={(centre) => centre.id}
@@ -460,6 +526,7 @@ function Funnel({ snapshot }: { snapshot: Snapshot }) {
   const max = Math.max(1, ...snapshot.funnel.flatMap((step) => [step.strict, step.adjusted]));
   return (
     <Panel title="Eligibility funnel">
+      <span className="issue57-eyebrow">STRICT VS WHAT-IF</span>
       <div className="issue57-funnel">
         {snapshot.funnel.map((step) => (
           <div key={step.step} className="issue57-funnel-row">
@@ -479,6 +546,7 @@ function EquitySection({ snapshot }: { snapshot: Snapshot }) {
   return (
     <div className="hx-grid issue57-two-col">
       <Panel title="Which criterion excludes whom?">
+        <span className="issue57-eyebrow">EXCLUSION ATTRIBUTION</span>
         <DataTable
           rows={snapshot.disparities}
           rowKey={(row) => row.group}
@@ -497,6 +565,7 @@ function EquitySection({ snapshot }: { snapshot: Snapshot }) {
         />
       </Panel>
       <Panel title="What the researcher learns before submission">
+        <span className="issue57-eyebrow">CURRENT CONCLUSION</span>
         <div className="issue57-callout">
           <strong>A strict kidney-function threshold excludes almost half of older patients.</strong>
           <p>
@@ -514,6 +583,13 @@ function EquitySection({ snapshot }: { snapshot: Snapshot }) {
           value={`+${snapshot.totals.adjusted_eligible - snapshot.totals.strict_eligible}`}
           tone="ok"
         />
+        <details className="issue57-disclosure">
+          <summary>Inspect source and uncertainty</summary>
+          <p>
+            Source: synthetic six-centre registry snapshot in <code>sample-data/trial-design/issue-57-population.json</code>.
+            The counts demonstrate feasibility and representativeness logic only; they are not evidence for a real protocol.
+          </p>
+        </details>
       </Panel>
     </div>
   );
@@ -560,6 +636,7 @@ function DecisionSection({
   return (
     <div className="hx-grid issue57-two-col">
       <Panel title="Strict versus adjusted criteria">
+        <span className="issue57-eyebrow">REGISTRY REPRESENTATIVENESS</span>
         <DataTable
           rows={rows}
           rowKey={(row) => row.measure}
@@ -572,6 +649,7 @@ function DecisionSection({
         />
       </Panel>
       <Panel title="Human decision for protocol team">
+        <span className="issue57-eyebrow">VISIBLE HUMAN CONTROL</span>
         <p className="issue57-decision-copy">
           The assistant does not choose criteria or approach patients. It makes the recruitment and representativeness trade-off
           visible before regulatory and ethical submission.
@@ -605,6 +683,8 @@ function AgentBlocks({ result }: { result: AgentResult }) {
     <div className="result issue57-agent">
       {result.note && <p className="note">{result.note}</p>}
       {result.trace.length > 0 && (
+        <details className="issue57-disclosure" open>
+          <summary>Inspect what the assistant used</summary>
         <ol className="trace" aria-label="What the assistant used">
           {result.trace.map((step, index) => (
             <li key={index} title={step.arguments ?? undefined}>
@@ -612,6 +692,7 @@ function AgentBlocks({ result }: { result: AgentResult }) {
             </li>
           ))}
         </ol>
+        </details>
       )}
       <div className="blocks">
         {result.blocks.map((block, index) => (
