@@ -9,7 +9,7 @@
    — shared components and other ideas are untouched. */
 
 .eu37 {
-  /* --- design-language token source of truth (dark) --- */
+  /* --- design-language token source of truth: dark (default) --- */
   --cp-bg: #2b3238;
   --cp-bg-elevated: #242a30;
   --cp-surface: #1f2429;
@@ -26,6 +26,9 @@
   --cp-accent: #fd8ea1;
   --cp-accent-hover: #fb7b91;
   --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  /* Text/graphics drawn on top of --cp-accent: dark ink reads best on the light-dark-theme pink. */
+  --cp-accent-fg: #1a0a0e;
+  --cp-accent-fg-soft: rgba(26, 10, 14, 0.35);
   --cp-success: #4ade80;
   --cp-warning: #fbbf24;
   --cp-danger: #f87171;
@@ -33,6 +36,35 @@
   --cp-font-sans: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   --cp-font-mono: Consolas, 'Courier New', Courier, monospace;
 }
+
+/* Light presentation — same semantics, design-language.md §3 light column. Selected via the
+   `Light`/`Dark` buttons in the institutional header (data-theme attribute on the page root). */
+.eu37[data-theme='light'] {
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  /* On the light theme's darker accent, foreground text/graphics need to be light instead. */
+  --cp-accent-fg: #ffffff;
+  --cp-accent-fg-soft: rgba(255, 255, 255, 0.35);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+}
+
 
 /* Repoint the generic `.hx` theme variables (used throughout hospital.css and the shared
    generative-UI block styles) to the cp palette, at higher specificity than `.hx` alone. */
@@ -69,7 +101,7 @@
   top: 0;
   z-index: 100;
   background: var(--cp-accent);
-  color: #1a0a0e;
+  color: var(--cp-accent-fg);
   padding: 8px 14px;
   border-radius: 0 0 8px 0;
 }
@@ -110,7 +142,7 @@
   height: 28px;
   border-radius: 8px;
   background: var(--cp-accent);
-  color: #1a0a0e;
+  color: var(--cp-accent-fg);
   font: 700 11px var(--cp-font-mono);
   flex-shrink: 0;
 }
@@ -143,6 +175,36 @@
 
 .eu37-status-dot {
   color: var(--cp-success);
+}
+
+.eu37-theme-switch {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--cp-chrome-muted);
+  border-radius: 8px;
+}
+
+.eu37-theme-switch button {
+  min-height: 26px;
+  padding: 3px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--cp-chrome-fg);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.eu37-theme-switch button.active {
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  font-weight: 600;
+}
+
+.eu37-theme-switch button:not(.active):hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* --- Context banner --- */
@@ -345,7 +407,7 @@
 .eu37 .hx-btn.primary {
   background: var(--cp-accent);
   border-color: var(--cp-accent);
-  color: #1a0a0e;
+  color: var(--cp-accent-fg);
   font-weight: 600;
 }
 
@@ -360,8 +422,8 @@
 }
 
 .eu37 .hx-btn.primary .hx-spinner {
-  border-color: rgba(26, 10, 14, 0.35);
-  border-top-color: #1a0a0e;
+  border-color: var(--cp-accent-fg-soft);
+  border-top-color: var(--cp-accent-fg);
 }
 
 /* --- Guided story / backstage, reskinned to the institutional chrome --- */
@@ -387,7 +449,7 @@
 
 .eu37 .hx-story-steps li.current .hx-story-num {
   background: var(--cp-accent);
-  color: #1a0a0e;
+  color: var(--cp-accent-fg);
 }
 
 .eu37 .hx-story-steps li.done .hx-story-num {
@@ -546,7 +608,7 @@
 }
 
 .eu-node-home text {
-  fill: #1a0a0e;
+  fill: var(--cp-accent-fg);
   font-weight: 700;
 }
 
@@ -633,7 +695,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
-  color: #1a0a0e;
+  color: var(--cp-accent-fg);
   background: var(--accent);
   border-right: 1px solid rgba(0, 0, 0, 0.25);
 }
@@ -727,7 +789,7 @@
 }
 
 @media (max-width: 760px) {
-  .eu37-chrome-meta {
+  .eu37-chrome-meta span {
     display: none;
   }
 }

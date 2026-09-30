@@ -82,7 +82,21 @@ function dominantCountry(cases: { country: string }[]): string | null {
   return n / cases.length > 0.6 ? country : null;
 }
 
+type Theme = 'light' | 'dark';
+const THEME_KEY = 'eu37-theme';
+
+function initialTheme(): Theme {
+  try {
+    const stored = window.localStorage.getItem(THEME_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {
+    // localStorage unavailable (private mode, disabled storage) — fall through to system preference.
+  }
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
 export default function EuropeanLearningNetwork() {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
   const [section, setSection] = useState<Section>('worklist');
   const [record, setRecord] = useState<PatientRecord | null>(null);
   const [snapshot, setSnapshot] = useState<NetworkSnapshot | null>(null);
@@ -102,6 +116,14 @@ export default function EuropeanLearningNetwork() {
     const t = window.setInterval(() => setClock(new Date()), 30_000);
     return () => window.clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // localStorage unavailable — theme still applies for this visit, just isn't persisted.
+    }
+  }, [theme]);
 
   const refreshLog = () => {
     api
@@ -150,7 +172,7 @@ export default function EuropeanLearningNetwork() {
   ];
 
   return (
-    <div className="eu37 hx">
+    <div className="eu37 hx" data-theme={theme}>
       <a className="eu37-skip" href="#eu37-main">
         Skip to main content
       </a>
@@ -170,6 +192,24 @@ export default function EuropeanLearningNetwork() {
           <span>München · Workstation 4</span>
           <span>{clock.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
           <span className="eu37-status-dot">● 9 sites connected</span>
+          <div className="eu37-theme-switch" role="group" aria-label="Theme">
+            <button
+              type="button"
+              aria-pressed={theme === 'light'}
+              className={theme === 'light' ? 'active' : undefined}
+              onClick={() => setTheme('light')}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              aria-pressed={theme === 'dark'}
+              className={theme === 'dark' ? 'active' : undefined}
+              onClick={() => setTheme('dark')}
+            >
+              Dark
+            </button>
+          </div>
         </div>
       </header>
 
