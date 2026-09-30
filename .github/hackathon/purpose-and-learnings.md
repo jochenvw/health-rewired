@@ -11,7 +11,7 @@ writing code – so they can react, refine and decide if it is worth pursuing.**
 - **Audience.** Oncologists, nurses, MDT coordinators, pharmacists, researchers. Mostly
   non-technical. They judge by what they see and click, not by code or architecture.
 - **Output.** A clickable prototype, not a product. It exists to start a conversation
-  ("yes, but in tumour board I'd also need …"), then be iterated via `@copilot` comments.
+  ("yes, but in tumour board I'd also need …"), then be iterated through replies on the idea issue.
 - **Measure of success.** The participant recognises their clinical insight on screen and
   can picture it in their daily software. Everything else is secondary.
 
@@ -54,18 +54,31 @@ scenario, step by step, so they understand *how this could actually work*.
 | 3 | Assigned to Copilot | "🛠️ Building your prototype" comment |
 | 4 | Copilot builds a pull request | Nothing to do – silence is fine, the status comment explains |
 | 5 | Deployed preview | Comment "✅ live · v1.0" with a direct link to `/#/idea/<N>` |
-| 6 | Each new build | "🆕 New version live · v1.N" comment on the issue |
+| 6 | Participant feedback | Reply on the idea issue; the feedback relay keeps passing focused revisions to Copilot until the participant is satisfied |
+| 7 | Each new build | "🆕 New version live · v1.N" comment on the issue |
+| 8 | Participant finishes the prototype | Reply `/architecture`, `ready for architecture`, or `prototype is done` on the issue |
+| 9 | Architecture coach | Asks only missing real-world questions, then posts an Azure architecture diagram, five-pillar Well-Architected review and staged delivery path |
+| 10 | Audience presentation | Reply `/presentation`; receive an editable PowerPoint, then use `/presentation revise` until the audience story feels finished |
 
 Rule: **the participant should never wonder whether something is happening.** Acknowledge fast,
 report progress, link straight to the result.
+
+Participant feedback remains active until the participant explicitly moves on. Prototype comments
+continue to trigger focused revisions until they reply `/architecture`; that starts the separate
+architecture-coaching phase and stops prototype changes. Presentation comments continue to trigger
+focused revisions for as long as the participant asks. The editor may clarify or refocus slide
+copy, but it cannot invent evidence, change the prototype, or redesign the approved future
+architecture.
 
 ## 3. What a good prototype looks like
 
 1. **Opens straight on the idea.** The link goes to `/#/idea/<N>`; the main screen is visible
    with no scrolling, setup or configuration. A sensible synthetic patient is pre-selected.
-2. **Looks like boring hospital software.** `HospitalShell`: app bar, patient banner, left
-   navigation, dense tables, tabs. Not a startup landing page, not a chat window. Familiar beats
-   pretty – the clinician must think "this could sit in our system".
+2. **Looks credible for the work.** Patient-level clinical workflows should feel at home in
+   `HospitalShell`: app bar, patient banner, left navigation, dense tables and tabs. Research,
+   network and trial-operations ideas may need a distinct evidence workspace, European network
+   canvas or command centre. Familiarity still beats decoration, but do not make every concept a
+   variation of the same blue EHR. Never use a startup landing page or generic chat window.
 3. **Full of fake data.** Worklists, lab results, notes, histories, extra patients. An empty or
    sparse screen fails to convey a real clinic day. Inline synthetic rows are fine.
 4. **Things react when clicked.** Rows open charts, tabs switch, acknowledge / approve /
@@ -91,12 +104,17 @@ Each learning states the failure we saw and the rule that prevents it.
 | Seen | Rule |
 |---|---|
 | Coach took ~4 min; participant saw nothing and assumed it was broken | Post a status comment immediately; keep workflow steps minimal (no extra gating/detection jobs) |
+| The acknowledgement arrived quickly, but substantive coaching consistently took 3–4 min | Promise an honest 3–5 min rather than "a minute or two" |
+| A ready issue stayed unbuilt while the overall workflow was green because assignment used an unsupported agent alias | Assign exactly `copilot`; watchdog every `ready-for-build` handoff and fail visibly when no agent is assigned |
+| Participants had to leave their idea issue and understand a pull request to request changes | Keep the issue as the participant surface and relay feedback to the linked build |
+| Participants may need more than two attempts to recognise their idea in the result | Keep feedback focused but unlimited; the participant explicitly ends prototype iteration with `/architecture` and ends presentation iteration by saying the deck is done |
 | Preview link was posted while the PR held only the "Initial plan" commit | Deploy only once Copilot drops `[WIP]` from the title; say "building" first, link second |
 | Idea code was appended below the landing page; participant saw no difference | Each idea lives in `frontend/src/ideas/issue-<N>/` and `backend/app/ideas/issue_<N>.py`; never edit `App.tsx` or `main.py` |
 | The idea only appeared after typing a specific prompt into the starter agent | The idea's main screen must show immediately on `/#/idea/<N>` |
 | Internal terms ("cohort explorer") confused clinicians | Use the participant's words for titles and labels |
 | PR branches conflicted with `main` and deploys silently stopped | Keep ideas in their own files so branches merge cleanly; if conflicted, merge `main` in |
-| A generic dark "AI demo" look did not help clinicians picture the idea | Style idea pages as plain hospital software with lots of fake data |
+| A generic dark "AI demo" look did not help clinicians picture the idea | Use credible working-software patterns with lots of synthetic data, not a marketing or chat experience |
+| Four different ideas converged on nearly identical blue EHR shells; an explicit trial-operations exception produced a clearer, distinctive result without losing safety or usability | Match the shell to the role and task: `HospitalShell` for patient-level care, purpose-built issue-local research/operations workspaces where appropriate |
 | Proposals were written for engineers | Proposal = plain-language walkthrough of hospital screens ("You open the worklist …") |
 | A prototype showed a working screen, but the viewer could not tell what the vision was or how it would work | Tell one storyline end to end: `StoryGuide` steps, simulated `Backstage` work with explanations, a clear payoff |
 | Big-picture issues ("Europe as one cohort") produced a generic analytics screen | Turn the vision into one concrete scenario with a user, a need and an ending; mention other scenarios as "next" |
