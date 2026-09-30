@@ -109,6 +109,11 @@ export default function Issue54ImmunotherapyTriage() {
   const [runs, setRuns] = useState(0);
 
   useEffect(() => {
+    document.body.classList.add('issue54-design');
+    return () => document.body.classList.remove('issue54-design');
+  }, []);
+
+  useEffect(() => {
     api.idea<WorklistResponse>(54, '/worklist').then(setData).catch(() => setData(null));
   }, []);
 
@@ -260,8 +265,23 @@ export default function Issue54ImmunotherapyTriage() {
 }
 
 function Worklist({ data, selectedId, onSelect }: { data: WorklistResponse; selectedId: string; onSelect: (patient: TriagePatient) => void }) {
+  const selected = data.patients.find((patient) => patient.id === selectedId) ?? data.patients[0];
   return (
     <div className="issue54-workspace">
+      {selected && (
+        <section className={`issue54-attention issue54-attention-${selected.risk_tone}`} aria-label="Current triage state">
+          <div>
+            <span className="issue54-eyebrow">CURRENT HIGHEST-SIGNAL PATIENT</span>
+            <strong>{selected.name} · {selected.organ_signal}</strong>
+            <p>{selected.grade_rationale}</p>
+          </div>
+          <div className="issue54-attention-metrics">
+            <Metric label="Priority score" value={selected.priority} />
+            <Metric label="Similar patterns" value={selected.network_match.similar} />
+            <Metric label="Genuine toxicity" value={selected.network_match.genuine} />
+          </div>
+        </section>
+      )}
       <Panel
         title={`Checkpoint-immunotherapy triage · ${new Date(data.as_of).toLocaleString('de-DE')}`}
         actions={<Pill tone="info">{data.network_summary.sites} synthetic sites connected</Pill>}
@@ -309,6 +329,7 @@ function PatientEvidence({
   return (
     <>
       <div className="issue54-alert-strip">
+        <span className="issue54-eyebrow">ACTIVE TRIAGE STATE</span>
         <Pill tone={toneFor(patient)}>{patient.risk_label}</Pill>
         <strong>{patient.organ_signal}</strong>
         <span>{patient.ctcae_grade}</span>
@@ -348,6 +369,7 @@ function PatientEvidence({
             </ul>
           </Panel>
           <Panel title="Why it is ranked here">
+            <span className="issue54-eyebrow">CLAIM → SOURCE → UNCERTAINTY</span>
             <p>{patient.grade_rationale}</p>
             <div className="issue54-network-card">
               <span>{patient.network_match.genuine}</span>
@@ -362,6 +384,7 @@ function PatientEvidence({
       {tab === 'labs' && <LabTrend patient={patient} />}
       {tab === 'protocol' && (
         <Panel title="Protocol step retrieved for the nurse">
+          <span className="issue54-eyebrow">HUMAN REVIEW REQUIRED</span>
           <p>{patient.protocol_step}</p>
           <p className="issue54-note">The prototype proposes a step; pausing treatment, medication and assessment remain clinician decisions.</p>
         </Panel>
@@ -415,6 +438,7 @@ function AssistantPanel({
   return (
     <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(320px, 1fr) minmax(420px, 2fr)' }}>
       <Panel title="Assistant request">
+        <span className="issue54-eyebrow">INSPECTABLE BY DESIGN</span>
         <p>Ask the assistant to combine scattered evidence for <strong>{patient.name}</strong>.</p>
         <ul className="issue54-note-list">
           <li>Symptoms: {patient.symptoms.length} entries</li>
@@ -457,6 +481,7 @@ function DecisionPanel({
   return (
     <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(300px, 0.9fr) minmax(460px, 1.6fr)' }}>
       <Panel title="Nurse chooses the action">
+        <span className="issue54-eyebrow">VISIBLE HUMAN CONTROL</span>
         <p><strong>{patient.organ_signal}</strong> · {patient.ctcae_grade}</p>
         <div className="issue54-actions">
           <button type="button" className="hx-btn" onClick={() => onChoose('call')}>Call patient</button>
@@ -480,6 +505,7 @@ function AgentOutput({ result, error, loading, started, runs }: { result: AgentR
       title={result ? result.headline : 'Assistant synthesis'}
       actions={result && <Pill tone={result.mode === 'copilot' ? 'ok' : 'neutral'}>{result.mode === 'copilot' ? 'Live AI' : 'Demo mode'}</Pill>}
     >
+      <span className="issue54-eyebrow">ASSISTANT OUTPUT · PROVENANCE BELOW</span>
       {error && <p className="error">{error}</p>}
       <Backstage
         key={runs}
