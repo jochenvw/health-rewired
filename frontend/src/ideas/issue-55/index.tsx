@@ -132,6 +132,46 @@ const verdictBadge = { match: 'match', excluded: 'excluded', blocked: 'blocked' 
 const statusLabel = { met: 'Met', not_met: 'Not met', unknown: 'Unknown' };
 const statusBadge = { met: 'match', not_met: 'excluded', unknown: 'blocked' } as const;
 
+type Theme = 'light' | 'dark';
+
+const THEME_KEY = 'eu55-theme';
+
+/**
+ * Explicit theme choice for the whole workspace. The system preference only picks the initial
+ * value; the two labelled buttons stay available in both themes.
+ */
+function useTheme(): [Theme, (next: Theme) => void] {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(THEME_KEY) : null;
+    if (stored === 'light' || stored === 'dark') return stored;
+    return typeof matchMedia !== 'undefined' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+  const choose = useCallback((next: Theme) => {
+    setTheme(next);
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch {
+      /* private browsing – the choice simply does not persist */
+    }
+  }, []);
+  return [theme, choose];
+}
+
+/** Two plainly labelled buttons, never an icon-only toggle (design language §9). */
+function ThemeControl({ theme, onChoose }: { theme: Theme; onChoose: (next: Theme) => void }) {
+  return (
+    <div className="eu55-theme" role="group" aria-label="Workspace theme">
+      <span className="eu55-theme-label">Theme</span>
+      <button type="button" aria-pressed={theme === 'light'} onClick={() => onChoose('light')}>
+        Light
+      </button>
+      <button type="button" aria-pressed={theme === 'dark'} onClick={() => onChoose('dark')}>
+        Dark
+      </button>
+    </div>
+  );
+}
+
 /** Small monospaced operational label above a section (design language §5). */
 function Eyebrow({ children }: { children: ReactNode }) {
   return <span className="eu55-eyebrow">{children}</span>;
@@ -186,7 +226,19 @@ function ReasoningPath({ steps }: { steps: { label: string; text: ReactNode }[] 
 }
 
 /** Right-side inspection drawer with Escape handling and focus restoration. */
-function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow: string; onClose: () => void; children: ReactNode }) {
+function Drawer({
+  title,
+  eyebrow,
+  theme,
+  onClose,
+  children,
+}: {
+  title: string;
+  eyebrow: string;
+  theme: Theme;
+  onClose: () => void;
+  children: ReactNode;
+}) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const opener = useRef<Element | null>(null);
 
@@ -206,7 +258,7 @@ function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow:
   return (
     <>
       <div className="eu55-drawer-backdrop" onClick={onClose} />
-      <aside className="eu55 eu55-drawer" role="dialog" aria-modal="true" aria-label={title}>
+      <aside className="eu55 eu55-drawer" data-theme={theme} role="dialog" aria-modal="true" aria-label={title}>
         <header>
           <div style={{ flex: 1 }}>
             <Eyebrow>{eyebrow}</Eyebrow>
@@ -223,6 +275,7 @@ function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow:
 }
 
 export default function EuropeanTrialMatch() {
+  const [theme, chooseTheme] = useTheme();
   const [section, setSection] = useState<Section>('report');
   const [data, setData] = useState<CaseData | null>(null);
   const [screening, setScreening] = useState<Screening | null>(null);
@@ -332,10 +385,11 @@ export default function EuropeanTrialMatch() {
   }, [section, approved, blocked.length]);
 
   return (
+    <div className="eu55" data-theme={theme}>
     <HospitalShell
       module="Molecular tumour board preparation"
       guide={
-        <div className="eu55 eu55-guide">
+        <div className="eu55 eu55-guide" data-theme={theme}>
           <StoryGuide
             steps={story}
             current={storyStep}
@@ -385,10 +439,11 @@ export default function EuropeanTrialMatch() {
           <button type="button" className="hx-btn primary" onClick={startScreening}>
             Search European trials
           </button>
+          <ThemeControl theme={theme} onChoose={chooseTheme} />
         </>
       }
     >
-      <div className="eu55">
+      <div className="eu55" data-theme={theme}>
       {notice && (
         <Attention tone="resolved" eyebrow="Working record updated">
           {notice}
@@ -739,13 +794,18 @@ export default function EuropeanTrialMatch() {
       </div>
 
       {inspect === 'report' && data && (
-        <Drawer title="Whole-genome sequencing report" eyebrow="Inspectable by design" onClose={closeDrawer}>
+        <Drawer title="Whole-genome sequencing report" eyebrow="Inspectable by design" theme={theme} onClose={closeDrawer}>
           <p className="eu55-provenance">Source: {data.dna_report_source} · synthetic</p>
           <pre>{data.dna_report}</pre>
         </Drawer>
       )}
       {inspect === 'criterion' && inspectCriterion && (
-        <Drawer title="Criterion → evidence → source" eyebrow="Inspectable by design" onClose={closeDrawer}>
+        <Drawer
+          title="Criterion → evidence → source"
+          eyebrow="Inspectable by design"
+          theme={theme}
+          onClose={closeDrawer}
+        >
           <dl className="eu55-facts">
             <dt>Trial</dt>
             <dd>
@@ -776,6 +836,7 @@ export default function EuropeanTrialMatch() {
         </Drawer>
       )}
     </HospitalShell>
+    </div>
   );
 }
 

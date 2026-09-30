@@ -51,30 +51,78 @@
   color: var(--cp-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  .eu55 {
-    --cp-bg: #2b3238;
-    --cp-bg-elevated: #242a30;
-    --cp-surface: #1f2429;
-    --cp-surface-soft: #262c32;
-    --cp-border: #3f4953;
-    --cp-border-strong: #5f5f5f;
-    --cp-text: #dedede;
-    --cp-text-muted: #919191;
-    --cp-text-soft: #b0b0b0;
-    --cp-chrome: #0b1a29;
-    --cp-chrome-fg: #dbe7f1;
-    --cp-chrome-muted: #8ea6ba;
-    --cp-banner: #1a2733;
-    --cp-accent: #fd8ea1;
-    --cp-accent-hover: #fb7b91;
-    --cp-accent-soft: rgba(253, 142, 161, 0.14);
-    --cp-success: #4ade80;
-    --cp-warning: #fbbf24;
-    --cp-danger: #f87171;
-    --cp-link: #4da6ff;
-    --cp-orientation: #fbbf24;
-  }
+/*
+ * Explicit theme control: the Light / Dark buttons set data-theme on every .eu55 root
+ * (workspace, guide and drawer), so the choice covers the complete workspace. The system
+ * preference only chooses the initial value; the buttons always remain available.
+ */
+.eu55[data-theme='dark'] {
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
+  --cp-orientation: #fbbf24;
+}
+
+/* ---------- Theme control: two plainly labelled buttons, never an icon-only toggle ---------- */
+
+.eu55-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eu55-theme-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+}
+
+.eu55-theme button {
+  min-height: 28px;
+  padding: 4px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--cp-text);
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border-strong);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.eu55-theme button:hover {
+  border-color: var(--cp-text-muted);
+}
+
+/* The active theme is shown by styling as well as aria-pressed. */
+.eu55-theme button[aria-pressed='true'] {
+  color: var(--cp-surface);
+  background: var(--cp-text);
+  border-color: var(--cp-text);
+  font-weight: 600;
+}
+
+.eu55-theme button:focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 2px;
 }
 
 /* ---------- Guided story, integrated with the chrome rather than floating above it ---------- */
@@ -408,4 +456,192 @@
   .eu55-badge-running::before {
     animation: none;
   }
+}
+
+/* ------------------------------------------------------------------------------------------
+ * Dark presentation of the shared shell pieces used by this workspace.
+ *
+ * hospital.css keeps several literal light colours, so the --cp-* remap alone cannot darken the
+ * chrome, guide, backstage, tables and generated blocks. These rules re-point those literals at
+ * the tokens. Everything stays inside .eu55[data-theme='dark'], so no shared style is changed and
+ * no other idea page is affected.
+ * ------------------------------------------------------------------------------------------ */
+
+/* The shared shell redeclares its own variables, so point them at the dark tokens first. */
+.eu55[data-theme='dark'] .hx {
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+}
+
+.eu55[data-theme='dark'] .hx-appbar {
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-fg);
+}
+
+.eu55[data-theme='dark'] .hx-logo {
+  background: var(--cp-chrome-fg);
+  color: var(--cp-chrome);
+}
+
+.eu55[data-theme='dark'] .hx-menubar,
+.eu55[data-theme='dark'] .hx-nav {
+  background: var(--cp-bg-elevated);
+  color: var(--cp-text-muted);
+}
+
+.eu55[data-theme='dark'] .hx-banner {
+  background: var(--cp-banner);
+  border-bottom-color: var(--cp-border-strong);
+}
+
+.eu55[data-theme='dark'] .hx-allergy {
+  background: rgba(248, 113, 113, 0.16);
+  border-color: var(--cp-danger);
+  color: var(--cp-danger);
+}
+
+.eu55[data-theme='dark'] .hx-nav button:hover {
+  background: var(--cp-surface-soft);
+}
+
+.eu55[data-theme='dark'] .hx-nav button.active {
+  background: var(--cp-surface);
+}
+
+.eu55[data-theme='dark'] .hx-badge,
+.eu55[data-theme='dark'] .hx-btn.primary,
+.eu55[data-theme='dark'] .hx .button.primary {
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
+  color: #1f2429;
+}
+
+.eu55[data-theme='dark'] .hx-main,
+.eu55[data-theme='dark'] .hx-content {
+  background: var(--cp-bg);
+}
+
+.eu55[data-theme='dark'] .hx-toolbar,
+.eu55[data-theme='dark'] .hx-statusbar,
+.eu55[data-theme='dark'] .hx-panel > header,
+.eu55[data-theme='dark'] .hx-table th,
+.eu55[data-theme='dark'] .hx-tabs {
+  background: var(--cp-bg-elevated);
+  color: var(--cp-text);
+}
+
+.eu55[data-theme='dark'] .hx-panel,
+.eu55[data-theme='dark'] .hx-table tr.selected td,
+.eu55[data-theme='dark'] .hx-tabs button.active,
+.eu55[data-theme='dark'] .hx select,
+.eu55[data-theme='dark'] .hx input,
+.eu55[data-theme='dark'] .hx textarea,
+.eu55[data-theme='dark'] .hx .block {
+  background: var(--cp-surface);
+  color: var(--cp-text);
+}
+
+.eu55[data-theme='dark'] .hx select,
+.eu55[data-theme='dark'] .hx input,
+.eu55[data-theme='dark'] .hx textarea {
+  border-color: var(--cp-border-strong);
+}
+
+.eu55[data-theme='dark'] .hx-table tr:nth-child(even) td,
+.eu55[data-theme='dark'] .hx-table tr.clickable:hover td,
+.eu55[data-theme='dark'] .hx .chip,
+.eu55[data-theme='dark'] .hx .result,
+.eu55[data-theme='dark'] .hx dl.hx-facts dd {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text);
+}
+
+.eu55[data-theme='dark'] .hx-empty {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border-strong);
+  color: var(--cp-text-soft);
+}
+
+.eu55[data-theme='dark'] .hx-btn,
+.eu55[data-theme='dark'] .hx .button {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border-strong);
+  color: var(--cp-text);
+}
+
+.eu55[data-theme='dark'] .hx-btn:disabled,
+.eu55[data-theme='dark'] .hx .button:disabled {
+  color: var(--cp-text-soft);
+}
+
+/* Status pills keep their meaning; only the surface changes. */
+.eu55[data-theme='dark'] .hx-pill-ok {
+  background: rgba(74, 222, 128, 0.16);
+  color: var(--cp-success);
+}
+
+.eu55[data-theme='dark'] .hx-pill-warn {
+  background: rgba(251, 191, 36, 0.16);
+  color: var(--cp-warning);
+}
+
+.eu55[data-theme='dark'] .hx-pill-crit {
+  background: rgba(248, 113, 113, 0.16);
+  color: var(--cp-danger);
+}
+
+.eu55[data-theme='dark'] .hx-pill-info,
+.eu55[data-theme='dark'] .hx-pill-neutral {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text-muted);
+}
+
+/* Guided story and backstage: the waits must stay readable in dark. */
+.eu55[data-theme='dark'] .hx-story,
+.eu55[data-theme='dark'] .hx-backstage {
+  background: var(--cp-banner);
+  border-bottom-color: var(--cp-border);
+  color: var(--cp-text);
+}
+
+.eu55[data-theme='dark'] .hx-backstage > header,
+.eu55[data-theme='dark'] .hx-backstage footer {
+  background: transparent;
+  border-color: var(--cp-border);
+  color: var(--cp-text-muted);
+}
+
+.eu55[data-theme='dark'] .hx-story-steps button,
+.eu55[data-theme='dark'] .hx-story-num {
+  color: var(--cp-text-muted);
+}
+
+.eu55[data-theme='dark'] .hx-story-steps li.current button,
+.eu55[data-theme='dark'] .hx-story-steps li.done button {
+  color: var(--cp-text);
+}
+
+.eu55[data-theme='dark'] .hx-story-steps li.current .hx-story-num,
+.eu55[data-theme='dark'] .hx-stage.active .hx-stage-dot {
+  background: var(--cp-orientation);
+  color: #1f2429;
+}
+
+.eu55[data-theme='dark'] .hx-story-tag {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text-muted);
+}
+
+.eu55[data-theme='dark'] .hx-spinner {
+  border-top-color: var(--cp-text);
 }
