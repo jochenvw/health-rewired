@@ -5,7 +5,7 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | Agent | When it runs | What it reads here |
 |---|---|---|
 | Idea coach (`.github/workflows/idea-coach.md`) | Issue opened / edited / commented | All files in this folder |
-| Copilot coding agent (`.github/copilot-instructions.md`) | Issue assigned to Copilot | `purpose-and-learnings.md`, `guardrails.md`, `implementation-guidelines.md`, `capability-cards.md` |
+| Copilot coding agent (`.github/copilot-instructions.md`) | Issue assigned to Copilot | `purpose-and-learnings.md`, `guardrails.md`, `implementation-guidelines.md`, `design-language.md`, `capability-cards.md` |
 | Post-build critic (`.github/workflows/idea-critic.md`) | Copilot finishes a pull request | `purpose-and-learnings.md`, `critic.md`, `guardrails.md`, `clinical-thinking.md` |
 | Architecture coach (`.github/workflows/architecture-coach.md`) | Participant marks a live prototype finished | `architecture-coaching.md`, `purpose-and-learnings.md`, `clinical-thinking.md`, `capability-cards.md` |
 | Presentation editor (`.github/workflows/presentation-editor.md`) | Participant replies `/presentation revise` after seeing a deck | `showcase-presentation.md` and the complete issue history |
@@ -25,6 +25,7 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | [`capability-cards.md`](capability-cards.md) | Evolving vocabulary of modern GenAI capabilities |
 | [`coaching.md`](coaching.md) | Tone, response shape, labels and the implementation proposal template |
 | [`implementation-guidelines.md`](implementation-guidelines.md) | How the coding agent builds an approved idea |
+| [`design-language.md`](design-language.md) | Shared visual and interaction system across all prototypes |
 | [`critic.md`](critic.md) | What the post-build critic checks |
 | [`architecture-coaching.md`](architecture-coaching.md) | How a finished prototype becomes a future Azure architecture proposal |
 | [`showcase-presentation.md`](showcase-presentation.md) | How the final issue history becomes an audience-ready PowerPoint |
