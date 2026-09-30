@@ -1,0 +1,411 @@
+/*
+ * Idea #55 workspace styling – "conditional pathway" character from
+ * .github/hackathon/design-language.md: institutional chrome from HospitalShell, cool neutral work
+ * surfaces, an amber orientation edge for the cross-border eligibility pathway, and semantic
+ * --cp-* tokens. Scoped to .eu55 so no shared shell style is modified.
+ */
+
+.eu55 {
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+  /* Workspace orientation only – never a status meaning (design language §6). */
+  --cp-orientation: #b45309;
+
+  --font-sans: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: Consolas, 'Courier New', Courier, monospace;
+
+  /* Map the shared .hx component variables onto the tokens so Panel, DataTable, Pill and the
+     generative-UI blocks inherit this palette without touching hospital.css. */
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+
+  font-family: var(--font-sans);
+  color: var(--cp-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .eu55 {
+    --cp-bg: #2b3238;
+    --cp-bg-elevated: #242a30;
+    --cp-surface: #1f2429;
+    --cp-surface-soft: #262c32;
+    --cp-border: #3f4953;
+    --cp-border-strong: #5f5f5f;
+    --cp-text: #dedede;
+    --cp-text-muted: #919191;
+    --cp-text-soft: #b0b0b0;
+    --cp-chrome: #0b1a29;
+    --cp-chrome-fg: #dbe7f1;
+    --cp-chrome-muted: #8ea6ba;
+    --cp-banner: #1a2733;
+    --cp-accent: #fd8ea1;
+    --cp-accent-hover: #fb7b91;
+    --cp-accent-soft: rgba(253, 142, 161, 0.14);
+    --cp-success: #4ade80;
+    --cp-warning: #fbbf24;
+    --cp-danger: #f87171;
+    --cp-link: #4da6ff;
+    --cp-orientation: #fbbf24;
+  }
+}
+
+/* ---------- Guided story, integrated with the chrome rather than floating above it ---------- */
+
+.eu55-guide {
+  background: var(--cp-banner);
+  border-bottom: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-orientation);
+}
+
+/* ---------- Eyebrow: small monospaced operational label ---------- */
+
+.eu55-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+  margin: 0 0 6px;
+}
+
+.eu55-section {
+  margin: 0 0 16px;
+}
+
+/* ---------- Attention / blocking strip ---------- */
+
+.eu55-attention {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-warning);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 0 0 16px;
+}
+
+.eu55-attention.resolved {
+  border-left-color: var(--cp-success);
+}
+
+.eu55-attention.blocking {
+  border-left-color: var(--cp-danger);
+}
+
+.eu55-attention p {
+  margin: 0;
+  flex: 1 1 320px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.eu55-attention-who {
+  font-size: 12px;
+  color: var(--cp-text-muted);
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* ---------- Status badges: always text, never colour alone ---------- */
+
+.eu55-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--cp-surface-soft);
+  color: var(--cp-text);
+}
+
+.eu55-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cp-text-muted);
+}
+
+.eu55-badge-match::before {
+  background: var(--cp-success);
+}
+
+.eu55-badge-blocked::before {
+  background: var(--cp-warning);
+}
+
+.eu55-badge-excluded::before {
+  background: var(--cp-danger);
+}
+
+.eu55-badge-info::before {
+  background: var(--cp-link);
+}
+
+.eu55-badge-running::before {
+  background: var(--cp-link);
+  animation: eu55-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes eu55-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* ---------- Counters strip ---------- */
+
+.eu55-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.eu55-count {
+  flex: 1 1 150px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.eu55-count strong {
+  display: block;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.eu55-count span {
+  font-size: 12px;
+  color: var(--cp-text-muted);
+}
+
+/* ---------- Reasoning path: public account, bounded sequence ---------- */
+
+.eu55-reasoning {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  counter-reset: eu55-step;
+}
+
+.eu55-reasoning li {
+  position: relative;
+  counter-increment: eu55-step;
+  padding: 0 0 10px 30px;
+  border-left: 1px solid var(--cp-border);
+  margin-left: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.eu55-reasoning li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.eu55-reasoning li::before {
+  content: counter(eu55-step);
+  position: absolute;
+  left: -10px;
+  top: 0;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border-strong);
+  color: var(--cp-text-muted);
+}
+
+.eu55-reasoning b {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+  font-weight: 600;
+}
+
+/* ---------- Inspection drawer ---------- */
+
+.eu55-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 48, 77, 0.35);
+  z-index: 40;
+}
+
+.eu55-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(520px, 92vw);
+  background: var(--cp-surface);
+  border-left: 1px solid var(--cp-border-strong);
+  box-shadow: -12px 0 32px rgba(16, 48, 77, 0.22);
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  color: var(--cp-text);
+}
+
+.eu55-drawer header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cp-border);
+  background: var(--cp-bg-elevated);
+}
+
+.eu55-drawer header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.eu55-drawer-body {
+  overflow: auto;
+  padding: 16px 20px 24px;
+}
+
+.eu55-drawer-body pre {
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+/* ---------- Definition list for inspecting one record ---------- */
+
+.eu55-facts {
+  display: grid;
+  grid-template-columns: minmax(120px, 38%) 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.eu55-facts dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cp-text-soft);
+}
+
+.eu55-facts dd {
+  margin: 0;
+}
+
+.eu55-provenance {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--cp-text-soft);
+}
+
+/* ---------- Form controls and accessible focus ---------- */
+
+.eu55-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.eu55-field input {
+  min-height: 36px;
+  width: 110px;
+  padding: 4px 8px;
+  border: 1px solid var(--cp-border-strong);
+  border-radius: 8px;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  font: inherit;
+}
+
+.eu55 .hx-btn {
+  min-height: 36px;
+  border-radius: 8px;
+}
+
+.eu55 :focus-visible,
+.eu55-drawer :focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 4px;
+}
+
+.eu55-note {
+  font-size: 12px;
+  color: var(--cp-text-muted);
+  margin: 8px 0 0;
+}
+
+.eu55-linkish {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--cp-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eu55-badge-running::before {
+    animation: none;
+  }
+}

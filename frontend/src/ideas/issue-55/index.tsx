@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AgentResult, PatientRecord } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { DataTable, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
+import { DataTable, HospitalShell, Panel } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
+import './workspace.css';
 
 export const meta: IdeaMeta = {
   id: '55',
@@ -126,10 +127,100 @@ const referralStages: Stage[] = [
   { label: 'Drafting the cover letter in the site language', ms: 900 },
 ];
 
-const verdictTone = { match: 'ok', excluded: 'crit', blocked: 'warn' } as const;
 const verdictLabel = { match: 'Match', excluded: 'Excluded', blocked: 'Blocked – value unknown' };
-const statusTone = { met: 'ok', not_met: 'crit', unknown: 'warn' } as const;
+const verdictBadge = { match: 'match', excluded: 'excluded', blocked: 'blocked' } as const;
 const statusLabel = { met: 'Met', not_met: 'Not met', unknown: 'Unknown' };
+const statusBadge = { met: 'match', not_met: 'excluded', unknown: 'blocked' } as const;
+
+/** Small monospaced operational label above a section (design language §5). */
+function Eyebrow({ children }: { children: ReactNode }) {
+  return <span className="eu55-eyebrow">{children}</span>;
+}
+
+/** Status badge: always carries text, never colour alone. */
+function Badge({ kind, children }: { kind: 'match' | 'blocked' | 'excluded' | 'info' | 'running'; children: ReactNode }) {
+  return <span className={`eu55-badge eu55-badge-${kind}`}>{children}</span>;
+}
+
+/**
+ * Attention strip: what needs a person, what unlocks the next step, and the action that focuses
+ * the required input. Stays visible until genuinely resolved.
+ */
+function Attention({
+  tone,
+  eyebrow,
+  children,
+  who,
+  action,
+}: {
+  tone: 'blocking' | 'warning' | 'resolved';
+  eyebrow: string;
+  children: ReactNode;
+  who?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <section className={`eu55-attention ${tone === 'warning' ? '' : tone}`} aria-live="polite">
+      <div style={{ flex: '1 1 320px' }}>
+        <Eyebrow>{eyebrow}</Eyebrow>
+        <p>{children}</p>
+      </div>
+      {action}
+      {who && <p className="eu55-attention-who">{who}</p>}
+    </section>
+  );
+}
+
+/** The agent's public account of its work – never private model deliberation. */
+function ReasoningPath({ steps }: { steps: { label: string; text: ReactNode }[] }) {
+  return (
+    <ol className="eu55-reasoning">
+      {steps.map((step) => (
+        <li key={step.label}>
+          <b>{step.label}</b>
+          {step.text}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Right-side inspection drawer with Escape handling and focus restoration. */
+function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow: string; onClose: () => void; children: ReactNode }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const opener = useRef<Element | null>(null);
+
+  useEffect(() => {
+    opener.current = document.activeElement;
+    closeRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      (opener.current as HTMLElement | null)?.focus?.();
+    };
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="eu55-drawer-backdrop" onClick={onClose} />
+      <aside className="eu55 eu55-drawer" role="dialog" aria-modal="true" aria-label={title}>
+        <header>
+          <div style={{ flex: 1 }}>
+            <Eyebrow>{eyebrow}</Eyebrow>
+            <h2>{title}</h2>
+          </div>
+          <button ref={closeRef} type="button" className="hx-btn" onClick={onClose}>
+            Close
+          </button>
+        </header>
+        <div className="eu55-drawer-body">{children}</div>
+      </aside>
+    </>
+  );
+}
 
 export default function EuropeanTrialMatch() {
   const [section, setSection] = useState<Section>('report');
@@ -154,6 +245,18 @@ export default function EuropeanTrialMatch() {
   const [draftStarted, setDraftStarted] = useState(false);
   const [draftRun, setDraftRun] = useState(0);
   const [approved, setApproved] = useState(false);
+  const [inspect, setInspect] = useState<'report' | 'criterion' | null>(null);
+  const [inspectCriterion, setInspectCriterion] = useState<{ trial: Trial; criterion: Criterion } | null>(null);
+
+  const closeDrawer = useCallback(() => {
+    setInspect(null);
+    setInspectCriterion(null);
+  }, []);
+
+  const inspectCriterionRow = useCallback((trial: Trial, criterion: Criterion) => {
+    setInspectCriterion({ trial, criterion });
+    setInspect('criterion');
+  }, []);
 
   useEffect(() => {
     call<CaseData>('/case')
@@ -232,16 +335,18 @@ export default function EuropeanTrialMatch() {
     <HospitalShell
       module="Molecular tumour board preparation"
       guide={
-        <StoryGuide
-          steps={story}
-          current={storyStep}
-          onGo={(id) => {
-            if (id === 'report') setSection('report');
-            else if (id === 'trials' || id === 'missing') startScreening();
-            else setSection('referral');
-          }}
-          nextLabel={section === 'report' ? 'Search European trials' : undefined}
-        />
+        <div className="eu55 eu55-guide">
+          <StoryGuide
+            steps={story}
+            current={storyStep}
+            onGo={(id) => {
+              if (id === 'report') setSection('report');
+              else if (id === 'trials' || id === 'missing') startScreening();
+              else setSection('referral');
+            }}
+            nextLabel={section === 'report' ? 'Search European trials' : undefined}
+          />
+        </div>
       }
       nav={[
         { id: 'report', label: 'DNA report' },
@@ -283,12 +388,25 @@ export default function EuropeanTrialMatch() {
         </>
       }
     >
-      {notice && <Panel title="Information">{notice}</Panel>}
+      <div className="eu55">
+      {notice && (
+        <Attention tone="resolved" eyebrow="Working record updated">
+          {notice}
+        </Attention>
+      )}
 
       {section === 'report' &&
         (data ? (
           <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(320px, 1fr) minmax(340px, 1fr)' }}>
-            <Panel title={`Whole-genome sequencing · ${data.dna_report_source}`}>
+            <Panel
+              title="Whole-genome sequencing result"
+              actions={
+                <button type="button" className="hx-btn" onClick={() => setInspect('report')}>
+                  Open complete report
+                </button>
+              }
+            >
+              <Eyebrow>Reported 14-03-2026 · {data.dna_report_source}</Eyebrow>
               <DataTable
                 rowKey={(r) => r.k}
                 rows={Object.entries(data.patient.diagnosis.biomarkers).map(([k, v]) => ({ k, v }))}
@@ -298,25 +416,38 @@ export default function EuropeanTrialMatch() {
                   { key: 'v', label: 'Result' },
                 ]}
               />
-              <p style={{ margin: '10px 0 8px' }}>
-                <Pill tone="warn">Actionable</Pill> ERBB2 (HER2) amplification, copy number 11.4 · <Pill tone="info">Tier I</Pill> ·
-                RAS and BRAF wild-type keep HER2-directed trials open.
-              </p>
-              <details>
-                <summary>Full laboratory report (synthetic)</summary>
-                <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', lineHeight: 1.5 }}>{data.dna_report}</pre>
-              </details>
+              <div className="eu55-section" style={{ marginTop: 12 }}>
+                <Eyebrow>Current conclusion</Eyebrow>
+                <p style={{ margin: '0 0 8px', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                  <Badge kind="info">Actionable · Tier I</Badge>
+                  <span>
+                    ERBB2 (HER2) amplification, copy number 11.4. RAS and BRAF wild-type keep HER2-directed trials open.
+                  </span>
+                </p>
+                <p className="eu55-note">
+                  Evidence and full laboratory text stay one action away –{' '}
+                  <button type="button" className="eu55-linkish" onClick={() => setInspect('report')}>
+                    open the complete report
+                  </button>
+                  .
+                </p>
+              </div>
             </Panel>
             <Panel
               title={interpretation ? interpretation.headline : 'Assistant – what does this alteration mean?'}
               actions={
-                interpretation && (
-                  <Pill tone={interpretation.mode === 'copilot' ? 'ok' : 'neutral'}>
-                    {interpretation.mode === 'copilot' ? 'Live AI' : 'Demo mode'}
-                  </Pill>
-                )
+                <Badge kind={interpreting ? 'running' : interpretation ? 'info' : 'info'}>
+                  {interpreting
+                    ? 'Assistant working'
+                    : interpretation
+                      ? interpretation.mode === 'copilot'
+                        ? 'Live assistant'
+                        : 'Deterministic demo path'
+                      : 'Not run yet'}
+                </Badge>
               }
             >
+              <Eyebrow>Public account of the assistant's work</Eyebrow>
               <Backstage
                 key={interpretRun}
                 title="Behind the scenes – reading the DNA report"
@@ -339,6 +470,21 @@ export default function EuropeanTrialMatch() {
                     <RenderBlock key={index} block={block} />
                   ))}
                 </div>
+              )}
+              {interpretation && (
+                <ReasoningPath
+                  steps={[
+                    { label: 'Trying to answer', text: 'Which alteration in this report could open a treatment option?' },
+                    { label: 'Considered', text: 'The WGS report, the clinical summary and the tier of each alteration.' },
+                    { label: 'This showed', text: 'ERBB2 (HER2) amplification, RAS and BRAF wild-type – HER2-directed trials stay open.' },
+                    {
+                      label: 'But this remains uncertain',
+                      text: 'Cardiac function (LVEF) is not in the record, and HER2-directed trials usually require it.',
+                    },
+                    { label: 'So the current conclusion is', text: 'Screen the European registry for HER2-directed trials.' },
+                    { label: 'Next', text: 'The molecular tumour board judges clinical relevance; nothing is sent anywhere.' },
+                  ]}
+                />
               )}
               <p style={{ marginTop: 12 }}>
                 <button type="button" className="hx-btn primary" onClick={startScreening}>
@@ -368,11 +514,20 @@ export default function EuropeanTrialMatch() {
             <Panel
               title={`Shortlist · ${shortlist.length} trials in ${new Set(shortlist.map((t) => t.country)).size} countries`}
               actions={
-                <>
-                  <Pill tone="ok">{matches.length} match</Pill>
-                  <Pill tone="warn">{blocked.length} blocked</Pill>
-                  <Pill tone="crit">{shortlist.filter((t) => t.verdict === 'excluded').length} excluded</Pill>
-                </>
+                <div className="eu55-counts">
+                  <span className="eu55-count">
+                    <Badge kind="info">{screening.screened} screened</Badge>
+                  </span>
+                  <span className="eu55-count">
+                    <Badge kind="match">{matches.length} match</Badge>
+                  </span>
+                  <span className="eu55-count">
+                    <Badge kind="blocked">{blocked.length} blocked</Badge>
+                  </span>
+                  <span className="eu55-count">
+                    <Badge kind="excluded">{shortlist.filter((t) => t.verdict === 'excluded').length} excluded</Badge>
+                  </span>
+                </div>
               }
             >
               <DataTable
@@ -400,7 +555,7 @@ export default function EuropeanTrialMatch() {
                     key: 'verdict',
                     label: 'Result',
                     width: '160px',
-                    render: (t) => <Pill tone={verdictTone[t.verdict]}>{verdictLabel[t.verdict]}</Pill>,
+                    render: (t) => <Badge kind={verdictBadge[t.verdict]}>{verdictLabel[t.verdict]}</Badge>,
                   },
                   {
                     key: 'go',
@@ -420,13 +575,17 @@ export default function EuropeanTrialMatch() {
             </Panel>
 
             {screening.missing.length > 0 && (
-              <Panel title="Missing before this can be decided">
+              <Panel title="Needs a person before this can be decided">
+                <Eyebrow>Unknown is kept as unknown – never assumed either way</Eyebrow>
                 {screening.missing.map((m) => (
-                  <div key={m.fact} style={{ marginBottom: 10 }}>
-                    <p style={{ margin: '0 0 6px' }}>
-                      <Pill tone="warn">Unknown</Pill> {m.criterion} – required by <strong>{m.trial_id}</strong>. {m.hint}
-                    </p>
-                    <div className="chip-row" style={{ alignItems: 'center', gap: 8 }}>
+                  <div key={m.fact} className="eu55-attention blocking" style={{ marginBottom: 10 }}>
+                    <div style={{ flex: '1 1 320px' }}>
+                      <p style={{ margin: '0 0 6px' }}>
+                        <Badge kind="blocked">Unknown</Badge> {m.criterion} – required by <strong>{m.trial_id}</strong>. {m.hint}
+                      </p>
+                      <p className="eu55-attention-who">Needs the oncologist to enter the documented value.</p>
+                    </div>
+                    <div className="eu55-field">
                       <label>
                         {m.label}{' '}
                         <input
@@ -451,12 +610,17 @@ export default function EuropeanTrialMatch() {
                     </div>
                   </div>
                 ))}
+                <p className="eu55-note">
+                  Adding a value changes only this working record and re-runs the screening; it writes nothing back to the patient
+                  file and sends nothing to any centre.
+                </p>
               </Panel>
             )}
 
-            {open && <TrialDetail trial={open} onRefer={() => draft(open.id)} />}
+            {open && <TrialDetail trial={open} onRefer={() => draft(open.id)} onInspect={inspectCriterionRow} />}
 
             <Panel title={`Screened out – ${screening.screened_out.length} trials, with the reason`}>
+              <Eyebrow>Nothing disappears silently</Eyebrow>
               <DataTable
                 rowKey={(t) => t.id}
                 rows={screening.screened_out}
@@ -469,6 +633,7 @@ export default function EuropeanTrialMatch() {
               />
             </Panel>
             <Panel title="Drug availability by country (fictional)">
+              <Eyebrow>Synthetic data · not a regulatory source</Eyebrow>
               <DataTable
                 rowKey={(r) => String(r.drug)}
                 rows={screening.drug_availability}
@@ -491,6 +656,7 @@ export default function EuropeanTrialMatch() {
       {section === 'referral' && (
         <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(260px, 1fr) minmax(380px, 2fr)' }}>
           <Panel title="Choose the trial to pursue">
+            <Eyebrow>Oncologist and patient decide · the board judges relevance</Eyebrow>
             {matches.length === 0 && (
               <span className="hx-empty">No trial matches yet. Add the missing value on the European trials screen.</span>
             )}
@@ -524,18 +690,25 @@ export default function EuropeanTrialMatch() {
           <Panel
             title={referral ? referral.headline : 'Referral package (draft)'}
             actions={
-              referral && (
-                <>
-                  <Pill tone={referral.mode === 'copilot' ? 'ok' : 'neutral'}>
-                    {referral.mode === 'copilot' ? 'Live AI' : 'Demo mode'}
-                  </Pill>
+              <>
+                <Badge kind={drafting ? 'running' : referral ? 'info' : 'info'}>
+                  {drafting
+                    ? 'Drafting'
+                    : referral
+                      ? referral.mode === 'copilot'
+                        ? 'Live assistant · draft'
+                        : 'Deterministic demo path · draft'
+                      : 'Not drafted yet'}
+                </Badge>
+                {referral && (
                   <button type="button" className="hx-btn primary" disabled={approved} onClick={() => setApproved(true)}>
                     {approved ? 'Approved for the tumour board ✓' : 'Approve for molecular tumour board'}
                   </button>
-                </>
-              )
+                )}
+              </>
             }
           >
+            <Eyebrow>Draft · nothing is sent automatically</Eyebrow>
             <Backstage
               key={draftRun}
               title={`Behind the scenes – preparing the package for ${chosen?.city ?? 'the receiving centre'}`}
@@ -563,17 +736,64 @@ export default function EuropeanTrialMatch() {
           </Panel>
         </div>
       )}
+      </div>
+
+      {inspect === 'report' && data && (
+        <Drawer title="Whole-genome sequencing report" eyebrow="Inspectable by design" onClose={closeDrawer}>
+          <p className="eu55-provenance">Source: {data.dna_report_source} · synthetic</p>
+          <pre>{data.dna_report}</pre>
+        </Drawer>
+      )}
+      {inspect === 'criterion' && inspectCriterion && (
+        <Drawer title="Criterion → evidence → source" eyebrow="Inspectable by design" onClose={closeDrawer}>
+          <dl className="eu55-facts">
+            <dt>Trial</dt>
+            <dd>
+              {inspectCriterion.trial.id} · {inspectCriterion.trial.site}
+            </dd>
+            <dt>Criterion</dt>
+            <dd>
+              {inspectCriterion.criterion.text_local}
+              <div className="eu55-provenance">{inspectCriterion.criterion.text_en}</div>
+            </dd>
+            <dt>Type</dt>
+            <dd>{inspectCriterion.criterion.kind === 'inclusion' ? 'Inclusion' : 'Exclusion'}</dd>
+            <dt>Status</dt>
+            <dd>
+              <Badge kind={statusBadge[inspectCriterion.criterion.status]}>{statusLabel[inspectCriterion.criterion.status]}</Badge>
+            </dd>
+            <dt>What we know</dt>
+            <dd>{inspectCriterion.criterion.observed ?? 'Not recorded – kept as unknown, never assumed'}</dd>
+            <dt>Source</dt>
+            <dd className="eu55-provenance">{inspectCriterion.criterion.source ?? 'No source in the record'}</dd>
+            <dt>Scrutiny</dt>
+            <dd>
+              {inspectCriterion.criterion.status === 'unknown'
+                ? 'Unknown does not mean ineligible. The receiving trial team decides once the value is documented.'
+                : 'Screening is deterministic in this prototype; the receiving trial team decides final eligibility.'}
+            </dd>
+          </dl>
+        </Drawer>
+      )}
     </HospitalShell>
   );
 }
 
-function TrialDetail({ trial, onRefer }: { trial: Trial; onRefer: () => void }) {
+function TrialDetail({
+  trial,
+  onRefer,
+  onInspect,
+}: {
+  trial: Trial;
+  onRefer: () => void;
+  onInspect: (trial: Trial, criterion: Criterion) => void;
+}) {
   return (
     <Panel
       title={`${trial.id} · ${trial.site}`}
       actions={
         <>
-          <Pill tone={verdictTone[trial.verdict]}>{verdictLabel[trial.verdict]}</Pill>
+          <Badge kind={verdictBadge[trial.verdict]}>{verdictLabel[trial.verdict]}</Badge>
           {trial.verdict === 'match' && (
             <button type="button" className="hx-btn primary" onClick={onRefer}>
               Prepare referral in {trial.language}
@@ -582,6 +802,7 @@ function TrialDetail({ trial, onRefer }: { trial: Trial; onRefer: () => void }) 
         </>
       }
     >
+      <Eyebrow>Criterion → evidence → source</Eyebrow>
       <div style={{ marginBottom: 8 }}>
         <strong>{trial.title_local}</strong>
         <div className="hx-stage-detail">
@@ -608,20 +829,28 @@ function TrialDetail({ trial, onRefer }: { trial: Trial; onRefer: () => void }) 
             key: 'status',
             label: 'Result',
             width: '110px',
-            render: (c) => <Pill tone={statusTone[c.status]}>{statusLabel[c.status]}</Pill>,
+            render: (c) => <Badge kind={statusBadge[c.status]}>{statusLabel[c.status]}</Badge>,
           },
           {
             key: 'observed',
             label: 'What we know · source',
-            render: (c) =>
-              c.observed ? (
-                <>
-                  {c.observed}
-                  <div className="hx-stage-detail">{c.source}</div>
-                </>
-              ) : (
-                <em>Not in the record – shown as unknown, never assumed</em>
-              ),
+            render: (c) => (
+              <>
+                {c.observed ? (
+                  <>
+                    {c.observed}
+                    <div className="eu55-provenance">{c.source}</div>
+                  </>
+                ) : (
+                  <em>Not in the record – shown as unknown, never assumed</em>
+                )}
+                <div>
+                  <button type="button" className="eu55-linkish" onClick={() => onInspect(trial, c)}>
+                    Inspect
+                  </button>
+                </div>
+              </>
+            ),
           },
         ]}
       />
