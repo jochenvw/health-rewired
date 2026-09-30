@@ -27,8 +27,11 @@ click through, react to, and iterate on with you. Speed to something visible bea
 
 1. Read the issue, **the latest "🚀 Implementation proposal" comment**, and the conversation.
    The proposal is the contract. The participant's clinical insight is the point.
-2. Read [`capability-cards.md`](capability-cards.md) for the capabilities the proposal names.
-3. Where code goes – **each idea lives in its own files**, so ideas never collide and can later all
+2. Read [`design-language.md`](design-language.md) before designing the page. It is the common
+   visual and interaction foundation across demos; the proposal still determines the role,
+   workflow and storyline.
+3. Read [`capability-cards.md`](capability-cards.md) for the capabilities the proposal names.
+4. Where code goes – **each idea lives in its own files**, so ideas never collide and can later all
    be merged into `main`, where the landing page lists every idea:
    - Page: `frontend/src/ideas/issue-<N>/index.tsx` exporting `meta` (`id: "<N>"`, `issue: <N>`,
      plain-language `title` and one-line `tagline`) and a default component. It is discovered
@@ -64,6 +67,10 @@ click through, react to, and iterate on with you. Speed to something visible bea
    notice visible.
 7. **Look credible in the participant's working world.** Match the visual language to the user and
    task in the proposal instead of making every idea look like the same blue EHR.
+   - Follow [`design-language.md`](design-language.md) in every mode: dark institutional chrome,
+     cool neutral work surfaces, semantic `--cp-*` tokens, restrained accent, operational
+     typography, explicit status, inspectable detail and visible human control. Reuse the token
+     values rather than inventing an unrelated palette in each issue.
    - For patient-level clinical workflows, default to `HospitalShell` from
      `frontend/src/hospital/HospitalShell.tsx` (hospital app bar, patient banner, left navigation,
      status bar) and its `Panel`, `DataTable`, `Tabs` and `Pill` pieces.
@@ -73,6 +80,9 @@ click through, react to, and iterate on with you. Speed to something visible bea
      concept. Do not modify shared `HospitalShell` components or other ideas to achieve it.
    - In either mode, keep it deliberately functional, dense and data-rich – not a startup landing
      page, generic dashboard template or decorative concept mock-up.
+   - Consistency does not mean identical layouts. Vary the representation of the work – grids,
+     structural edges, evidence views, maps or boards – while keeping the shared typography,
+     controls, semantic colors, spacing and interaction rules.
    - **Lots of fake data.** Fill worklists, results, notes and histories so the screen feels like a
      real working day. Use `/sample-data` and add inline synthetic rows (names, times, wards,
      sites, cohorts or trial signals) freely.
@@ -85,7 +95,9 @@ click through, react to, and iterate on with you. Speed to something visible bea
      concrete storyline and guide it with `StoryGuide` (`frontend/src/hospital/Story.tsx`) or an
      equally clear issue-local step treatment. Show out-of-sight work – hospitals queried, data
      matched, models trained, letters sent – with `Backstage` stages (spinners, counts, one-line
-     explanations). Simulated timings and numbers are fine. End on the payoff screen.
+     explanations). Integrate the guide and backstage states into the shared design language rather
+     than styling them as a separate tutorial overlay. Simulated timings and numbers are fine. End
+     on the payoff screen.
    - **No doubt while waiting.** Every AI call or simulated process shows a spinner and a label
      at once – in the clicked button and in the result area (`Working` with elapsed seconds, or a
      running `Backstage` with `holdLast` until the AI answers). Never a frozen or empty screen.
