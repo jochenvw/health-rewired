@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import './hospital.css';
 
 /*
@@ -20,6 +20,46 @@ export type BannerPatient = {
   allergies?: string;
   ward?: string;
 };
+
+export type HxTheme = 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'hx-theme';
+
+function initialHxTheme(): HxTheme {
+  if (typeof window === 'undefined') return 'light';
+  const stored = window.localStorage?.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+/** Shared Light/Dark theme state, initialised synchronously (before paint) from a saved choice or
+ * system preference, and persisted for the next visit. */
+function useHxTheme(): [HxTheme, (t: HxTheme) => void] {
+  const [theme, setTheme] = useState<HxTheme>(initialHxTheme);
+  const setAndStore = (t: HxTheme) => {
+    setTheme(t);
+    try {
+      window.localStorage?.setItem(THEME_STORAGE_KEY, t);
+    } catch {
+      /* storage unavailable (e.g. private mode) — theme still applies for this session */
+    }
+  };
+  return [theme, setAndStore];
+}
+
+/** Plainly labelled, always-visible Light/Dark buttons — never an icon-only or ambiguous toggle. */
+function ThemeButtons({ theme, onChange }: { theme: HxTheme; onChange: (t: HxTheme) => void }) {
+  return (
+    <div className="hx-theme-toggle" role="group" aria-label="Theme">
+      <button type="button" aria-pressed={theme === 'light'} onClick={() => onChange('light')}>
+        Light
+      </button>
+      <button type="button" aria-pressed={theme === 'dark'} onClick={() => onChange('dark')}>
+        Dark
+      </button>
+    </div>
+  );
+}
 
 export function HospitalShell({
   module,
@@ -44,8 +84,9 @@ export function HospitalShell({
   children: ReactNode;
 }) {
   const today = new Date().toLocaleDateString('de-DE');
+  const [theme, setTheme] = useHxTheme();
   return (
-    <div className="hx">
+    <div className="hx" data-theme={theme}>
       <div className="hx-appbar">
         <span className="hx-logo">KR</span>
         <strong>Klinikum Rewired München</strong>
@@ -54,6 +95,8 @@ export function HospitalShell({
         <span className="hx-appbar-sep">|</span>
         <span>{module}</span>
         <span className="hx-spacer" />
+        <ThemeButtons theme={theme} onChange={setTheme} />
+        <span className="hx-appbar-sep">|</span>
         <span>Dr. M. Weber · Medical Oncology</span>
         <span className="hx-appbar-sep">|</span>
         <span>{today}</span>
