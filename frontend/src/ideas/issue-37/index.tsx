@@ -1,12 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { api, type AgentResult, type NetworkSnapshot, type PatientRecord } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
+import { DataTable, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import { CohortLandscape } from './CohortLandscape';
 import { CountryMixBar, NetworkMap, type NetworkPhase } from './NetworkMap';
 import './issue-37.css';
+
+/*
+ * Issue #37 is a cross-hospital federated-learning workspace, not bedside patient-chart care, so
+ * it uses a purpose-built shell (this file) rather than <HospitalShell> — per
+ * .github/hackathon/implementation-guidelines.md rule 7 ("research networks, trial operations,
+ * federated learning ... a purpose-built issue-local shell may fit better"). It still follows the
+ * shared design language (.github/hackathon/design-language.md): institutional chrome, --cp-*
+ * tokens, an inspection drawer, and reuses StoryGuide/Backstage/Panel/DataTable/Tabs/Pill for the
+ * parts they already cover well.
+ */
 
 export const meta: IdeaMeta = {
   id: '37',
@@ -26,6 +36,13 @@ const APPROACHES = [
 
 type Section = 'worklist' | 'chart' | 'network' | 'decide';
 
+const SECTION_DETAIL: Record<Section, string> = {
+  worklist: '3 cases today',
+  chart: 'EGFR ex19del · new nodule',
+  network: 'Federated query · 9 sites',
+  decide: 'Human decision required',
+};
+
 const story: StoryStep[] = [
   {
     id: 'worklist',
@@ -40,12 +57,12 @@ const story: StoryStep[] = [
   {
     id: 'network',
     title: 'Ask the European network',
-    explain: 'The assistant sends a structured, privacy-preserving query to a simulated network of hospitals across Europe.',
+    explain: 'A structured, privacy-preserving query goes out to a simulated network of hospitals across Europe.',
   },
   {
     id: 'decide',
     title: 'Decide & feed back',
-    explain: 'You and the patient decide. Recording the outcome helps the next clinician who sees someone like him.',
+    explain: 'You and the patient decide. Recording the outcome feeds the learning system for the next clinician.',
   },
 ];
 
@@ -76,10 +93,14 @@ export default function EuropeanLearningNetwork() {
   const [runs, setRuns] = useState(0);
   const [logCount, setLogCount] = useState(0);
   const [justFedBack, setJustFedBack] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [clock, setClock] = useState(() => new Date());
 
   useEffect(() => {
     api.patient(PATIENT_ID).then(setRecord).catch(() => setRecord(null));
     refreshLog();
+    const t = window.setInterval(() => setClock(new Date()), 30_000);
+    return () => window.clearInterval(t);
   }, []);
 
   const refreshLog = () => {
@@ -121,90 +142,163 @@ export default function EuropeanLearningNetwork() {
   const flagged = record?.labs.filter((l) => l.flag).length ?? 0;
   const phase: NetworkPhase = !started ? 'idle' : snapshot ? 'responded' : 'querying';
 
+  const navItems: { id: Section; label: string; badge?: number }[] = [
+    { id: 'worklist', label: 'Worklist' },
+    { id: 'chart', label: 'Patient chart', badge: flagged || undefined },
+    { id: 'network', label: 'Patients like mine' },
+    { id: 'decide', label: 'Decide & feed back', badge: logCount || undefined },
+  ];
+
   return (
-    <HospitalShell
-      module="Molecular tumour board · European network"
-      guide={<StoryGuide steps={story} current={section} onGo={(id) => setSection(id as Section)} />}
-      nav={[
-        { id: 'worklist', label: 'Clinic worklist' },
-        { id: 'chart', label: 'Patient chart', badge: flagged || undefined },
-        { id: 'network', label: 'Patients like mine' },
-        { id: 'decide', label: 'Decide & feed back', badge: logCount || undefined },
-      ]}
-      active={section}
-      onNav={(id) => setSection(id as Section)}
-      patient={
-        section === 'worklist' || !record
-          ? null
-          : {
-              id: record.id,
-              name: record.name,
-              age: record.age,
-              sex: record.sex,
-              diagnosis: `${record.diagnosis.primary} · ${record.diagnosis.stage}`,
-            }
-      }
-      toolbar={
-        section !== 'worklist' && (
-          <>
-            <span className="hx-spacer" />
-            <button type="button" className="hx-btn primary" onClick={() => setSection('network')}>
-              Find patients like mine
+    <div className="eu37 hx">
+      <a className="eu37-skip" href="#eu37-main">
+        Skip to main content
+      </a>
+      <header className="eu37-chrome">
+        <div className="eu37-chrome-id">
+          <span className="eu37-mark" aria-hidden>
+            EU
+          </span>
+          <div>
+            <strong>
+              EU ONCOLOGY NETWORK <span className="eu37-chrome-module">/ MOLECULAR TUMOUR BOARD</span>
+            </strong>
+            <span className="eu37-chrome-org">Klinikum Rewired München · Medical Oncology</span>
+          </div>
+        </div>
+        <div className="eu37-chrome-meta">
+          <span>München · Workstation 4</span>
+          <span>{clock.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="eu37-status-dot">● 9 sites connected</span>
+        </div>
+      </header>
+
+      {record && (
+        <div className="eu37-banner">
+          <div className="eu37-banner-id">
+            <span className="eu37-eyebrow">Case under review</span>
+            <strong>{record.name}</strong>
+          </div>
+          <span>
+            {record.age} y · {record.sex}
+          </span>
+          <span>{record.diagnosis.primary}</span>
+          <span className="eu37-banner-flag">New indeterminate nodule after partial response</span>
+          <span className="eu37-spacer" />
+          <button type="button" className="hx-btn" onClick={() => setSection('chart')}>
+            Open full chart
+          </button>
+        </div>
+      )}
+
+      <div className="eu37-guide">
+        <StoryGuide steps={story} current={section} onGo={(id) => setSection(id as Section)} />
+      </div>
+
+      <div className="eu37-body hx-body">
+        <nav className="eu37-nav hx-nav" aria-label="European learning network workspace">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={item.id === section ? 'active' : undefined}
+              onClick={() => setSection(item.id)}
+            >
+              <span>
+                <span className="eu37-nav-label">{item.label}</span>
+                <span className="eu37-nav-detail">{SECTION_DETAIL[item.id]}</span>
+              </span>
+              {item.badge !== undefined && <span className="hx-badge">{item.badge}</span>}
             </button>
-          </>
-        )
-      }
-    >
-      {section === 'worklist' && (
-        <Panel title="Molecular tumour board worklist">
-          <DataTable
-            rowKey={(r) => r.id}
-            rows={[
-              { id: 'P-002', name: 'Markus Huber', dx: 'NSCLC, EGFR exon 19del, IVA', reason: 'New indeterminate nodule after response', status: 'Needs discussion' },
-              { id: 'X-114', name: 'Klaus Hoffmann', dx: 'NSCLC stage IV', reason: 'Routine follow-up', status: 'Scheduled' },
-              { id: 'X-207', name: 'Sabine Kraus', dx: 'Ovarian ca. FIGO IIIC', reason: 'Consent discussion', status: 'Scheduled' },
-            ]}
-            selected={record?.id}
-            onSelect={(r) => (r.id === 'P-002' ? setSection('chart') : setSection('worklist'))}
-            columns={[
-              { key: 'name', label: 'Patient', render: (r) => <strong>{r.name}</strong> },
-              { key: 'dx', label: 'Diagnosis' },
-              { key: 'reason', label: 'Reason for board' },
-              {
-                key: 'status',
-                label: 'Status',
-                render: (r) => <Pill tone={r.status === 'Needs discussion' ? 'crit' : 'neutral'}>{r.status}</Pill>,
-              },
-            ]}
-          />
-        </Panel>
+          ))}
+        </nav>
+        <main className="eu37-canvas hx-main" id="eu37-main">
+          {section !== 'worklist' && (
+            <div className="eu37-toolbar hx-toolbar">
+              <span className="eu37-spacer" />
+              <button type="button" className="hx-btn primary" onClick={() => setSection('network')}>
+                Find patients like mine
+              </button>
+              {snapshot && (
+                <button type="button" className="hx-btn" onClick={() => setDrawerOpen(true)}>
+                  Inspect evidence &amp; provenance
+                </button>
+              )}
+            </div>
+          )}
+          <div className="hx-content">
+            {section === 'worklist' && (
+              <Panel title="Molecular tumour board worklist">
+                <DataTable
+                  rowKey={(r) => r.id}
+                  rows={[
+                    { id: 'P-002', name: 'Markus Huber', dx: 'NSCLC, EGFR exon 19del, IVA', reason: 'New indeterminate nodule after response', status: 'Needs discussion' },
+                    { id: 'X-114', name: 'Klaus Hoffmann', dx: 'NSCLC stage IV', reason: 'Routine follow-up', status: 'Scheduled' },
+                    { id: 'X-207', name: 'Sabine Kraus', dx: 'Ovarian ca. FIGO IIIC', reason: 'Consent discussion', status: 'Scheduled' },
+                  ]}
+                  selected={record?.id}
+                  onSelect={(r) => (r.id === 'P-002' ? setSection('chart') : setSection('worklist'))}
+                  columns={[
+                    { key: 'name', label: 'Patient', render: (r) => <strong>{r.name}</strong> },
+                    { key: 'dx', label: 'Diagnosis' },
+                    { key: 'reason', label: 'Reason for board' },
+                    {
+                      key: 'status',
+                      label: 'Status',
+                      render: (r) => <Pill tone={r.status === 'Needs discussion' ? 'crit' : 'neutral'}>{r.status}</Pill>,
+                    },
+                  ]}
+                />
+              </Panel>
+            )}
+            {section === 'chart' && (record ? <Chart record={record} /> : <Panel title="Patient chart">Loading…</Panel>)}
+            {section === 'network' && (
+              <NetworkPanel
+                key={runs}
+                phase={phase}
+                started={started}
+                loading={loading}
+                error={error}
+                snapshot={snapshot}
+                result={result}
+                onAsk={askNetwork}
+              />
+            )}
+            {section === 'decide' && (
+              <DecidePanel
+                snapshot={snapshot}
+                logCount={logCount}
+                justFedBack={justFedBack}
+                onRecorded={() => {
+                  refreshLog();
+                  setJustFedBack(true);
+                  setTimeout(() => setJustFedBack(false), 1600);
+                }}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+
+      <footer className="eu37-status">
+        <span>Hackathon prototype · synthetic data only · not for clinical use</span>
+        <span className="eu37-spacer" />
+        <span>EU-NET federated query simulator · v1.0</span>
+      </footer>
+
+      {snapshot && (
+        <ProvenanceDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} snapshot={snapshot} />
       )}
-      {section === 'chart' && (record ? <Chart record={record} /> : <Panel title="Patient chart">Loading…</Panel>)}
-      {section === 'network' && (
-        <NetworkPanel
-          key={runs}
-          phase={phase}
-          started={started}
-          loading={loading}
-          error={error}
-          snapshot={snapshot}
-          result={result}
-          onAsk={askNetwork}
-        />
-      )}
-      {section === 'decide' && (
-        <DecidePanel
-          snapshot={snapshot}
-          logCount={logCount}
-          justFedBack={justFedBack}
-          onRecorded={() => {
-            refreshLog();
-            setJustFedBack(true);
-            setTimeout(() => setJustFedBack(false), 1600);
-          }}
-        />
-      )}
-    </HospitalShell>
+    </div>
+  );
+}
+
+function AttentionStrip({ tone, badge, children }: { tone: 'warn' | 'crit'; badge: string; children: ReactNode }) {
+  return (
+    <div className={`eu37-attention eu37-attention-${tone}`} role="note">
+      <Pill tone={tone}>{badge}</Pill>
+      <span>{children}</span>
+    </div>
   );
 }
 
@@ -212,6 +306,10 @@ function Chart({ record }: { record: PatientRecord }) {
   const [tab, setTab] = useState('summary');
   return (
     <>
+      <AttentionStrip tone="warn" badge="Human review required">
+        This case does not fit any open trial. The molecular tumour board needs comparable real-world evidence
+        before deciding on the next step.
+      </AttentionStrip>
       <Tabs
         active={tab}
         onChange={setTab}
@@ -355,11 +453,13 @@ function NetworkPanel({
           <p className="prose">{snapshot.comparability_criteria}</p>
           <CountryMixBar cases={snapshot.cases} />
           {snapshot.evidence_flags.length > 0 && (
-            <ul className="eu-flags">
-              {snapshot.evidence_flags.map((f) => (
-                <li key={f}>⚠ {f}</li>
-              ))}
-            </ul>
+            <AttentionStrip tone="warn" badge="Evidence caution">
+              <ul className="eu-flags">
+                {snapshot.evidence_flags.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </AttentionStrip>
           )}
           <CohortLandscape approaches={snapshot.approaches} cases={snapshot.cases} />
           <p className="eu-privacy-note">{snapshot.privacy_note}</p>
@@ -446,12 +546,7 @@ function DecidePanel({
             Outcome so far
             <textarea value={outcome} onChange={(e) => setOutcome(e.target.value)} rows={2} />
           </label>
-          <button
-            type="button"
-            className="hx-btn primary"
-            disabled={busy || recorded}
-            onClick={record}
-          >
+          <button type="button" className="hx-btn primary" disabled={busy || recorded} onClick={record}>
             {recorded ? 'Fed back to the network ✓' : busy ? 'Recording…' : 'Record for the network'}
           </button>
         </form>
@@ -462,15 +557,69 @@ function DecidePanel({
           network just queried – so the next clinician who sees a patient like Markus benefits from what happened to
           him.
         </p>
-        {snapshot && (
-          <NetworkMap hospitals={snapshot.hospitals} phase="responded" pulseHome={justFedBack} />
-        )}
+        {snapshot && <NetworkMap hospitals={snapshot.hospitals} phase="responded" pulseHome={justFedBack} />}
         <p className="prose">
           <strong>{logCount}</strong> outcome{logCount === 1 ? '' : 's'} recorded to the simulated network learning
           system so far in this session.
           {justFedBack && <span className="eu-fedback-note"> ↩ just fed back into the network above</span>}
         </p>
       </Panel>
+    </div>
+  );
+}
+
+/** Right-side inspection drawer: full site-by-site provenance behind the aggregated cohort view. */
+function ProvenanceDrawer({
+  open,
+  onClose,
+  snapshot,
+}: {
+  open: boolean;
+  onClose: () => void;
+  snapshot: NetworkSnapshot;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="eu37-drawer-overlay" onClick={onClose}>
+      <aside
+        className="eu37-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="eu37-drawer-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header>
+          <span className="eu37-eyebrow">Inspectable by design</span>
+          <button type="button" className="eu37-drawer-close" onClick={onClose} aria-label="Close provenance panel">
+            ✕
+          </button>
+        </header>
+        <h3 id="eu37-drawer-title">Site-by-site provenance</h3>
+        <p className="prose">{snapshot.comparability_criteria}</p>
+        <DataTable
+          rowKey={(h) => h.id}
+          rows={snapshot.hospitals}
+          columns={[
+            { key: 'name', label: 'Hospital' },
+            { key: 'country', label: 'Country' },
+            {
+              key: 'matched',
+              label: 'Matched patients',
+              render: (h) => (h.matched > 0 ? <strong>{h.matched}</strong> : <span className="hx-empty">0</span>),
+            },
+          ]}
+        />
+        <p className="eu-privacy-note">{snapshot.privacy_note}</p>
+      </aside>
     </div>
   );
 }

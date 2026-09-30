@@ -1,12 +1,507 @@
-/* Issue #37 – A Europe-wide learning treatment system. Uses the shared hx/hospital theme;
-   only small idea-specific touches live here. */
+/* Issue #37 – A Europe-wide learning treatment system.
+   Purpose-built workspace (federated network / cohort operations), following the shared design
+   language (.github/hackathon/design-language.md): dark institutional chrome, cool neutral
+   surfaces, semantic --cp-* tokens, one restrained accent, operational typography.
 
-.hx .result .note {
-  color: var(--muted);
+   This idea reuses the generic `.hx` component styles (hospital.css: Panel/DataTable/Tabs/Pill,
+   StoryGuide/Backstage, buttons, forms) for their structure, then repoints the underlying CSS
+   variables and a handful of hardcoded colors to the --cp-* palette below, scoped to `.eu37` only
+   — shared components and other ideas are untouched. */
+
+.eu37 {
+  /* --- design-language token source of truth (dark) --- */
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
+  --cp-font-sans: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  --cp-font-mono: Consolas, 'Courier New', Courier, monospace;
+}
+
+/* Repoint the generic `.hx` theme variables (used throughout hospital.css and the shared
+   generative-UI block styles) to the cp palette, at higher specificity than `.hx` alone. */
+.eu37.hx {
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+  --radius: 16px;
+  --shadow: none;
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+.eu37.hx h1,
+.eu37.hx h2,
+.eu37.hx h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.eu37-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--cp-accent);
+  color: #1a0a0e;
+  padding: 8px 14px;
+  border-radius: 0 0 8px 0;
+}
+
+.eu37-skip:focus {
+  left: 0;
+}
+
+.eu37 *:focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 4px;
+}
+
+/* --- Institutional header --- */
+
+.eu37-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-height: 56px;
+  padding: 8px 20px;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-fg);
+}
+
+.eu37-chrome-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eu37-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--cp-accent);
+  color: #1a0a0e;
+  font: 700 11px var(--cp-font-mono);
+  flex-shrink: 0;
+}
+
+.eu37-chrome-id strong {
+  display: block;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.eu37-chrome-module {
+  font-weight: 400;
+  color: var(--cp-chrome-muted);
+}
+
+.eu37-chrome-org {
+  display: block;
+  font-size: 11.5px;
+  color: var(--cp-chrome-muted);
+}
+
+.eu37-chrome-meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 12px;
+  color: var(--cp-chrome-muted);
+  white-space: nowrap;
+}
+
+.eu37-status-dot {
+  color: var(--cp-success);
+}
+
+/* --- Context banner --- */
+
+.eu37-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  background: var(--cp-banner);
+  border-bottom: 1px solid var(--cp-border);
+  padding: 10px 20px;
+  color: var(--cp-text);
+}
+
+.eu37-banner-id {
+  display: flex;
+  flex-direction: column;
+  margin-right: 6px;
+}
+
+.eu37-banner-id strong {
+  font-size: 15px;
+}
+
+.eu37-banner-flag {
+  color: var(--cp-warning);
+}
+
+.eu37-eyebrow {
+  font: 700 10px/1.4 var(--cp-font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+}
+
+.eu37-spacer {
+  flex: 1;
+}
+
+/* --- Sidebar navigation --- */
+
+.eu37-nav.hx-nav {
+  width: 220px;
+  background: var(--cp-bg-elevated);
+  border-right: 1px solid var(--cp-border);
+}
+
+.eu37-nav.hx-nav button:hover {
+  background: var(--cp-surface-soft);
+}
+
+.eu37-nav.hx-nav button.active {
+  background: var(--cp-surface);
+  border-left-color: var(--cp-accent);
+}
+
+.eu37-nav-label {
+  display: block;
+}
+
+.eu37-nav-detail {
+  display: block;
+  font-size: 11px;
+  color: var(--cp-text-soft);
+  font-weight: 400;
+}
+
+/* --- Canvas --- */
+
+.eu37-canvas.hx-main {
+  background: var(--cp-bg);
+}
+
+.eu37-toolbar.hx-toolbar {
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.eu37 .hx-content {
+  padding: 24px;
+  gap: 20px;
+}
+
+/* --- Attention strip --- */
+
+.eu37-attention {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 4px;
+}
+
+.eu37-attention-warn {
+  box-shadow: inset 4px 0 0 var(--cp-warning);
+}
+
+.eu37-attention-crit {
+  box-shadow: inset 4px 0 0 var(--cp-danger);
+}
+
+.eu37-attention ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* --- Panels, tables, tabs, pills, buttons, forms (repoint hardcoded colors) --- */
+
+.eu37 .hx-panel > header {
+  background: var(--cp-surface-soft);
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.eu37 .hx-table th {
+  background: var(--cp-surface-soft);
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.eu37 .hx-table td {
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.eu37 .hx-table tr:nth-child(even) td {
+  background: var(--cp-bg-elevated);
+}
+
+.eu37 .hx-table tr.clickable:hover td {
+  background: var(--cp-surface-soft);
+}
+
+.eu37 .hx-table tr.selected td {
+  background: var(--cp-accent-soft);
+}
+
+.eu37 .hx-tabs button {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border);
+  color: var(--cp-text);
+}
+
+.eu37 .hx-tabs button.active {
+  background: var(--cp-surface);
+  color: var(--cp-accent);
+}
+
+.eu37 .hx-pill-neutral {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border);
+  color: var(--cp-text);
+}
+
+.eu37 .hx-pill-ok {
+  background: rgba(74, 222, 128, 0.14);
+  color: var(--cp-success);
+}
+
+.eu37 .hx-pill-warn {
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--cp-warning);
+}
+
+.eu37 .hx-pill-crit {
+  background: rgba(248, 113, 113, 0.16);
+  color: var(--cp-danger);
+}
+
+.eu37 .hx-pill-info {
+  background: var(--cp-accent-soft);
+  color: var(--cp-link);
+}
+
+.eu37 select,
+.eu37 input,
+.eu37 textarea {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border-strong);
+  border-radius: 8px;
+  color: var(--cp-text);
+}
+
+.eu37 label {
+  color: var(--cp-text-soft);
+}
+
+.eu37 .hx-btn {
+  border-radius: 12px;
+  border: 1px solid var(--cp-border-strong);
+  background: var(--cp-surface-soft);
+  color: var(--cp-text);
+}
+
+.eu37 .hx-btn:hover:not(:disabled) {
+  border-color: var(--cp-accent);
+}
+
+.eu37 .hx-btn.primary {
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
+  color: #1a0a0e;
+  font-weight: 600;
+}
+
+.eu37 .hx-btn.primary:hover:not(:disabled) {
+  background: var(--cp-accent-hover);
+  border-color: var(--cp-accent-hover);
+}
+
+.eu37 .hx-spinner {
+  border-color: var(--cp-border);
+  border-top-color: var(--cp-accent);
+}
+
+.eu37 .hx-btn.primary .hx-spinner {
+  border-color: rgba(26, 10, 14, 0.35);
+  border-top-color: #1a0a0e;
+}
+
+/* --- Guided story / backstage, reskinned to the institutional chrome --- */
+
+.eu37 .hx-story {
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.eu37 .hx-story-steps li.current button {
+  color: var(--cp-text);
+  border-bottom-color: var(--cp-accent);
+}
+
+.eu37 .hx-story-steps li.done button {
+  color: var(--cp-success);
+}
+
+.eu37 .hx-story-num {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text-soft);
+}
+
+.eu37 .hx-story-steps li.current .hx-story-num {
+  background: var(--cp-accent);
+  color: #1a0a0e;
+}
+
+.eu37 .hx-story-steps li.done .hx-story-num {
+  background: rgba(74, 222, 128, 0.18);
+  color: var(--cp-success);
+}
+
+.eu37 .hx-story-tag {
+  color: var(--cp-text-soft);
+  font-family: var(--cp-font-mono);
+}
+
+.eu37 .hx-story-explain {
+  border-top: 1px solid var(--cp-border);
+}
+
+.eu37 .hx-backstage {
+  background: var(--cp-surface);
+  border: 1px dashed var(--cp-border-strong);
+}
+
+.eu37 .hx-backstage > header {
+  color: var(--cp-accent);
+}
+
+/* Re-enable the block-type eyebrow (hidden by the light hx theme) as an operational label. */
+.eu37 .block-kind {
+  display: inline-block;
+  font: 700 10px var(--cp-font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+  margin-bottom: 4px;
+}
+
+.eu37 .block {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
+}
+
+.eu37 .result .note {
+  color: var(--cp-text-soft);
   font-style: italic;
 }
 
-/* --- Network map ------------------------------------------------------- */
+.eu37 .source {
+  color: var(--cp-link);
+}
+
+.eu37 .error {
+  color: var(--cp-danger);
+}
+
+/* --- Status bar --- */
+
+.eu37-status {
+  display: flex;
+  gap: 18px;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-muted);
+  padding: 6px 20px;
+  font-size: 11.5px;
+}
+
+/* --- Inspection drawer --- */
+
+.eu37-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 26, 41, 0.55);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 50;
+}
+
+.eu37-drawer {
+  width: min(420px, 92vw);
+  height: 100%;
+  overflow-y: auto;
+  background: var(--cp-surface, #1f2429);
+  color: var(--cp-text, #dedede);
+  border-left: 1px solid var(--cp-border, #3f4953);
+  padding: 20px;
+  box-shadow: -20px 0 40px rgba(0, 0, 0, 0.35);
+}
+
+.eu37-drawer header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.eu37-drawer h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.eu37-drawer-close {
+  background: none;
+  border: 1px solid var(--cp-border-strong, #5f5f5f);
+  border-radius: 8px;
+  color: inherit;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.eu37-drawer .hx-table {
+  color: var(--cp-text, #dedede);
+}
+
+/* --- Network map --- */
 
 .eu-map {
   width: 100%;
@@ -39,7 +534,7 @@
 }
 
 .eu-node circle {
-  fill: #fff;
+  fill: var(--surface);
   stroke: var(--accent);
   stroke-width: 2;
   transition: r 0.25s ease;
@@ -51,7 +546,7 @@
 }
 
 .eu-node-home text {
-  fill: #fff;
+  fill: #1a0a0e;
   font-weight: 700;
 }
 
@@ -110,7 +605,15 @@
   100% { stroke-width: 1.5; opacity: 0.6; }
 }
 
-/* --- Country mix bar (geographic bias) ---------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .eu-map-querying .eu-link,
+  .eu-map-querying .eu-node:not(.eu-node-home) circle,
+  .eu-map-pulse .eu-link {
+    animation: none;
+  }
+}
+
+/* --- Country mix bar (geographic bias) --- */
 
 .eu-country-mix {
   margin: 10px 0;
@@ -122,7 +625,7 @@
   height: 22px;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid var(--muted);
+  border: 1px solid var(--border);
 }
 
 .eu-country-seg {
@@ -130,9 +633,9 @@
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
-  color: #fff;
+  color: #1a0a0e;
   background: var(--accent);
-  border-right: 1px solid rgba(255, 255, 255, 0.4);
+  border-right: 1px solid rgba(0, 0, 0, 0.25);
 }
 
 .eu-country-seg:nth-child(odd) {
@@ -147,17 +650,17 @@
 }
 
 .eu-flags {
-  margin: 6px 0 12px;
-  padding-left: 0;
-  list-style: none;
-  color: var(--warning);
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+  color: var(--cp-text);
 }
 
 .eu-flags li {
   margin-bottom: 2px;
 }
 
-/* --- Cohort landscape --------------------------------------------------- */
+/* --- Cohort landscape --- */
 
 .eu-landscape-controls {
   display: flex;
@@ -166,6 +669,7 @@
   align-items: center;
   margin-bottom: 12px;
   font-size: 0.85rem;
+  color: var(--text);
 }
 
 .eu-landscape-note {
@@ -174,7 +678,7 @@
 }
 
 .eu-lane {
-  border-top: 1px solid var(--muted);
+  border-top: 1px solid var(--border);
   padding: 8px 0;
 }
 
@@ -203,7 +707,7 @@
   height: 14px;
   border-radius: 50%;
   display: inline-block;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .eu-dot-ok {
@@ -220,4 +724,10 @@
 
 .eu-dot-neutral {
   background: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .eu37-chrome-meta {
+    display: none;
+  }
 }
