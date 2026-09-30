@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { apiRequest, type AgentResult, type UIBlock } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
+import { DataTable } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './issue-51.css';
@@ -61,6 +61,7 @@ type Snapshot = {
 };
 
 type Section = 'mapping' | 'run' | 'compare' | 'recalibrate' | 'passport';
+type NavItem = { id: Section; label: string; badge?: string | number; detail: string };
 
 const steps: StoryStep[] = [
   {
@@ -166,92 +167,147 @@ export default function Issue51ModelCheck() {
 
   if (!snapshot || !selectedHospital) {
     return (
-      <HospitalShell module="Model check workspace" nav={[]} active="loading" onNav={() => undefined} patient={null}>
+      <div className="issue51">
         <Panel title="Loading model-check workspace">
           <Working label="Loading synthetic cohorts" />
         </Panel>
-      </HospitalShell>
+      </div>
     );
   }
 
+  const nav: NavItem[] = [
+    { id: 'mapping', label: 'Variable map', badge: snapshot.variable_mapping.length, detail: 'Inputs -> local fields' },
+    { id: 'run', label: 'Silent run', badge: snapshot.hospitals.reduce((sum, hospital) => sum + hospital.cohort_size, 0), detail: 'Historical sandbox' },
+    { id: 'compare', label: 'Performance & fairness', badge: '3 sites', detail: 'AUC, calibration, drift' },
+    { id: 'recalibrate', label: 'Recalibration', detail: 'Hospital C scenario' },
+    { id: 'passport', label: 'Model passport', detail: 'Committee sign-off' },
+  ];
+
   return (
-    <HospitalShell
-      module="AI model check workspace"
-      guide={<StoryGuide steps={steps} current={section} onGo={go} nextLabel={section === 'mapping' ? 'Open silent-run screen' : undefined} />}
-      nav={[
-        { id: 'mapping', label: 'Variable map', badge: snapshot.variable_mapping.length },
-        { id: 'run', label: 'Silent run', badge: snapshot.hospitals.reduce((sum, hospital) => sum + hospital.cohort_size, 0) },
-        { id: 'compare', label: 'Performance & fairness', badge: '3 sites' },
-        { id: 'recalibrate', label: 'Recalibration' },
-        { id: 'passport', label: 'Model passport' },
-      ]}
-      active={section}
-      onNav={go}
-      patient={null}
-      toolbar={
-        <>
-          <label>
-            Focus hospital{' '}
-            <select value={selectedHospitalId} onChange={(event) => setSelectedHospitalId(event.target.value)}>
-              {snapshot.hospitals.map((hospital) => (
-                <option key={hospital.id} value={hospital.id}>
-                  Hospital {hospital.id} · {hospital.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className="hx-spacer" />
-          <Pill tone={snapshot.synthetic ? 'ok' : 'crit'}>Synthetic data only</Pill>
-          <Pill tone="info">Silent run: predictions hidden</Pill>
-          <button type="button" className="hx-btn primary" onClick={() => void draftPassport()} disabled={passportLoading}>
-            {passportLoading ? (
-              <>
-                <span className="hx-spinner" aria-hidden /> Drafting passport…
-              </>
-            ) : (
-              'Draft model passport'
-            )}
-          </button>
-        </>
-      }
-    >
-      {notice && (
-        <Panel title="Information">
-          <p className="issue51-note">{notice}</p>
-        </Panel>
-      )}
-      {section === 'mapping' && <Mapping snapshot={snapshot} />}
-      {section === 'run' && (
-        <SilentRun
-          snapshot={snapshot}
-          started={silentRunStarted}
-          done={silentRunDone}
-          run={silentRunRun}
-          onStart={() => {
-            setSilentRunStarted(true);
-            setSilentRunDone(false);
-            setSilentRunRun((run) => run + 1);
-          }}
-          onDone={() => setSilentRunDone(true)}
-          onSelect={(id) => {
-            setSelectedHospitalId(id);
-            setSection('compare');
-          }}
-        />
-      )}
-      {section === 'compare' && <Compare snapshot={snapshot} selectedHospital={selectedHospital} onSelect={setSelectedHospitalId} />}
-      {section === 'recalibrate' && <Recalibration snapshot={snapshot} selectedHospital={selectedHospital} onSelectHospital={setSelectedHospitalId} />}
-      {section === 'passport' && (
-        <Passport
-          snapshot={snapshot}
-          result={passport}
-          loading={passportLoading}
-          run={passportRun}
-          signedDecision={signedDecision}
-          onSign={setSignedDecision}
-        />
-      )}
-    </HospitalShell>
+    <div className="issue51">
+      <header className="issue51-chrome">
+        <div className="issue51-mark" aria-hidden>
+          MV
+        </div>
+        <div>
+          <div className="issue51-eyebrow">AI MODEL CHECK WORKSTATION</div>
+          <h1>Silent-run validation · NSCLC immunotherapy response</h1>
+          <p>Klinikum Rewired München · Oncology AI implementation team</p>
+        </div>
+        <div className="issue51-chrome-state" aria-label="System state">
+          <span>Munich validation sandbox</span>
+          <Pill tone="ok">Connected</Pill>
+        </div>
+      </header>
+
+      <section className="issue51-object" aria-label="Current model and validation object">
+        <div>
+          <div className="issue51-eyebrow">CURRENT OBJECT</div>
+          <h2>{snapshot.model.name}</h2>
+          <p>{snapshot.model.published_population}</p>
+        </div>
+        <dl>
+          <div>
+            <dt>Publication AUC</dt>
+            <dd>{snapshot.model.published_auc}</dd>
+          </div>
+          <div>
+            <dt>Calibration slope</dt>
+            <dd>{snapshot.model.published_calibration_slope}</dd>
+          </div>
+          <div>
+            <dt>Silent-run cohort</dt>
+            <dd>{snapshot.hospitals.reduce((sum, hospital) => sum + hospital.cohort_size, 0)} patients</dd>
+          </div>
+          <div>
+            <dt>Focus site</dt>
+            <dd>Hospital {selectedHospital.id}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div className="issue51-status-strip">
+        <Pill tone={snapshot.synthetic ? 'ok' : 'crit'}>Synthetic data only</Pill>
+        <Pill tone="info">Silent-run predictions hidden</Pill>
+        <span>Human committee chooses introduce, recalibrate, continue silent run, pause or withdraw.</span>
+      </div>
+
+      <div className="issue51-layout">
+        <aside className="issue51-sidebar" aria-label="Model-check workspace">
+          {nav.map((item) => (
+            <button key={item.id} type="button" className={item.id === section ? 'active' : undefined} onClick={() => go(item.id)}>
+              <span>
+                <strong>{item.label}</strong>
+                <small>{item.detail}</small>
+              </span>
+              {item.badge !== undefined && <em>{item.badge}</em>}
+            </button>
+          ))}
+        </aside>
+
+        <main className="issue51-main">
+          <StoryGuide steps={steps} current={section} onGo={go} nextLabel={section === 'mapping' ? 'Open silent-run screen' : undefined} />
+          <div className="issue51-toolbar">
+            <label>
+              <span>Focus hospital</span>
+              <select value={selectedHospitalId} onChange={(event) => setSelectedHospitalId(event.target.value)}>
+                {snapshot.hospitals.map((hospital) => (
+                  <option key={hospital.id} value={hospital.id}>
+                    Hospital {hospital.id} · {hospital.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="issue51-btn primary" onClick={() => void draftPassport()} disabled={passportLoading}>
+              {passportLoading ? (
+                <>
+                  <span className="hx-spinner" aria-hidden /> Drafting passport…
+                </>
+              ) : (
+                'Draft model passport'
+              )}
+            </button>
+          </div>
+
+          {notice && (
+            <Panel title="Information" eyebrow="ATTENTION">
+              <p className="issue51-note">{notice}</p>
+            </Panel>
+          )}
+          {section === 'mapping' && <Mapping snapshot={snapshot} />}
+          {section === 'run' && (
+            <SilentRun
+              snapshot={snapshot}
+              started={silentRunStarted}
+              done={silentRunDone}
+              run={silentRunRun}
+              onStart={() => {
+                setSilentRunStarted(true);
+                setSilentRunDone(false);
+                setSilentRunRun((run) => run + 1);
+              }}
+              onDone={() => setSilentRunDone(true)}
+              onSelect={(id) => {
+                setSelectedHospitalId(id);
+                setSection('compare');
+              }}
+            />
+          )}
+          {section === 'compare' && <Compare snapshot={snapshot} selectedHospital={selectedHospital} onSelect={setSelectedHospitalId} />}
+          {section === 'recalibrate' && <Recalibration snapshot={snapshot} selectedHospital={selectedHospital} onSelectHospital={setSelectedHospitalId} />}
+          {section === 'passport' && (
+            <Passport
+              snapshot={snapshot}
+              result={passport}
+              loading={passportLoading}
+              run={passportRun}
+              signedDecision={signedDecision}
+              onSign={setSignedDecision}
+            />
+          )}
+        </main>
+      </div>
+    </div>
   );
 }
 
@@ -311,11 +367,11 @@ function SilentRun({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(320px, 1fr) minmax(420px, 2fr)' }}>
+    <div className="issue51-grid issue51-grid-wide">
       <Panel
         title="Silent-run control"
         actions={
-          <button type="button" className="hx-btn primary" onClick={onStart} disabled={started && !done}>
+          <button type="button" className="issue51-btn primary" onClick={onStart} disabled={started && !done}>
             {done ? (
               'Silent run complete'
             ) : started ? (
@@ -340,7 +396,7 @@ function SilentRun({
           onFinished={onDone}
           note="Simulated timings; metrics come from synthetic data."
         />
-        {!started && <span className="hx-empty">Click the button to watch the silent run.</span>}
+        {!started && <span className="issue51-empty">Click the button to watch the silent run.</span>}
       </Panel>
       <Panel title="Synthetic hospital cohorts">
         <DataTable
@@ -388,9 +444,9 @@ function Compare({
         ))}
       </div>
       <Tabs active={selectedHospital.id} onChange={onSelect} tabs={snapshot.hospitals.map((hospital) => ({ id: hospital.id, label: `Hospital ${hospital.id}` }))} />
-      <div className="hx-grid">
+      <div className="issue51-grid">
         <Panel title={`${selectedHospital.name} · publication comparison`}>
-          <dl className="hx-facts">
+          <dl className="issue51-facts">
             <dt>AUC</dt>
             <dd>
               {selectedHospital.auc} vs published {snapshot.model.published_auc}
@@ -457,12 +513,12 @@ function Recalibration({
   const after = snapshot.recalibration.after;
   const isHospitalC = selectedHospital.id === 'C';
   return (
-    <div className="hx-grid">
+    <div className="issue51-grid">
       <Panel
         title={isHospitalC ? 'Recalibration test · Hospital C' : `Recalibration scenario · Hospital C (currently viewing Hospital ${selectedHospital.id})`}
         actions={
           !isHospitalC && (
-            <button type="button" className="hx-btn" onClick={() => onSelectHospital('C')}>
+            <button type="button" className="issue51-btn" onClick={() => onSelectHospital('C')}>
               Switch to Hospital C
             </button>
           )
@@ -494,6 +550,68 @@ function Recalibration({
   );
 }
 
+function Panel({
+  title,
+  eyebrow,
+  actions,
+  children,
+}: {
+  title: string;
+  eyebrow?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="issue51-panel">
+      <header>
+        <div>
+          {eyebrow && <div className="issue51-eyebrow">{eyebrow}</div>}
+          <h3>{title}</h3>
+        </div>
+        {actions && <div className="issue51-panel-actions">{actions}</div>}
+      </header>
+      <div className="issue51-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function Pill({
+  tone = 'neutral',
+  children,
+}: {
+  tone?: 'neutral' | 'ok' | 'warn' | 'crit' | 'info';
+  children: ReactNode;
+}) {
+  return <span className={`issue51-pill issue51-pill-${tone}`}>{children}</span>;
+}
+
+function Tabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { id: string; label: string }[];
+  active: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div className="issue51-tabs" role="tablist">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          role="tab"
+          aria-selected={tab.id === active}
+          className={tab.id === active ? 'active' : undefined}
+          onClick={() => onChange(tab.id)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Metric({ label, value, tone }: { label: string; value: number; tone: 'ok' | 'warn' | 'crit' }) {
   return (
     <div className={`issue51-metric issue51-metric-${tone}`}>
@@ -519,12 +637,12 @@ function Passport({
   onSign: (decision: string) => void;
 }) {
   return (
-    <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(300px, 1fr) minmax(420px, 2fr)' }}>
+    <div className="issue51-grid issue51-grid-wide">
       <Panel title="Committee sign-off">
         <p className="issue51-note">{snapshot.passport.status}. The prototype keeps the final judgment with the committee.</p>
         <div className="issue51-actions">
           {snapshot.passport.decision_options.map((option) => (
-            <button key={option} type="button" className="hx-btn" onClick={() => onSign(option)} disabled={!result || loading}>
+            <button key={option} type="button" className="issue51-btn" onClick={() => onSign(option)} disabled={!result || loading}>
               {signedDecision === option ? '✓ ' : ''}
               {option}
             </button>
@@ -535,7 +653,7 @@ function Passport({
             <Pill tone="ok">Signed</Pill> {signedDecision}
           </p>
         ) : (
-          <span className="hx-empty">Draft the passport, then choose the committee decision.</span>
+          <span className="issue51-empty">Draft the passport, then choose the committee decision.</span>
         )}
       </Panel>
       <Panel
@@ -551,7 +669,7 @@ function Passport({
           release={!loading}
           note="The live path uses the Copilot SDK tool to read the synthetic validation snapshot."
         />
-        {!result && !loading && <span className="hx-empty">Click “Draft model passport” to generate the committee draft.</span>}
+        {!result && !loading && <span className="issue51-empty">Click “Draft model passport” to generate the committee draft.</span>}
         {result?.note && <p className="issue51-note">{result.note}</p>}
         {result && (
           <div className="blocks">
