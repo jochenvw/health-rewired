@@ -1,7 +1,9 @@
 /* Health Rewired design language (.github/hackathon/design-language.md), scoped to .hx: dark
    institutional chrome, cool neutral work surfaces, one restrained accent, semantic status colors
    and visible human control. Overrides the global tokens so generative-UI blocks render in the
-   same institutional style. Supports light/dark via prefers-color-scheme. */
+   same institutional style. Theme is chosen explicitly via the Light/Dark buttons in the
+   institutional header (data-theme="light" | "dark"), defaulting to system preference on first
+   visit and persisted for the next one. */
 .hx {
   --font-sans: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: Consolas, 'Courier New', Courier, monospace;
@@ -53,29 +55,27 @@
   flex-direction: column;
 }
 
-@media (prefers-color-scheme: dark) {
-  .hx {
-    --cp-bg: #2b3238;
-    --cp-bg-elevated: #242a30;
-    --cp-surface: #1f2429;
-    --cp-surface-soft: #262c32;
-    --cp-border: #3f4953;
-    --cp-border-strong: #5f5f5f;
-    --cp-text: #dedede;
-    --cp-text-muted: #919191;
-    --cp-text-soft: #b0b0b0;
-    --cp-chrome: #0b1a29;
-    --cp-chrome-fg: #dbe7f1;
-    --cp-chrome-muted: #8ea6ba;
-    --cp-banner: #1a2733;
-    --cp-accent: #fd8ea1;
-    --cp-accent-hover: #fb7b91;
-    --cp-accent-soft: rgba(253, 142, 161, 0.14);
-    --cp-success: #4ade80;
-    --cp-warning: #fbbf24;
-    --cp-danger: #f87171;
-    --cp-link: #4da6ff;
-  }
+.hx[data-theme='dark'] {
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
 }
 
 .hx h1,
@@ -168,6 +168,33 @@
   border-radius: 50%;
   background: var(--cp-success);
   display: inline-block;
+}
+
+.hx-theme-toggle {
+  display: inline-flex;
+  border: 1px solid var(--cp-chrome-muted);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hx-theme-toggle button {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--cp-chrome-muted);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.hx-theme-toggle button + button {
+  border-left: 1px solid var(--cp-chrome-muted);
+}
+
+.hx-theme-toggle button[aria-pressed='true'] {
+  background: var(--cp-accent);
+  color: #fff;
 }
 
 .hx-spacer {

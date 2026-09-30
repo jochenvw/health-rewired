@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import './hospital.css';
 
 /*
@@ -20,6 +20,35 @@ export type BannerPatient = {
   allergies?: string;
   ward?: string;
 };
+
+const THEME_KEY = 'health-rewired-theme';
+
+function useTheme() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored = window.localStorage.getItem(THEME_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+  useEffect(() => {
+    window.localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+  return [theme, setTheme] as const;
+}
+
+/** Visible, plainly labelled Light/Dark controls — never an icon-only or ambiguous single toggle. */
+function ThemeToggle({ theme, onChange }: { theme: 'light' | 'dark'; onChange: (t: 'light' | 'dark') => void }) {
+  return (
+    <div className="hx-theme-toggle" role="group" aria-label="Theme">
+      <button type="button" aria-pressed={theme === 'light'} onClick={() => onChange('light')}>
+        Light
+      </button>
+      <button type="button" aria-pressed={theme === 'dark'} onClick={() => onChange('dark')}>
+        Dark
+      </button>
+    </div>
+  );
+}
 
 export function HospitalShell({
   module,
@@ -48,8 +77,9 @@ export function HospitalShell({
 }) {
   const today = new Date().toLocaleDateString('de-DE');
   const time = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const [theme, setTheme] = useTheme();
   return (
-    <div className="hx">
+    <div className="hx" data-theme={theme}>
       <div className="hx-strip">Hackathon prototype · Synthetic data only — not for clinical use</div>
       <header className="hx-chrome">
         <div className="hx-chrome-id">
@@ -69,6 +99,7 @@ export function HospitalShell({
           <span className="hx-chrome-status">
             <span className="hx-chrome-dot" aria-hidden /> Connected
           </span>
+          <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
       {guide}
