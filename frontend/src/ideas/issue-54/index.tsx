@@ -54,6 +54,9 @@ type WorklistResponse = {
 
 const HIGH_RISK_PATIENT_ID = 'IOT-5401';
 const LOW_RISK_PATIENT_ID = 'IOT-5402';
+const THEME_STORAGE_KEY = 'issue-54-theme';
+
+type Theme = 'light' | 'dark';
 
 const story: StoryStep[] = [
   {
@@ -107,11 +110,19 @@ export default function Issue54ImmunotherapyTriage() {
   const [error, setError] = useState<string | null>(null);
   const [filed, setFiled] = useState(false);
   const [runs, setRuns] = useState(0);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  });
 
   useEffect(() => {
-    document.body.classList.add('issue54-design');
-    return () => document.body.classList.remove('issue54-design');
-  }, []);
+    document.body.classList.add('issue54-design', `issue54-theme-${theme}`);
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    return () => {
+      document.body.classList.remove('issue54-design', `issue54-theme-${theme}`);
+    };
+  }, [theme]);
 
   useEffect(() => {
     api.idea<WorklistResponse>(54, '/worklist').then(setData).catch(() => setData(null));
@@ -218,6 +229,24 @@ export default function Issue54ImmunotherapyTriage() {
           </label>
           <span className="hx-spacer" />
           <span className="issue54-disclaimer">Hackathon prototype · synthetic data · not for clinical use</span>
+          <div className="issue54-theme-controls" aria-label="Theme">
+            <button
+              type="button"
+              className="hx-btn"
+              aria-pressed={theme === 'light'}
+              onClick={() => setTheme('light')}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              className="hx-btn"
+              aria-pressed={theme === 'dark'}
+              onClick={() => setTheme('dark')}
+            >
+              Dark
+            </button>
+          </div>
           <button type="button" className="hx-btn primary" disabled={!selected || loading} onClick={() => void runAssistant()}>
             {loading ? (
               <>

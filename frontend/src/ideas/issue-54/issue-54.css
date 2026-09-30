@@ -1,24 +1,41 @@
 .issue54-design .hx {
-  --cp-bg: #2b3238;
-  --cp-bg-elevated: #242a30;
-  --cp-surface: #1f2429;
-  --cp-surface-soft: #262c32;
-  --cp-border: #3f4953;
-  --cp-border-strong: #5f5f5f;
-  --cp-text: #dedede;
-  --cp-text-muted: #919191;
-  --cp-text-soft: #b0b0b0;
-  --cp-chrome: #0b1a29;
-  --cp-chrome-fg: #dbe7f1;
-  --cp-chrome-muted: #8ea6ba;
-  --cp-banner: #1a2733;
-  --cp-accent: #fd8ea1;
-  --cp-accent-hover: #fb7b91;
-  --cp-accent-soft: rgba(253, 142, 161, 0.14);
-  --cp-success: #4ade80;
-  --cp-warning: #fbbf24;
-  --cp-danger: #f87171;
-  --cp-link: #4da6ff;
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+  --issue54-accent-contrast: #ffffff;
+  --issue54-chrome-border: #d8dfe5;
+  --issue54-menu-bg: #ffffff;
+  --issue54-menu-border: #d8dfe5;
+  --issue54-main-glow: rgba(0, 120, 212, 0.1);
+  --issue54-toolbar-bg: #f8fafb;
+  --issue54-panel-bg: rgba(255, 255, 255, 0.98);
+  --issue54-row-border: rgba(216, 223, 229, 0.9);
+  --issue54-row-alt: rgba(243, 246, 248, 0.82);
+  --issue54-link-soft: rgba(0, 120, 212, 0.1);
+  --issue54-link-border: rgba(0, 120, 212, 0.28);
+  --issue54-success-soft: rgba(22, 163, 74, 0.1);
+  --issue54-success-border: rgba(22, 163, 74, 0.28);
+  --issue54-warning-soft: rgba(245, 158, 11, 0.12);
+  --issue54-warning-border: rgba(245, 158, 11, 0.34);
+  --issue54-danger-soft: rgba(220, 38, 38, 0.1);
+  --issue54-danger-border: rgba(220, 38, 38, 0.32);
   --font-sans: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: Consolas, "Courier New", Courier, monospace;
   --bg: var(--cp-bg);
@@ -40,17 +57,57 @@
   font-size: 14px;
 }
 
+.issue54-design.issue54-theme-dark .hx {
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
+  --issue54-accent-contrast: #2a0710;
+  --issue54-chrome-border: #15324c;
+  --issue54-menu-bg: #111d28;
+  --issue54-menu-border: #203244;
+  --issue54-main-glow: rgba(77, 166, 255, 0.08);
+  --issue54-toolbar-bg: #17222d;
+  --issue54-panel-bg: rgba(31, 36, 41, 0.96);
+  --issue54-row-border: rgba(63, 73, 83, 0.75);
+  --issue54-row-alt: rgba(38, 44, 50, 0.48);
+  --issue54-link-soft: rgba(77, 166, 255, 0.12);
+  --issue54-link-border: rgba(77, 166, 255, 0.35);
+  --issue54-success-soft: rgba(74, 222, 128, 0.12);
+  --issue54-success-border: rgba(74, 222, 128, 0.35);
+  --issue54-warning-soft: rgba(251, 191, 36, 0.13);
+  --issue54-warning-border: rgba(251, 191, 36, 0.35);
+  --issue54-danger-soft: rgba(248, 113, 113, 0.13);
+  --issue54-danger-border: rgba(248, 113, 113, 0.38);
+}
+
 .issue54-design .hx-appbar {
   min-height: 56px;
   background: var(--cp-chrome);
   color: var(--cp-chrome-fg);
-  border-bottom: 1px solid #15324c;
+  border-bottom: 1px solid var(--issue54-chrome-border);
   padding: 10px 20px;
 }
 
 .issue54-design .hx-logo {
   background: var(--cp-accent);
-  color: #2a0710;
+  color: var(--issue54-accent-contrast);
   border-radius: 8px;
 }
 
@@ -61,9 +118,9 @@
 
 .issue54-design .hx-menubar,
 .issue54-design .hx-statusbar {
-  background: #111d28;
+  background: var(--issue54-menu-bg);
   color: var(--cp-chrome-muted);
-  border-color: #203244;
+  border-color: var(--issue54-menu-border);
 }
 
 .issue54-design .hx-statusbar span:first-child {
@@ -88,8 +145,8 @@
 }
 
 .issue54-design .hx-allergy {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.45);
+  background: var(--issue54-danger-soft);
+  border-color: var(--issue54-danger-border);
   color: var(--cp-danger);
   border-radius: 8px;
 }
@@ -131,11 +188,11 @@
 }
 
 .issue54-design .hx-main {
-  background: radial-gradient(circle at 20% 0, rgba(77, 166, 255, 0.08), transparent 360px), var(--cp-bg);
+  background: radial-gradient(circle at 20% 0, var(--issue54-main-glow), transparent 360px), var(--cp-bg);
 }
 
 .issue54-design .hx-toolbar {
-  background: #17222d;
+  background: var(--issue54-toolbar-bg);
   border-bottom: 1px solid var(--cp-border);
   padding: 10px 20px;
 }
@@ -146,7 +203,7 @@
 }
 
 .issue54-design .hx-panel {
-  background: rgba(31, 36, 41, 0.96);
+  background: var(--issue54-panel-bg);
   border: 1px solid var(--cp-border);
   border-radius: 16px;
   overflow: hidden;
@@ -184,11 +241,11 @@
 }
 
 .issue54-design .hx-table td {
-  border-bottom: 1px solid rgba(63, 73, 83, 0.75);
+  border-bottom: 1px solid var(--issue54-row-border);
 }
 
 .issue54-design .hx-table tr:nth-child(even) td {
-  background: rgba(38, 44, 50, 0.48);
+  background: var(--issue54-row-alt);
 }
 
 .issue54-design .hx-table tr.clickable:hover td,
@@ -234,26 +291,26 @@
 
 .issue54-design .hx-pill-neutral,
 .issue54-design .hx-pill-info {
-  background: rgba(77, 166, 255, 0.12);
-  border-color: rgba(77, 166, 255, 0.35);
+  background: var(--issue54-link-soft);
+  border-color: var(--issue54-link-border);
   color: var(--cp-link);
 }
 
 .issue54-design .hx-pill-ok {
-  background: rgba(74, 222, 128, 0.12);
-  border-color: rgba(74, 222, 128, 0.35);
+  background: var(--issue54-success-soft);
+  border-color: var(--issue54-success-border);
   color: var(--cp-success);
 }
 
 .issue54-design .hx-pill-warn {
-  background: rgba(251, 191, 36, 0.13);
-  border-color: rgba(251, 191, 36, 0.35);
+  background: var(--issue54-warning-soft);
+  border-color: var(--issue54-warning-border);
   color: var(--cp-warning);
 }
 
 .issue54-design .hx-pill-crit {
-  background: rgba(248, 113, 113, 0.13);
-  border-color: rgba(248, 113, 113, 0.38);
+  background: var(--issue54-danger-soft);
+  border-color: var(--issue54-danger-border);
   color: var(--cp-danger);
 }
 
@@ -288,7 +345,7 @@
 .issue54-design .hx-btn.primary {
   background: var(--cp-accent);
   border-color: var(--cp-accent);
-  color: #2a0710;
+  color: var(--issue54-accent-contrast);
 }
 
 .issue54-design .hx-btn.primary:hover:not(:disabled) {
@@ -324,7 +381,7 @@
 }
 
 .issue54-design .hx-story {
-  background: #14202b;
+  background: var(--issue54-toolbar-bg);
   border-bottom: 1px solid var(--cp-border);
 }
 
@@ -349,11 +406,11 @@
 
 .issue54-design .hx-story-steps li.current .hx-story-num {
   background: var(--cp-accent);
-  color: #2a0710;
+  color: var(--issue54-accent-contrast);
 }
 
 .issue54-design .hx-story-steps li.done .hx-story-num {
-  background: rgba(74, 222, 128, 0.14);
+  background: var(--issue54-success-soft);
   color: var(--cp-success);
 }
 
@@ -397,6 +454,28 @@
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.issue54-theme-controls {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.issue54-design .issue54-theme-controls .hx-btn {
+  min-height: 32px;
+  padding-inline: 12px;
+}
+
+.issue54-design .issue54-theme-controls .hx-btn[aria-pressed='true'] {
+  background: var(--cp-accent-soft);
+  border-color: var(--cp-accent);
+  box-shadow: inset 0 0 0 1px var(--cp-accent);
+  color: var(--cp-text);
+}
+
+.issue54-design .issue54-theme-controls .hx-btn[aria-pressed='false'] {
+  color: var(--cp-text-muted);
 }
 
 .issue54-workspace {
@@ -484,8 +563,8 @@
 
 .issue54-network-card {
   align-items: center;
-  background: rgba(251, 191, 36, 0.09);
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: var(--issue54-warning-soft);
+  border: 1px solid var(--issue54-warning-border);
   border-radius: 14px;
   display: flex;
   gap: 14px;
@@ -509,7 +588,7 @@
 }
 
 .issue54-trend {
-  background: linear-gradient(90deg, rgba(74, 222, 128, 0.25), var(--cp-success));
+  background: linear-gradient(90deg, var(--issue54-success-soft), var(--cp-success));
   border-radius: 8px;
   display: inline-block;
   height: 8px;
@@ -517,7 +596,7 @@
 }
 
 .issue54-trend.high {
-  background: linear-gradient(90deg, rgba(251, 191, 36, 0.25), var(--cp-danger));
+  background: linear-gradient(90deg, var(--issue54-warning-soft), var(--cp-danger));
 }
 
 .issue54-actions {
