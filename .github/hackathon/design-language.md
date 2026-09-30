@@ -319,8 +319,18 @@ motion under `prefers-reduced-motion: reduce`; pulse only genuinely active work.
 
 ## 9. Theme and accessibility
 
-New or substantially revised shared surfaces should support light, dark and system preference
-where practical. Apply the theme before paint to avoid a flash of the wrong theme.
+Every idea page must support light and dark presentation and expose two plainly labelled controls:
+`Light` and `Dark`.
+
+- Place both buttons in the institutional header or another persistent top-level control area.
+- Do not replace them with an unlabeled sun/moon icon or one ambiguous toggle.
+- Show the active choice visually and with `aria-pressed`.
+- Apply the choice to the complete idea workspace, including chrome, guide, backstage states,
+  drawers and generated blocks.
+- Persist the choice for the next visit where practical.
+- A system preference may choose the initial value, but the visible `Light` and `Dark` buttons must
+  always remain available.
+- Apply the initial theme before paint where practical to avoid a flash of the wrong theme.
 
 The visual identity depends on accessible behavior:
 
@@ -361,8 +371,8 @@ For every new idea:
 6. Separate workspace orientation from semantic state.
 7. Make evidence, source data or provenance reachable from consequential summaries.
 8. Preserve keyboard focus, responsive task order, textual status and reduced motion.
-9. Check the result at mobile and wide-desktop widths; check both themes if the idea adds theme
-   support.
+9. Include visible `Light` and `Dark` buttons and check the complete walkthrough in both themes.
+10. Check the result at mobile and wide-desktop widths.
 
 Do not begin by cloning a screen. Apply the tokens and primitives, then vary the workspace structure
 to express the participant's work.
