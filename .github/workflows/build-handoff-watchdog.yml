@@ -1,0 +1,78 @@
+name: Build handoff watchdog
+
+# Safe-output assignment failures can be non-fatal to the idea-coach run. Verify that every
+# ready-for-build label is followed by a real Copilot assignment and tell the participant if not.
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: build-handoff-watchdog-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.label.name == 'ready-for-build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wait for the idea coach to finish the handoff
+        run: sleep 90
+
+      - name: Verify Copilot was assigned
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.issue.number;
+            const marker = "<!-- health-rewired-build-handoff-failed -->";
+            const { data: issue } = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number,
+            });
+            const hasCopilot = issue.assignees.some((assignee) =>
+              ["copilot", "copilot-swe-agent"].includes(
+                assignee.login.replace(/\[bot\]$/i, "").toLowerCase(),
+              ),
+            );
+            if (hasCopilot) {
+              core.info("Copilot is assigned; the build handoff succeeded.");
+              return;
+            }
+
+            const body = [
+              marker,
+              `### ⚠️ The prototype build did not start`,
+              ``,
+              `Your idea is approved, but we could not hand it to Copilot automatically.`,
+              `An organiser needs to retry the handoff. Your proposal and feedback are safe here.`,
+            ].join("\n");
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+            core.setFailed("The ready-for-build issue has no Copilot assignee.");

@@ -24,8 +24,14 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 - The idea **does not have its own page** at `/#/idea/<N>` (it was added to the landing page or
   the starter agent instead), or that page does not show the idea's main screen immediately.
   Always material – ask for a fix.
-- The page **does not look like hospital software** (no `HospitalShell`, a chat box or marketing
-  page instead of a clinical screen, or too little fake data to picture a real clinic day).
+- The page **does not look credible for the participant's role**: a patient-level clinical
+  workflow ignores `HospitalShell` without reason; a research/network/operations idea is forced
+  into a generic blue EHR despite the proposal; or the result is a chat box, marketing page or
+  sparse dashboard with too little synthetic data to picture a real working day.
+- The page ignores [`design-language.md`](design-language.md): it invents an unrelated palette or
+  component style, lacks institutional chrome or current-object context, uses color decoratively,
+  hides status or uncertainty, or makes consequential output impossible to inspect. Distinct
+  issue-local workspaces are welcome; independent design systems are not.
 - The page **does not tell the story**: no guided steps (`StoryGuide`), the mechanism of the
   vision stays invisible (no `Backstage` showing what happens behind the scenes), or a newcomer
   cannot reach the payoff just by following the steps.
