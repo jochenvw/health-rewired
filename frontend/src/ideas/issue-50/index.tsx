@@ -11,6 +11,7 @@ import {
   Status,
   Table,
   Workspace,
+  useWorkspaceTheme,
   type Tone,
 } from './Workspace';
 import type { IdeaMeta } from '../index';
@@ -131,6 +132,7 @@ const decisionLabel: Record<Decision['state'], string> = {
 };
 
 export default function RecordOnceReuseEverywhere() {
+  const [theme, setTheme] = useWorkspaceTheme();
   const [section, setSection] = useState<Section>('sources');
   const [data, setData] = useState<Case | null>(null);
   const [openDoc, setOpenDoc] = useState<string | null>(null);
@@ -193,6 +195,8 @@ export default function RecordOnceReuseEverywhere() {
 
   return (
     <Workspace
+      theme={theme}
+      onTheme={setTheme}
       product="Record ReWireD"
       module="Minimal dataset reconciliation"
       organisation="Klinikum Rewired München"

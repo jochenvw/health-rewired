@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import './workspace.css';
 
 /*
@@ -24,6 +24,50 @@ export function Status({ tone = 'neutral', children }: { tone?: Tone; children: 
   );
 }
 
+export type Theme = 'light' | 'dark';
+
+const THEME_KEY = 'rr50-theme';
+
+/*
+ * The workspace always carries an explicit theme. The initial value is read from the previous
+ * visit, otherwise seeded from the system preference; the `Light` and `Dark` buttons in the
+ * header stay visible in both cases.
+ */
+function readInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  const stored = window.localStorage.getItem(THEME_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+export function useWorkspaceTheme(): [Theme, (next: Theme) => void] {
+  const [theme, setTheme] = useState<Theme>(readInitialTheme);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* private mode: the choice simply does not persist */
+    }
+  }, [theme]);
+  return [theme, setTheme];
+}
+
+function ThemeChoice({ theme, onTheme }: { theme: Theme; onTheme: (next: Theme) => void }) {
+  return (
+    <div className="rr-theme">
+      <span id="rr-theme-label">Theme</span>
+      <div className="rr-theme-buttons" role="group" aria-labelledby="rr-theme-label">
+        <button type="button" aria-pressed={theme === 'light'} onClick={() => onTheme('light')}>
+          Light
+        </button>
+        <button type="button" aria-pressed={theme === 'dark'} onClick={() => onTheme('dark')}>
+          Dark
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Workspace({
   product,
   module,
@@ -38,6 +82,8 @@ export function Workspace({
   toolbar,
   children,
   drawer,
+  theme,
+  onTheme,
 }: {
   product: string;
   module: string;
@@ -52,9 +98,11 @@ export function Workspace({
   toolbar?: ReactNode;
   children: ReactNode;
   drawer?: ReactNode;
+  theme: Theme;
+  onTheme: (next: Theme) => void;
 }) {
   return (
-    <div className="rr">
+    <div className="rr" data-theme={theme}>
       <a className="rr-skip" href="#rr-canvas">
         Skip to the current task
       </a>
@@ -78,6 +126,7 @@ export function Workspace({
             </span>
           ))}
           <span className="rr-conn">Synthetic record exchange · connected</span>
+          <ThemeChoice theme={theme} onTheme={onTheme} />
         </div>
       </header>
       {banner}
