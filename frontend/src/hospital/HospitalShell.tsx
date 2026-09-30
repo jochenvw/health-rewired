@@ -1,11 +1,41 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import './hospital.css';
 
 /*
  * Hospital-software look for idea pages: a deliberately plain clinical information system, so a
  * clinician can picture the idea inside the software they use every day.
- * Everything inside <HospitalShell> uses the light "hx" theme; existing UI blocks adapt automatically.
+ * Everything inside <HospitalShell> uses the "hx" theme (light by default, "hx-dark" for dark);
+ * existing UI blocks adapt automatically because they only read the shared --cp- (or alias) tokens.
  */
+
+const THEME_STORAGE_KEY = 'health-rewired-theme';
+type Theme = 'light' | 'dark';
+
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+/** Two plainly labelled Light/Dark buttons for the institutional header (design-language.md §9). */
+function ThemeToggle({ theme, onChange }: { theme: Theme; onChange: (theme: Theme) => void }) {
+  return (
+    <div className="hx-theme-toggle" role="group" aria-label="Theme">
+      {(['light', 'dark'] as const).map((t) => (
+        <button
+          key={t}
+          type="button"
+          className={theme === t ? 'active' : undefined}
+          aria-pressed={theme === t}
+          onClick={() => onChange(t)}
+        >
+          {t === 'light' ? 'Light' : 'Dark'}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export type NavItem = { id: string; label: string; badge?: string | number };
 
@@ -42,8 +72,12 @@ export function HospitalShell({
   children: ReactNode;
 }) {
   const today = new Date().toLocaleDateString('de-DE');
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
   return (
-    <div className="hx">
+    <div className={theme === 'dark' ? 'hx hx-dark' : 'hx'}>
       <div className="hx-appbar">
         <span className="hx-logo">KR</span>
         <strong>Klinikum Rewired München</strong>
@@ -52,6 +86,8 @@ export function HospitalShell({
         <span className="hx-appbar-sep">|</span>
         <span>{module}</span>
         <span className="hx-spacer" />
+        <ThemeToggle theme={theme} onChange={setTheme} />
+        <span className="hx-appbar-sep">|</span>
         <span>Dr. M. Weber · Medical Oncology</span>
         <span className="hx-appbar-sep">|</span>
         <span>{today}</span>
