@@ -13,6 +13,7 @@
   --critical: #ff5a6e;
   --radius: 18px;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --font-mono: Consolas, 'Courier New', Courier, monospace;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -519,7 +520,8 @@ select option {
 }
 
 .source {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
   color: var(--accent-2);
 }
 
@@ -614,7 +616,9 @@ select option {
 /* Specialist debate block: the tumour board's signature view. */
 .debate-heading {
   margin: 20px 0 10px;
-  font-size: 0.8rem;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api, type AgentResult, type PatientRecord, type PatientSummary } from '../../api';
+import { api, type AgentResult, type PatientRecord, type PatientSummary, type UIItem } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
@@ -134,6 +134,7 @@ export default function TumourBoardAgent() {
       {notice && <Panel title="Information">{notice}</Panel>}
       {section === 'worklist' && (
         <Panel title={`Tumour board worklist · ${new Date().toLocaleDateString('de-DE')}`}>
+          <span className="hx-eyebrow">Where am I · tomorrow&rsquo;s MDT worklist</span>
           <DataTable
             rowKey={(r) => r.id}
             rows={rows}
@@ -281,6 +282,19 @@ function Analysis({
   const [started, setStarted] = useState(false);
   const [runs, setRuns] = useState(0);
 
+  const counts = useMemo(() => {
+    const items: UIItem[] = result?.blocks.flatMap((b) => b.items) ?? [];
+    if (items.length === 0) return null;
+    const tally = { agreed: 0, disputed: 0, missing: 0, humanDecision: 0 };
+    for (const item of items) {
+      if (item.group === 'agreed') tally.agreed += 1;
+      else if (item.group === 'disputed') tally.disputed += 1;
+      else if (item.group === 'missing') tally.missing += 1;
+      else if (item.group === 'human_decision') tally.humanDecision += 1;
+    }
+    return tally;
+  }, [result]);
+
   const run = async () => {
     setRuns((n) => n + 1);
     setResult(null);
@@ -325,6 +339,7 @@ function Analysis({
         </>
       }
     >
+      <span className="hx-eyebrow">Current task · convene the six specialists, then converge to a consensus board</span>
       {error && <p className="error">{error}</p>}
       <Backstage
         key={runs}
@@ -344,6 +359,18 @@ function Analysis({
       {result && (
         <div className="result" aria-live="polite">
           {result.note && <p className="note">{result.note}</p>}
+          {counts && (
+            <div
+              className={`hx-attention ${counts.disputed > 0 ? 'hx-attention-crit' : counts.missing > 0 ? 'hx-attention-warn' : 'hx-attention-ok'}`}
+              role="status"
+            >
+              <strong>What needs attention:</strong>
+              <span>
+                {counts.agreed} agreed · {counts.disputed} still disputed · {counts.missing} missing before MDT ·{' '}
+                {counts.humanDecision} for the board to decide
+              </span>
+            </div>
+          )}
           {result.trace.length > 0 && (
             <ol className="trace" aria-label="What the specialists looked at">
               {result.trace.map((step, index) => (

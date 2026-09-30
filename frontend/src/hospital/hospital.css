@@ -1,21 +1,46 @@
-/* Plain hospital-software theme. Scoped to .hx; overrides the global design tokens so existing
-   generative-UI blocks render in the same light, dense clinical style. */
+/* Health Rewired shared design language (.github/hackathon/design-language.md), applied to the
+   institutional shell used for patient-level care. Semantic --cp-* tokens are the source of
+   truth; the legacy variable names are kept as aliases so existing generative-UI blocks
+   (frontend/src/blocks/*) keep working without per-block changes. */
 .hx {
-  --bg: #e9edf2;
-  --bg-soft: #f4f6f9;
-  --surface: #ffffff;
-  --surface-strong: #eef2f6;
-  --border: #c6ced8;
-  --text: #1c2733;
-  --muted: #56606c;
-  --accent: #1f5c99;
-  --accent-2: #1f5c99;
-  --ok: #2e7d32;
-  --warning: #b26a00;
-  --critical: #c62828;
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+
+  /* Aliases consumed by the shared UI-block components. */
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
   --radius: 3px;
   --shadow: none;
-  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  --font-mono: Consolas, 'Courier New', Courier, monospace;
+  font-family: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 13px;
   line-height: 1.4;
   color: var(--text);
@@ -23,6 +48,53 @@
   min-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
+}
+
+.hx :focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 4px;
+}
+
+/* Small monospaced operational label; orients a section without decorating it. */
+.hx-eyebrow {
+  display: block;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+  margin: 0 0 4px;
+}
+
+/* Attention strip: semantic edge + badge + one plain-language explanation. */
+.hx-attention {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-border-strong);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
+.hx-attention-warn {
+  border-left-color: var(--cp-warning);
+}
+
+.hx-attention-crit {
+  border-left-color: var(--cp-danger);
+}
+
+.hx-attention-ok {
+  border-left-color: var(--cp-success);
+}
+
+.hx-attention-info {
+  border-left-color: var(--cp-link);
 }
 
 .hx h1,
@@ -36,26 +108,27 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #22405f;
-  color: #e6edf5;
-  padding: 6px 12px;
+  min-height: 56px;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-fg);
+  padding: 6px 14px;
   font-size: 12px;
 }
 
 .hx-logo {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  background: #fff;
-  color: #22405f;
+  width: 26px;
+  height: 26px;
+  background: var(--cp-chrome-fg);
+  color: var(--cp-chrome);
   font-weight: 800;
-  font-size: 10px;
-  border-radius: 2px;
+  font-size: 11px;
+  border-radius: 4px;
 }
 
 .hx-appbar-sep {
-  opacity: 0.4;
+  color: var(--cp-chrome-muted);
 }
 
 .hx-spacer {
@@ -65,10 +138,10 @@
 .hx-menubar {
   display: flex;
   gap: 18px;
-  background: #f4f6f9;
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
   padding: 4px 12px;
-  color: #33404d;
+  color: var(--cp-text-soft);
   font-size: 12px;
 }
 
@@ -77,8 +150,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 18px;
-  background: #dfe9f4;
-  border-bottom: 2px solid #9fb6ce;
+  background: var(--cp-banner);
+  border-bottom: 2px solid var(--cp-chrome);
   padding: 8px 12px;
 }
 
@@ -91,9 +164,9 @@
 }
 
 .hx-allergy {
-  background: #fbe3e3;
-  color: var(--critical);
-  border: 1px solid #efb2b2;
+  background: var(--cp-surface);
+  color: var(--cp-danger);
+  border: 1px solid var(--cp-danger);
   padding: 1px 8px;
   border-radius: 2px;
   font-weight: 600;
@@ -108,7 +181,7 @@
 .hx-nav {
   width: 200px;
   flex-shrink: 0;
-  background: #f4f6f9;
+  background: var(--cp-surface-soft);
   border-right: 1px solid var(--border);
   padding: 8px 0;
   display: flex;
@@ -130,17 +203,17 @@
 }
 
 .hx-nav button:hover {
-  background: #e6ebf1;
+  background: var(--cp-surface);
 }
 
 .hx-nav button.active {
-  background: #fff;
-  border-left-color: var(--accent);
+  background: var(--cp-surface);
+  border-left-color: var(--cp-accent);
   font-weight: 600;
 }
 
 .hx-badge {
-  background: var(--accent);
+  background: var(--cp-accent);
   color: #fff;
   border-radius: 8px;
   padding: 0 6px;
@@ -160,7 +233,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: #f9fafb;
+  background: var(--cp-bg-elevated);
   border-bottom: 1px solid var(--border);
 }
 
@@ -188,7 +261,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(#f7f9fb, #e9eef3);
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
   padding: 5px 10px;
 }
@@ -217,7 +290,7 @@
 
 .hx-table th {
   text-align: left;
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
   padding: 5px 8px;
   font-weight: 600;
@@ -225,13 +298,13 @@
 }
 
 .hx-table td {
-  border-bottom: 1px solid #e3e8ee;
+  border-bottom: 1px solid var(--cp-border);
   padding: 5px 8px;
   vertical-align: top;
 }
 
 .hx-table tr:nth-child(even) td {
-  background: #fafbfc;
+  background: var(--cp-bg-elevated);
 }
 
 .hx-table tr.clickable {
@@ -239,11 +312,11 @@
 }
 
 .hx-table tr.clickable:hover td {
-  background: #eaf1f8;
+  background: var(--cp-accent-soft);
 }
 
 .hx-table tr.selected td {
-  background: #d6e5f5;
+  background: var(--cp-accent-soft);
 }
 
 .hx-table tr.warn td:first-child {
@@ -267,7 +340,7 @@
 
 .hx-tabs button {
   font: inherit;
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border: 1px solid var(--border);
   border-bottom: none;
   border-radius: 3px 3px 0 0;
@@ -277,7 +350,7 @@
 }
 
 .hx-tabs button.active {
-  background: #fff;
+  background: var(--cp-surface);
   font-weight: 600;
   position: relative;
   top: 1px;
@@ -293,38 +366,38 @@
 }
 
 .hx-pill-neutral {
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border-color: var(--border);
 }
 
 .hx-pill-ok {
-  background: #e3f2e5;
+  background: rgba(22, 163, 74, 0.12);
   color: var(--ok);
 }
 
 .hx-pill-warn {
-  background: #fdf0da;
+  background: rgba(245, 158, 11, 0.14);
   color: var(--warning);
 }
 
 .hx-pill-crit {
-  background: #fbe3e3;
+  background: rgba(220, 38, 38, 0.12);
   color: var(--critical);
 }
 
 .hx-pill-info {
-  background: #dfe9f4;
-  color: var(--accent);
+  background: var(--cp-accent-soft);
+  color: var(--cp-link);
 }
 
 .hx-statusbar {
   display: flex;
   gap: 18px;
-  background: #dde3ea;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-muted);
   border-top: 1px solid var(--border);
   padding: 3px 12px;
   font-size: 11.5px;
-  color: #33404d;
 }
 
 /* Form controls and buttons in the hospital theme. */
@@ -333,8 +406,8 @@
 .hx textarea {
   font: inherit;
   color: var(--text);
-  background: #fff;
-  border: 1px solid #aab4c0;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border-strong);
   border-radius: 2px;
   padding: 4px 6px;
 }
@@ -355,17 +428,23 @@
   gap: 6px;
   border-radius: 2px;
   padding: 4px 12px;
-  border: 1px solid #9aa6b3;
-  background: linear-gradient(#ffffff, #e8edf2);
+  border: 1px solid var(--cp-border-strong);
+  background: var(--cp-surface);
   color: var(--text);
   cursor: pointer;
 }
 
 .hx .button.primary,
 .hx-btn.primary {
-  background: linear-gradient(#2d6fb2, #1f5c99);
-  border-color: #174a7c;
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
   color: #fff;
+}
+
+.hx .button.primary:hover:not(:disabled),
+.hx-btn.primary:hover:not(:disabled) {
+  background: var(--cp-accent-hover);
+  border-color: var(--cp-accent-hover);
 }
 
 .hx .button:disabled,
@@ -377,7 +456,7 @@
 .hx .chip {
   border-radius: 2px;
   border-style: solid;
-  background: #fff;
+  background: var(--cp-surface);
   color: var(--text);
   text-align: left;
   padding: 4px 8px;
@@ -416,7 +495,7 @@
 }
 
 .hx .trace li {
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
 }
 
 .hx dl.hx-facts {
@@ -434,10 +513,11 @@
   margin: 0;
 }
 
-/* Guided demo bar and simulated behind-the-scenes work (Story.tsx). */
+/* Guided demo bar and simulated behind-the-scenes work (Story.tsx). Integrated with the shared
+   institutional chrome and semantic tokens, not a floating tutorial widget. */
 .hx-story {
-  background: #fffbea;
-  border-bottom: 1px solid #e6d58f;
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--border);
 }
 
 .hx-story-steps {
@@ -465,7 +545,7 @@
 .hx-story-steps li.current button {
   color: var(--text);
   font-weight: 600;
-  border-bottom-color: #d9a400;
+  border-bottom-color: var(--cp-accent);
 }
 
 .hx-story-steps li.done button {
@@ -478,18 +558,21 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #eee3b8;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
   font-size: 11px;
   font-weight: 700;
 }
 
 .hx-story-steps li.current .hx-story-num {
-  background: #d9a400;
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
   color: #fff;
 }
 
 .hx-story-steps li.done .hx-story-num {
-  background: #d7ecd9;
+  background: rgba(22, 163, 74, 0.14);
+  border-color: var(--ok);
 }
 
 .hx-story-explain {
@@ -498,20 +581,21 @@
   align-items: center;
   gap: 8px 12px;
   padding: 6px 12px 8px;
-  border-top: 1px solid #efe3ad;
+  border-top: 1px solid var(--cp-border);
 }
 
 .hx-story-tag {
-  font-size: 11px;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8a6a00;
+  letter-spacing: 0.06em;
+  color: var(--cp-accent);
 }
 
 .hx-backstage {
-  background: #f7f9fb;
-  border: 1px dashed #9fb6ce;
+  background: var(--cp-bg-elevated);
+  border: 1px dashed var(--cp-border-strong);
   border-radius: var(--radius);
   padding: 8px 12px;
 }
@@ -521,6 +605,11 @@
   justify-content: space-between;
   color: var(--accent);
   margin-bottom: 6px;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .hx-backstage ol {
@@ -584,7 +673,7 @@
   display: inline-block;
   width: 12px;
   height: 12px;
-  border: 2px solid #c6d4e3;
+  border: 2px solid var(--cp-border);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: hx-spin 0.8s linear infinite;
@@ -593,6 +682,12 @@
 @keyframes hx-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-spinner {
+    animation-duration: 2.4s;
   }
 }
 
