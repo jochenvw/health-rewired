@@ -1,10 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
-import './styles.css';
+import {
+  Attention,
+  Drawer,
+  Eyebrow,
+  Panel,
+  Status,
+  Table,
+  Tabs,
+  Workspace,
+  type StatusTone,
+} from './Workspace';
 
 export const meta: IdeaMeta = {
   id: '48',
@@ -100,9 +109,15 @@ const stages: Stage[] = [
   { label: 'Flagging contradictions and gaps – never filling them in', detail: 'Values it cannot prove stay "unknown"', ms: 900 },
 ];
 
-const tone = (status: Field['status']) => (status === 'conflict' ? 'crit' : status === 'ok' ? 'ok' : 'warn');
+const statusTone: Record<Field['status'], StatusTone> = {
+  ok: 'info',
+  conflict: 'danger',
+  uncertain: 'warning',
+  missing: 'warning',
+};
+
 const statusLabel: Record<Field['status'], string> = {
-  ok: 'Extracted',
+  ok: 'Read from source',
   conflict: 'Contradiction',
   uncertain: 'Uncertain',
   missing: 'Not documented',
@@ -121,6 +136,7 @@ export default function ConfirmOnce() {
   const [scoring, setScoring] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const [inspect, setInspect] = useState<{ title: string; docs: Doc[] } | null>(null);
 
   const prepare = useCallback(() => {
     setSection('dataset');
@@ -135,7 +151,7 @@ export default function ConfirmOnce() {
         setLoaded(true);
       })
       .catch(() => {
-        setNotice('The synthetic record could not be loaded – use "Prepare for MDT" to try again.');
+        setNotice('The synthetic record could not be retrieved. Use "Prepare for MDT" to try again.');
         setRunning(false);
         setFailed(true);
       });
@@ -153,9 +169,11 @@ export default function ConfirmOnce() {
   const needsReview = data?.fields.filter((f) => f.status !== 'ok') ?? [];
   const clean = data?.fields.filter((f) => f.status === 'ok') ?? [];
   const confirmedCount = Object.keys(decisions).length;
+  const openFlags = needsReview.filter((f) => !decisions[f.id]).length;
 
   const runScore = async () => {
     setScoring(true);
+    setNotice(null);
     try {
       setScore(
         await post<Scorecard>('/api/ideas/48/scorecard', {
@@ -170,9 +188,20 @@ export default function ConfirmOnce() {
     }
   };
 
+  const openDocs = (title: string, docs: Doc[]) => setInspect({ title, docs });
+
   return (
-    <HospitalShell
-      module="Tumour board preparation · minimal dataset"
+    <Workspace
+      module="Tumour board preparation"
+      org="Klinikum Rewired München · Colorectal multidisciplinary team"
+      workstation="MDT office 2 · workstation MDT-A4"
+      chromeAction={
+        data && (
+          <button type="button" className="i48-btn text" onClick={() => openDocs('All source documents', data.documents)}>
+            Open all source documents
+          </button>
+        )
+      }
       guide={
         <StoryGuide
           steps={story}
@@ -185,31 +214,67 @@ export default function ConfirmOnce() {
         />
       }
       nav={[
-        { id: 'worklist', label: 'MDT worklist', badge: board.length },
-        { id: 'dataset', label: 'Minimal dataset', badge: needsReview.length || undefined },
-        { id: 'reuse', label: 'MDT · registry · research', badge: confirmedCount || undefined },
-        { id: 'score', label: 'Scorecard' },
+        { id: 'worklist', label: 'MDT worklist', detail: `${board.length} cases · Thursday 08:30` },
+        {
+          id: 'dataset',
+          label: 'Minimal dataset',
+          detail: data ? `${openFlags} of ${data.counts.total} awaiting a decision` : 'Not gathered yet',
+        },
+        {
+          id: 'reuse',
+          label: 'MDT · registry · research',
+          detail: `${confirmedCount} confirmed value${confirmedCount === 1 ? '' : 's'} reused`,
+        },
+        { id: 'score', label: 'Scorecard', detail: 'Against the hidden answer key' },
       ]}
       active={section}
       onNav={(id) => (id === 'dataset' ? prepare() : setSection(id as Section))}
-      patient={
+      banner={
         section === 'worklist' || !data
           ? null
-          : { id: data.id, name: data.name, age: data.age, sex: data.sex, diagnosis: data.diagnosis, ward: 'Colorectal MDT' }
+          : {
+              title: `${data.name.split(' ').slice(-1)[0].toUpperCase()}, ${data.name.split(' ')[0]}`,
+              subtitle: `MRN ${data.id.replace(/\D/g, '').padStart(8, '0')} · ${data.sex}, ${data.age} y · synthetic record`,
+              facts: [
+                { label: 'Diagnosis', value: data.diagnosis },
+                { label: 'Tumour board', value: data.mdt },
+                { label: 'Source records', value: `${data.documents.length} documents · ${data.counts.languages} languages · ${data.counts.hospitals} hospitals` },
+                {
+                  label: 'Dataset state',
+                  value: (
+                    <Status tone={openFlags ? 'warning' : confirmedCount ? 'success' : 'neutral'}>
+                      {openFlags ? `${openFlags} awaiting decision` : `${confirmedCount} confirmed`}
+                    </Status>
+                  ),
+                },
+              ],
+              action: (
+                <button type="button" className="i48-btn" onClick={() => openDocs('Complete source record', data.documents)}>
+                  Open complete record
+                </button>
+              ),
+            }
       }
       toolbar={
         <>
           <span>
-            Dataset: <strong>{data?.dataset ?? 'Health ReWireD minimal dataset – mCRC'}</strong>
+            <Eyebrow>Dataset definition</Eyebrow>
+            <br />
+            <strong>{data?.dataset ?? 'Health ReWireD minimal dataset – metastatic colorectal cancer (mCRC), v0.3'}</strong>
           </span>
-          <span className="hx-spacer" />
+          <span className="i48-spacer" />
           <span>
-            Confirmed {confirmedCount}{data ? ` of ${data.counts.total}` : ''}
+            <Eyebrow>Confirmed by you</Eyebrow>
+            <br />
+            <strong>
+              {confirmedCount}
+              {data ? ` of ${data.counts.total}` : ''}
+            </strong>
           </span>
-          <button type="button" className="hx-btn primary" onClick={prepare} disabled={running && !loaded}>
+          <button type="button" className="i48-btn primary" onClick={prepare} disabled={running && !loaded}>
             {running && !loaded ? (
               <>
-                <span className="hx-spinner" aria-hidden /> Preparing…
+                <span className="hx-spinner" aria-hidden /> Gathering the dataset…
               </>
             ) : (
               'Prepare for MDT'
@@ -217,41 +282,86 @@ export default function ConfirmOnce() {
           </button>
         </>
       }
+      drawer={
+        inspect && (
+          <Drawer title={inspect.title} onClose={() => setInspect(null)}>
+            {inspect.docs.map((d) => (
+              <article key={d.id} className="i48-source">
+                <div className="i48-source-meta">
+                  <Status tone="info">{d.language}</Status>
+                  <span>{d.type}</span>
+                  <span>{d.date}</span>
+                  <span>{d.id}</span>
+                </div>
+                <p className="i48-quote">{d.text}</p>
+                <p className="i48-translation">{d.hospital} · synthetic document, original language retained</p>
+              </article>
+            ))}
+          </Drawer>
+        )
+      }
     >
-      {notice && <Panel title="Information">{notice}</Panel>}
+      {notice && (
+        <Attention
+          tone="danger"
+          status="Retrieval failed"
+          action={
+            <button type="button" className="i48-btn" onClick={prepare}>
+              Try again
+            </button>
+          }
+        >
+          {notice}
+        </Attention>
+      )}
 
       {section === 'worklist' && (
-        <Panel title="Colorectal tumour board · Thursday 08:30 · Room MDT-2">
-          <DataTable
-            rowKey={(r) => r.id}
-            rows={board}
-            selected={PATIENT}
-            onSelect={(r) =>
-              r.id === PATIENT ? prepare() : setNotice('Only Sofia Ricci has the synthetic four-language record in this prototype.')
+        <>
+          <Attention
+            tone="warning"
+            status="Human work required"
+            action={
+              <button type="button" className="i48-btn primary" onClick={prepare}>
+                Prepare Sofia Ricci for MDT
+              </button>
             }
-            columns={[
-              { key: 'time', label: 'Time', width: '60px' },
-              { key: 'name', label: 'Patient', render: (r) => <strong>{r.name}</strong> },
-              { key: 'dx', label: 'Diagnosis' },
-              { key: 'from', label: 'Records from' },
-              {
-                key: 'status',
-                label: 'Dataset',
-                render: (r) => <Pill tone={r.status === 'Prepared' ? 'ok' : 'warn'}>{r.status}</Pill>,
-              },
-            ]}
-          />
-          <p className="i48-why">
-            Today this means reading every document again and retyping stage, condition, molecular results and prior
-            treatment – for the MDT, again for the cancer registry, and again for each study.
-          </p>
-        </Panel>
+          >
+            Two cases are not prepared. For Sofia Ricci the stage, condition, molecular results and prior treatment are
+            retyped by hand today – for the tumour board, again for the cancer registry, and again for every study.
+          </Attention>
+          <Panel eyebrow="Current worklist" title="Colorectal tumour board · Thursday 08:30 · Room MDT-2">
+            <Table
+              caption="Cases scheduled for tomorrow's colorectal tumour board (synthetic)."
+              rowKey={(r) => r.id}
+              rows={board}
+              selected={PATIENT}
+              onSelect={(r) =>
+                r.id === PATIENT
+                  ? prepare()
+                  : setNotice('Only Sofia Ricci has the synthetic four-language record in this prototype.')
+              }
+              columns={[
+                { key: 'time', label: 'Time', width: '72px' },
+                { key: 'name', label: 'Patient', render: (r) => <strong>{r.name}</strong> },
+                { key: 'dx', label: 'Diagnosis' },
+                { key: 'from', label: 'Records from' },
+                {
+                  key: 'status',
+                  label: 'Dataset',
+                  render: (r) => (
+                    <Status tone={r.status === 'Prepared' ? 'success' : 'warning'}>{r.status}</Status>
+                  ),
+                },
+              ]}
+            />
+          </Panel>
+        </>
       )}
 
       {section === 'dataset' && (
         <>
           <Backstage
-            title="Behind the scenes – what the assistant is doing"
+            title="Live activity – reading the source documents"
             stages={stages}
             running={running}
             holdLast
@@ -259,14 +369,20 @@ export default function ConfirmOnce() {
             onFinished={() => setReady(true)}
             note="Simulated timings; the documents, values and answer key are synthetic."
           />
-          {!ready && !data && <Panel title="Minimal dataset"><Working label="Collecting the record" /></Panel>}
+          {!ready && !data && (
+            <Panel eyebrow="Current task" title="Minimal dataset">
+              <Working label="Collecting the record from four hospitals" />
+            </Panel>
+          )}
           {ready && data && (
             <DatasetScreen
               data={data}
               needsReview={needsReview}
               clean={clean}
+              openFlags={openFlags}
               decisions={decisions}
               onDecide={decide}
+              onInspect={openDocs}
               onDone={() => setSection('reuse')}
             />
           )}
@@ -275,16 +391,27 @@ export default function ConfirmOnce() {
 
       {section === 'reuse' &&
         (data ? (
-          <Reuse data={data} decisions={decisions} onScore={() => setSection('score')} />
+          <Reuse data={data} decisions={decisions} onScore={() => setSection('score')} onBack={() => prepare()} />
         ) : (
-          <Panel title="MDT · registry · research">Prepare the dataset first.</Panel>
+          <Attention
+            tone="warning"
+            status="Nothing to reuse"
+            action={
+              <button type="button" className="i48-btn primary" onClick={prepare}>
+                Prepare for MDT
+              </button>
+            }
+          >
+            The dataset has not been gathered yet, so no value can travel to the tumour board, the registry or research.
+          </Attention>
         ))}
 
       {section === 'score' && (
         <Panel
-          title="Scorecard against the hidden answer key"
+          eyebrow="Payoff · measured against the answer key"
+          title="How well did the assistant do?"
           actions={
-            <button type="button" className="hx-btn primary" onClick={runScore} disabled={scoring || confirmedCount === 0}>
+            <button type="button" className="i48-btn primary" onClick={runScore} disabled={scoring || confirmedCount === 0}>
               {scoring ? (
                 <>
                   <span className="hx-spinner" aria-hidden /> Checking…
@@ -295,31 +422,39 @@ export default function ConfirmOnce() {
             </button>
           }
         >
-          {confirmedCount === 0 && <span className="hx-empty">Confirm some values first – the scorecard only counts what you signed off.</span>}
-          {scoring && <Working label="Comparing with the answer key" />}
+          {confirmedCount === 0 && (
+            <p className="i48-empty">
+              Confirm some values first – the scorecard only counts what a human signed off.
+            </p>
+          )}
+          {scoring && <Working label="Comparing your dataset with the hidden answer key" />}
           {score && (
             <>
               <div className="i48-score">
-                <div>
-                  <strong>{score.correct}</strong> correct
+                <div className="success">
+                  <strong>{score.correct}</strong>
+                  <Eyebrow>Correct</Eyebrow>
                 </div>
-                <div>
-                  <strong>{score.unknown}</strong> kept unknown
+                <div className="warning">
+                  <strong>{score.unknown}</strong>
+                  <Eyebrow>Correctly left unknown</Eyebrow>
                 </div>
-                <div>
-                  <strong>{score.wrong}</strong> wrong
+                <div className="danger">
+                  <strong>{score.wrong}</strong>
+                  <Eyebrow>Wrong</Eyebrow>
                 </div>
                 <div>
                   <strong>
                     {confirmedCount}/{score.total_fields}
                   </strong>
-                  confirmed
+                  <Eyebrow>Confirmed by you</Eyebrow>
                 </div>
               </div>
-              <DataTable
+              <Table
+                caption="Your confirmed values compared with the hidden answer key supplied with the synthetic records."
                 rowKey={(r) => r.field_id}
                 rows={score.rows}
-                rowTone={(r) => (r.verdict === 'wrong' ? 'crit' : undefined)}
+                rowTone={(r) => (r.verdict === 'wrong' ? 'danger' : undefined)}
                 columns={[
                   { key: 'label', label: 'Value' },
                   { key: 'confirmed', label: 'You confirmed' },
@@ -329,14 +464,14 @@ export default function ConfirmOnce() {
                     key: 'verdict',
                     label: 'Result',
                     render: (r) => (
-                      <Pill tone={r.verdict === 'correct' ? 'ok' : r.verdict === 'unknown' ? 'neutral' : 'crit'}>
-                        {r.verdict === 'unknown' ? 'correctly left unknown' : r.verdict}
-                      </Pill>
+                      <Status tone={r.verdict === 'correct' ? 'success' : r.verdict === 'unknown' ? 'warning' : 'danger'}>
+                        {r.verdict === 'unknown' ? 'Correctly left unknown' : r.verdict}
+                      </Status>
                     ),
                   },
                 ]}
               />
-              <p className="i48-why">
+              <p className="i48-note">
                 "Correctly left unknown" counts as a good answer: an implied condition score should stay unknown rather
                 than be guessed.
               </p>
@@ -344,7 +479,7 @@ export default function ConfirmOnce() {
           )}
         </Panel>
       )}
-    </HospitalShell>
+    </Workspace>
   );
 }
 
@@ -352,134 +487,231 @@ function DatasetScreen({
   data,
   needsReview,
   clean,
+  openFlags,
   decisions,
   onDecide,
+  onInspect,
   onDone,
 }: {
   data: Dataset;
   needsReview: Field[];
   clean: Field[];
+  openFlags: number;
   decisions: Record<string, Decision>;
   onDecide: (field: Field, action: Decision['action'], value: string) => void;
+  onInspect: (title: string, docs: Doc[]) => void;
   onDone: () => void;
 }) {
   const [tab, setTab] = useState('review');
   const docs = new Map(data.documents.map((d) => [d.id, d]));
+  const conflicts = needsReview.filter((f) => f.status === 'conflict').length;
+  const inspectField = (field: Field) =>
+    onInspect(
+      `Source documents behind "${field.label}"`,
+      field.evidence.map((e) => docs.get(e.doc)).filter((d): d is Doc => Boolean(d)),
+    );
+
   return (
     <>
+      {openFlags > 0 ? (
+        <Attention tone={conflicts ? 'danger' : 'warning'} status="Human review required">
+          {openFlags} of {data.counts.total} values cannot be used yet: {conflicts} contradiction
+          {conflicts === 1 ? '' : 's'}, plus values that are only implied or not documented at all. The assistant leaves
+          them open instead of filling them in – you accept, correct or mark each one unknown.
+        </Attention>
+      ) : (
+        <Attention
+          tone="success"
+          status="Ready for the tumour board"
+          action={
+            <button type="button" className="i48-btn primary" onClick={onDone}>
+              Use confirmed values
+            </button>
+          }
+        >
+          Every flagged value has a human decision. Confirmed values can now travel to the MDT overview, the cancer
+          registration and the research dataset.
+        </Attention>
+      )}
+
       <Tabs
         active={tab}
         onChange={setTab}
         tabs={[
           { id: 'review', label: `Needs your decision (${needsReview.length})` },
-          { id: 'rest', label: `Rest of the dataset (${clean.length})` },
+          { id: 'rest', label: `Read from source (${clean.length})` },
           { id: 'docs', label: `Source documents (${data.documents.length})` },
+          { id: 'account', label: 'Extraction account' },
           { id: 'assistant', label: 'Ask the assistant' },
         ]}
       />
+
       {tab === 'review' && (
         <Panel
-          title={`Contradictions, uncertain and missing values · ${data.counts.languages} languages · ${data.counts.hospitals} hospitals`}
+          eyebrow="Current task · human review required"
+          title="Contradictions, uncertain and missing values"
           actions={
-            <button type="button" className="hx-btn primary" onClick={onDone}>
-              Use confirmed values →
+            <button type="button" className="i48-btn primary" onClick={onDone}>
+              Use confirmed values
             </button>
           }
         >
           {needsReview.map((f) => (
-            <FieldCard key={f.id} field={f} docs={docs} decision={decisions[f.id]} onDecide={onDecide} />
+            <ValueCard
+              key={f.id}
+              field={f}
+              docs={docs}
+              decision={decisions[f.id]}
+              onDecide={onDecide}
+              onInspect={inspectField}
+            />
           ))}
         </Panel>
       )}
+
       {tab === 'rest' && (
-        <Panel title="Values the assistant could read directly">
+        <Panel eyebrow="Supporting context" title="Values the assistant could read directly">
           {clean.map((f) => (
-            <FieldCard key={f.id} field={f} docs={docs} decision={decisions[f.id]} onDecide={onDecide} />
+            <ValueCard
+              key={f.id}
+              field={f}
+              docs={docs}
+              decision={decisions[f.id]}
+              onDecide={onDecide}
+              onInspect={inspectField}
+            />
           ))}
         </Panel>
       )}
+
       {tab === 'docs' && (
-        <Panel title="Source documents – synthetic, four hospitals, four languages">
-          {data.documents.map((d) => (
-            <div key={d.id} className="i48-evidence">
-              <div className="i48-meta">
-                <Pill tone="info">{d.language}</Pill>
-                <span>{d.type}</span>
-                <span>{d.date}</span>
-                <span>{d.hospital}</span>
-                <span>{d.id}</span>
-              </div>
-              <div className="i48-quote">{d.text}</div>
-            </div>
-          ))}
+        <Panel
+          eyebrow="Full record"
+          title="Source documents · four hospitals, four languages"
+          actions={
+            <button type="button" className="i48-btn" onClick={() => onInspect('All source documents', data.documents)}>
+              Open in inspection drawer
+            </button>
+          }
+        >
+          <Table
+            caption="Synthetic documents behind this minimal dataset; the original language is always kept."
+            rowKey={(d) => d.id}
+            rows={data.documents}
+            onSelect={(d) => onInspect(`${d.type} · ${d.language}`, [d])}
+            columns={[
+              { key: 'date', label: 'Date', width: '100px' },
+              { key: 'type', label: 'Document' },
+              { key: 'language', label: 'Language', render: (d) => <Status tone="info">{d.language}</Status> },
+              { key: 'hospital', label: 'Hospital' },
+              { key: 'id', label: 'Reference' },
+            ]}
+          />
         </Panel>
       )}
+
+      {tab === 'account' && (
+        <Panel eyebrow="Public summary of the assistant's work" title="How this dataset was put together">
+          <ol className="i48-account">
+            {[
+              ['Trying to answer', `Fill the ${data.counts.total} agreed values of the mCRC minimal dataset for ${data.name}.`],
+              ['Considered', `${data.documents.length} documents from ${data.counts.hospitals} hospitals in ${data.counts.languages} languages: pathology, consultation, CT and molecular reports.`],
+              ['This showed', `${clean.length} values stated explicitly in the text, each with the sentence it came from and a translation.`],
+              ['But this remains uncertain', `${needsReview.length} values: a KRAS/RAS contradiction between two reports, a condition described but never scored, an indeterminate lung nodule, and a BRAF result that is simply absent.`],
+              ['So the current conclusion is', 'Nothing uncertain has been filled in. Those values stay open until a clinician accepts, corrects or marks them unknown.'],
+              ['Next', 'Work through the flagged values, then reuse the confirmed dataset for the tumour board, the cancer registry and research.'],
+            ].map(([label, text]) => (
+              <li key={label}>
+                <Eyebrow>{label}</Eyebrow>
+                <p>{text}</p>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+      )}
+
       {tab === 'assistant' && <Assistant />}
     </>
   );
 }
 
-function FieldCard({
+function ValueCard({
   field,
   docs,
   decision,
   onDecide,
+  onInspect,
 }: {
   field: Field;
   docs: Map<string, Doc>;
   decision?: Decision;
   onDecide: (field: Field, action: Decision['action'], value: string) => void;
+  onInspect: (field: Field) => void;
 }) {
   const [choice, setChoice] = useState(decision?.value ?? field.proposed);
   const unknownOption = field.options.find((o) => o.toLowerCase().startsWith('unknown')) ?? 'Unknown';
+  const percent = Math.round(field.confidence * 100);
   return (
-    <article className={`i48-field ${decision ? 'confirmed' : field.status}`}>
+    <article className={`i48-value ${decision ? 'confirmed' : field.status}`}>
       <header>
-        <strong>{field.label}</strong>
-        <Pill tone={decision ? 'ok' : tone(field.status)}>{decision ? `Confirmed (${decision.action})` : statusLabel[field.status]}</Pill>
-        <span className="i48-meta">
-          <span className="i48-conf" aria-label={`confidence ${Math.round(field.confidence * 100)}%`}>
-            <span style={{ width: `${Math.round(field.confidence * 100)}%` }} />
-          </span>
-          confidence {Math.round(field.confidence * 100)}% · {field.codes}
+        <h4>{field.label}</h4>
+        <Status tone={decision ? 'success' : statusTone[field.status]}>
+          {decision ? `Confirmed · ${decision.action}` : statusLabel[field.status]}
+        </Status>
+        <span className="i48-conf">
+          <i>
+            <b style={{ width: `${percent}%` }} />
+          </i>
+          confidence {percent}%
+        </span>
+        <span className="i48-panel-actions">
+          <button type="button" className="i48-btn text" onClick={() => onInspect(field)}>
+            Open original source
+          </button>
         </span>
       </header>
-      <div>
-        Proposed: <strong>{decision ? decision.value : field.proposed}</strong>
-      </div>
-      <p className="i48-why">{field.why}</p>
+      <Eyebrow>{decision ? 'Confirmed value' : 'Proposed value'}</Eyebrow>
+      <p className="i48-claim">
+        <strong>{decision ? decision.value : field.proposed}</strong>
+      </p>
+      <p className="i48-note">
+        {field.why} <span className="i48-conf">{field.codes}</span>
+      </p>
       {field.evidence.map((e, i) => {
         const doc = docs.get(e.doc);
         return (
-          <div key={i} className="i48-evidence">
-            <div className="i48-meta">
-              <Pill tone="info">{doc?.language ?? '—'}</Pill>
+          <div key={i} className="i48-source">
+            <div className="i48-source-meta">
+              <Status tone="info">{doc?.language ?? 'Unknown language'}</Status>
               <span>{doc?.type}</span>
               <span>{doc?.date}</span>
               <span>{doc?.hospital}</span>
             </div>
-            <div className="i48-quote">“{e.quote}”</div>
-            <div className="i48-translation">→ {e.translation}</div>
+            <p className="i48-quote">“{e.quote}”</p>
+            <p className="i48-translation">→ {e.translation}</p>
           </div>
         );
       })}
       <div className="i48-decide">
-        <select value={choice} onChange={(e) => setChoice(e.target.value)} aria-label={`Value for ${field.label}`}>
-          {field.options.map((o) => (
-            <option key={o}>{o}</option>
-          ))}
-        </select>
+        <Eyebrow>Human decision · nothing is reused until you confirm</Eyebrow>
+        <label>
+          <span className="i48-eyebrow">Value</span>{' '}
+          <select value={choice} onChange={(e) => setChoice(e.target.value)} aria-label={`Value for ${field.label}`}>
+            {field.options.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </label>
         <button
           type="button"
-          className="hx-btn primary"
+          className="i48-btn primary"
           onClick={() => onDecide(field, choice === field.proposed ? 'accepted' : 'corrected', choice)}
         >
-          {choice === field.proposed ? 'Accept' : 'Confirm correction'}
+          {choice === field.proposed ? `Accept ${field.label.toLowerCase()}` : 'Confirm correction'}
         </button>
-        <button type="button" className="hx-btn" onClick={() => onDecide(field, 'unknown', unknownOption)}>
+        <button type="button" className="i48-btn" onClick={() => onDecide(field, 'unknown', unknownOption)}>
           Mark unknown
         </button>
-        {decision && <span className="i48-translation">Nothing is reused until you confirm it.</span>}
       </div>
     </article>
   );
@@ -489,10 +721,12 @@ function Reuse({
   data,
   decisions,
   onScore,
+  onBack,
 }: {
   data: Dataset;
   decisions: Record<string, Decision>;
   onScore: () => void;
+  onBack: () => void;
 }) {
   const rows = data.fields.map((f) => ({
     id: f.id,
@@ -504,60 +738,74 @@ function Reuse({
   const confirmed = rows.filter((r) => r.value);
   const pending = rows.filter((r) => !r.value);
   return (
-    <div className="hx-grid">
-      <Panel title="MDT overview – Sofia Ricci">
-        <DataTable
-          rowKey={(r) => r.id}
-          rows={confirmed}
-          empty="Nothing confirmed yet. Go back to the dataset and accept, correct or mark values unknown."
-          columns={[
-            { key: 'label', label: 'Item' },
-            { key: 'value', label: 'Confirmed value', render: (r) => <strong>{r.value}</strong> },
-          ]}
-        />
-        <p className="i48-why">{data.mdt} · prepared without retyping anything.</p>
-      </Panel>
-      <Panel
-        title="Cancer registration – submission draft"
-        actions={<Pill tone="warn">Registry validates before intake</Pill>}
-      >
-        <DataTable
-          rowKey={(r) => r.id}
-          rows={confirmed}
-          empty="Registration stays empty until values are confirmed."
-          columns={[
-            { key: 'label', label: 'Registry item' },
-            { key: 'value', label: 'Value' },
-            { key: 'action', label: 'Confirmed as' },
-          ]}
-        />
-      </Panel>
-      <Panel
-        title="Research dataset – mCRC cohort export"
-        actions={
-          <button type="button" className="hx-btn primary" onClick={onScore}>
-            Show scorecard →
-          </button>
-        }
-      >
-        <DataTable
-          rowKey={(r) => r.id}
-          rows={confirmed}
-          empty="No confirmed values to export."
-          columns={[
-            { key: 'label', label: 'Variable' },
-            { key: 'codes', label: 'Codes' },
-            { key: 'value', label: 'Value' },
-          ]}
-        />
-        {pending.length > 0 && (
-          <p className="i48-why">
-            Not exported ({pending.length}): {pending.map((p) => p.label).join(', ')} – a value only travels once a
-            clinician has confirmed it.
-          </p>
-        )}
-      </Panel>
-    </div>
+    <>
+      {pending.length > 0 && (
+        <Attention
+          tone="warning"
+          status="Withheld"
+          action={
+            <button type="button" className="i48-btn" onClick={onBack}>
+              Back to the flagged values
+            </button>
+          }
+        >
+          {pending.length} value{pending.length === 1 ? '' : 's'} have no human decision yet, so they are withheld from
+          the tumour board, the registry and research: {pending.map((p) => p.label).join(', ')}.
+        </Attention>
+      )}
+      <div className="i48-grid">
+        <Panel eyebrow="Reuse 1 · tumour board" title={`MDT overview · ${data.name}`}>
+          <Table
+            caption={`${data.mdt}; prepared without retyping anything.`}
+            rowKey={(r) => r.id}
+            rows={confirmed}
+            empty="Nothing confirmed yet. Accept, correct or mark values unknown first."
+            columns={[
+              { key: 'label', label: 'Item' },
+              { key: 'value', label: 'Confirmed value', render: (r) => <strong>{r.value}</strong> },
+            ]}
+          />
+        </Panel>
+        <Panel
+          eyebrow="Reuse 2 · cancer registration"
+          title="Submission draft"
+          actions={<Status tone="warning">Registry validates before intake</Status>}
+        >
+          <Table
+            caption="Only values a clinician has confirmed are offered to the cancer registry."
+            rowKey={(r) => r.id}
+            rows={confirmed}
+            empty="Registration stays empty until values are confirmed."
+            columns={[
+              { key: 'label', label: 'Registry item' },
+              { key: 'value', label: 'Value' },
+              { key: 'action', label: 'Confirmed as' },
+            ]}
+          />
+        </Panel>
+        <Panel
+          eyebrow="Reuse 3 · research"
+          title="mCRC cohort export"
+          actions={
+            <button type="button" className="i48-btn primary" onClick={onScore}>
+              Show scorecard
+            </button>
+          }
+        >
+          <Table
+            caption="The same confirmed values, normalised to shared codes for the research dataset."
+            rowKey={(r) => r.id}
+            rows={confirmed}
+            empty="No confirmed values to export."
+            columns={[
+              { key: 'label', label: 'Variable' },
+              { key: 'codes', label: 'Codes' },
+              { key: 'value', label: 'Value' },
+            ]}
+          />
+        </Panel>
+      </div>
+    </>
   );
 }
 
@@ -588,9 +836,14 @@ function Assistant() {
 
   return (
     <Panel
+      eyebrow="Assistant · public account of its work"
       title={result ? result.headline : 'Ask the assistant about this dataset'}
       actions={
-        result && <Pill tone={result.mode === 'copilot' ? 'ok' : 'neutral'}>{result.mode === 'copilot' ? 'Live AI' : 'Demo mode'}</Pill>
+        result && (
+          <Status tone={result.mode === 'copilot' ? 'success' : 'neutral'}>
+            {result.mode === 'copilot' ? 'Live model' : 'Deterministic demo'}
+          </Status>
+        )
       }
     >
       <div className="chip-row">
@@ -600,21 +853,26 @@ function Assistant() {
           </button>
         ))}
       </div>
-      <textarea value={task} rows={3} onChange={(e) => setTask(e.target.value)} style={{ width: '100%' }} />
-      <button type="button" className="hx-btn primary" onClick={run} disabled={loading}>
-        {loading ? (
-          <>
-            <span className="hx-spinner" aria-hidden /> Assistant is reading the documents…
-          </>
-        ) : (
-          'Ask assistant'
-        )}
-      </button>
-      {loading && <Working label="Reading four languages" hint="AI answers can take up to a minute" />}
+      <label>
+        <span className="i48-eyebrow">Your question</span>
+        <textarea value={task} rows={3} onChange={(e) => setTask(e.target.value)} style={{ width: '100%' }} />
+      </label>
+      <div className="i48-decide">
+        <button type="button" className="i48-btn primary" onClick={run} disabled={loading}>
+          {loading ? (
+            <>
+              <span className="hx-spinner" aria-hidden /> Reading the documents…
+            </>
+          ) : (
+            'Ask the assistant'
+          )}
+        </button>
+        {loading && <Working label="Reading four languages" hint="model answers can take up to a minute" />}
+      </div>
       {error && <p className="error">{error}</p>}
       {result && (
         <div className="blocks">
-          {result.note && <p className="note">{result.note}</p>}
+          {result.note && <p className="i48-note">{result.note}</p>}
           {result.blocks.map((block, i) => (
             <RenderBlock key={i} block={block} />
           ))}

@@ -3,7 +3,7 @@ issue: 48
 title: "Confirm the tumour board data once, use it everywhere"
 users: [coordinator, oncologist, researcher]
 capabilities: [structured-extraction, retrieval-evidence-grounding, human-in-the-loop, tool-use, generative-ui]
-ui_surfaces: ["/#/idea/48 – MDT worklist, minimal dataset review, MDT/registry/research reuse, scorecard"]
+ui_surfaces: ["/#/idea/48 – MDT coordinator workspace: worklist, minimal dataset review, source-document inspection drawer, MDT/registry/research reuse, scorecard"]
 api_endpoints: ["GET /api/ideas/48/dataset/{patient_id}", "POST /api/ideas/48/scorecard", "POST /api/ideas/48/agent"]
 agent_tools: ["get_minimal_dataset"]
 data: ["sample-data/mdt-minimal-dataset/P-048.json"]
@@ -46,7 +46,9 @@ Every value is accepted, corrected or marked unknown by a human before it appear
 unconfirmed values are visibly excluded from registration and research.
 
 ## Dependencies
-`HospitalShell`, `StoryGuide`/`Backstage`, shared generative-UI blocks, `app.agent.run_agent`.
+An issue-local workspace shell (`frontend/src/ideas/issue-48/Workspace.tsx` + `design.css`) built on
+the shared design language in `.github/hackathon/design-language.md`, plus `StoryGuide`/`Backstage`,
+the shared generative-UI blocks and `app.agent.run_agent`.
 
 ## Major assumptions
 Real deployments would read documents from several hospital systems, and the registry would apply
