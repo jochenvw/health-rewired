@@ -29,6 +29,7 @@ jobs:
               `### 🛠️ Building your prototype`,
               ``,
               `GitHub Copilot has started implementing the proposal above. This usually takes 10–20 minutes.`,
+              `We will update this message when the first version is built, checked and published.`,
               `The link to your live prototype will appear right here when it is ready.`,
             ].join("\n");
 
