@@ -15,8 +15,10 @@ applyTo: "frontend/**"
   Clinical patient workflows should use `HospitalShell` from `src/hospital/HospitalShell.tsx`
   with its `Panel`, `DataTable`, `Tabs`, `Pill` and `hx-btn` styles. Research networks, trial
   operations and Europe-wide learning systems may use a purpose-built, issue-local shell when the
-  proposal calls for it. Keep it dense, functional and data-rich rather than a marketing page, and
-  do not change shared shell styles to achieve an idea-specific look.
+  proposal calls for it. In both cases follow `.github/hackathon/design-language.md`: reuse its
+  semantic `--cp-*` tokens, typography, spacing, status meanings, institutional chrome and
+  inspectability patterns. Keep it dense, functional and data-rich rather than a marketing page,
+  and do not change shared shell styles to achieve an idea-specific look.
 - Tell the idea's story with `StoryGuide` and `Backstage` from `src/hospital/Story.tsx`, or an
   equally clear issue-local guided-step treatment when using a purpose-built shell.
 - Every wait (AI call, simulated process, loading) shows a spinner and label immediately:

@@ -22,7 +22,10 @@ would work – then iterate.
 4. Use **synthetic data** from `/sample-data`. Never real patient data.
 5. Keep applications visually polished and credible for the participant's work. Use `HospitalShell`
    for clinical workflows; use an issue-local research or operations visual language when that
-   better expresses the idea. Do not force every prototype into the same blue EHR shell.
+   better expresses the idea. In both cases, follow the shared
+   [`design-language.md`](hackathon/design-language.md): institutional chrome, semantic tokens,
+   operational typography, inspectable detail and visible human control. Do not force every
+   prototype into the same layout; consistency comes from shared foundations.
 6. Build demonstrable functionality, not architecture diagrams.
 7. Avoid unnecessary infrastructure (no databases, queues, extra services).
 8. Preserve the participant's clinical insight – it is the point of the idea.
@@ -32,6 +35,7 @@ would work – then iterate.
     Security hardening, instrumentation and other non-functional requirements are not a priority.
 
 Detailed build rules: [`.github/hackathon/implementation-guidelines.md`](hackathon/implementation-guidelines.md).
+Visual and interaction rules: [`.github/hackathon/design-language.md`](hackathon/design-language.md).
 
 ## Before implementing an assigned issue
 
