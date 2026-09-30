@@ -3,7 +3,7 @@ issue: 50
 title: "Confirm the record once, and it is right everywhere"
 users: [coordinator, oncologist, researcher]
 capabilities: [tool-use, generative-ui, human-in-the-loop, structured-extraction, evidence-grounding]
-ui_surfaces: ["/#/idea/50 – incoming documents, minimal dataset, MDT overview, registry & research"]
+ui_surfaces: ["/#/idea/50 – issue-local registry-curation workspace: incoming documents, minimal dataset, MDT overview, registry & research"]
 api_endpoints: ["GET /api/ideas/50/case", "POST /api/ideas/50/review"]
 agent_tools: ["read_sample_data", "render_ui"]
 data: ["sample-data/multilingual/HR-2041-*.md"]
@@ -53,7 +53,9 @@ registry or research views before that. Releasing confirmed values to the regist
 button, and the prototype transmits nothing.
 
 ## Dependencies
-`HospitalShell`, `StoryGuide` / `Backstage`, the shared generative-UI blocks and `app.agent`.
+An issue-local workspace shell (`frontend/src/ideas/issue-50/Workspace.tsx` + `workspace.css`) built
+on the shared design language tokens, `StoryGuide` / `Backstage`, the shared generative-UI blocks
+and `app.agent`.
 
 ## Major assumptions
 That hospitals can exchange these documents at all, that a minimal dataset is agreed across the
