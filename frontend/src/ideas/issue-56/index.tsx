@@ -19,6 +19,8 @@ type Scenario = Issue56Scenario;
 
 type Section = 'worklist' | 'card' | 'outcomes' | 'decision' | 'followup';
 
+type Tone = 'neutral' | 'ok' | 'warn' | 'crit' | 'info';
+
 const story: StoryStep[] = [
   {
     id: 'worklist',
@@ -87,6 +89,8 @@ export default function Issue56OncoIcu() {
   }, []);
 
   const noticeIsError = notice?.startsWith('Assistant could not') ?? false;
+
+  const activeLabel = story.find((step) => step.id === section)?.title ?? 'Onco-ICU consult';
 
   const selected = useMemo(
     () =>
@@ -197,38 +201,50 @@ export default function Issue56OncoIcu() {
         </>
       }
     >
-      {notice && (
-        <Panel title={noticeIsError ? 'Assistant unavailable' : 'Information'}>
-          {noticeIsError ? <><Pill tone="crit">Error</Pill> {notice}</> : notice}
-        </Panel>
-      )}
-      {section === 'worklist' && <Worklist rows={scenario.worklist} selected={selectedId} onSelect={openCase} />}
-      {section === 'card' && (
-        <OncoIcuCard
-          scenario={scenario}
-          compiling={compiling}
-          compiled={cardCompiled}
-          agentResult={agentResult}
-          onCompile={compileCard}
+      <div className="issue56-workspace">
+        <OperationalStrip
+          phase={activeLabel}
+          cardCompiled={cardCompiled}
+          outcomesDone={outcomesDone}
+          sent={sent}
+          missing={scenario.onco_icu_card.missing_information.length}
+          notice={notice}
         />
-      )}
-      {section === 'outcomes' && (
-        <Outcomes
-          scenario={scenario}
-          running={outcomesRunning}
-          done={outcomesDone}
-          runKey={outcomeRun}
-          onStart={startOutcomes}
-          onDone={() => {
-            setOutcomesDone(true);
-            setOutcomesRunning(false);
-          }}
-        />
-      )}
-      {section === 'decision' && <Decision scenario={scenario} />}
-      {section === 'followup' && (
-        <FollowUp scenario={scenario} draft={draft} sent={sent} onDraft={setDraft} onSubmit={() => setSent(true)} />
-      )}
+        {notice && (
+          <Panel title={noticeIsError ? 'Assistant unavailable' : 'Information'}>
+            <div className={noticeIsError ? 'issue56-attention danger' : 'issue56-attention'}>
+              {noticeIsError ? <Pill tone="crit">Error</Pill> : <Pill tone="info">Notice</Pill>} {notice}
+            </div>
+          </Panel>
+        )}
+        {section === 'worklist' && <Worklist rows={scenario.worklist} selected={selectedId} onSelect={openCase} />}
+        {section === 'card' && (
+          <OncoIcuCard
+            scenario={scenario}
+            compiling={compiling}
+            compiled={cardCompiled}
+            agentResult={agentResult}
+            onCompile={compileCard}
+          />
+        )}
+        {section === 'outcomes' && (
+          <Outcomes
+            scenario={scenario}
+            running={outcomesRunning}
+            done={outcomesDone}
+            runKey={outcomeRun}
+            onStart={startOutcomes}
+            onDone={() => {
+              setOutcomesDone(true);
+              setOutcomesRunning(false);
+            }}
+          />
+        )}
+        {section === 'decision' && <Decision scenario={scenario} />}
+        {section === 'followup' && (
+          <FollowUp scenario={scenario} draft={draft} sent={sent} onDraft={setDraft} onSubmit={() => setSent(true)} />
+        )}
+      </div>
     </HospitalShell>
   );
 }
@@ -247,9 +263,56 @@ function tone(severity: Severity) {
   return 'info';
 }
 
+function StatusBadge({ label, detail, tone = 'neutral' }: { label: string; detail: string; tone?: Tone }) {
+  return (
+    <div className={`issue56-status-card ${tone}`}>
+      <span>{label}</span>
+      <strong>{detail}</strong>
+    </div>
+  );
+}
+
+function Eyebrow({ children }: { children: string }) {
+  return <div className="issue56-eyebrow">{children}</div>;
+}
+
+function OperationalStrip({
+  phase,
+  cardCompiled,
+  outcomesDone,
+  sent,
+  missing,
+  notice,
+}: {
+  phase: string;
+  cardCompiled: boolean;
+  outcomesDone: boolean;
+  sent: boolean;
+  missing: number;
+  notice: string | null;
+}) {
+  return (
+    <section className="issue56-operational-strip" aria-label="Onco-ICU operational state">
+      <div>
+        <Eyebrow>LIVE SYNTHETIC CONSULT</Eyebrow>
+        <h2>{phase}</h2>
+        <p>Current task: assemble oncology context fast enough for a night ICU conversation.</p>
+      </div>
+      <div className="issue56-status-grid">
+        <StatusBadge label="Card" detail={cardCompiled ? 'Compiled' : 'Needs compile'} tone={cardCompiled ? 'ok' : 'warn'} />
+        <StatusBadge label="Missing info" detail={`${missing} flags`} tone={missing ? 'crit' : 'ok'} />
+        <StatusBadge label="Outcomes" detail={outcomesDone ? 'Aggregated' : 'Not queried'} tone={outcomesDone ? 'ok' : 'info'} />
+        <StatusBadge label="Handover" detail={sent ? 'Marked sent' : 'Human review'} tone={sent ? 'ok' : 'warn'} />
+        {notice && <StatusBadge label="Notice" detail="Inspect panel" tone={notice.startsWith('Assistant could not') ? 'crit' : 'info'} />}
+      </div>
+    </section>
+  );
+}
+
 function Worklist({ rows, selected, onSelect }: { rows: WorklistRow[]; selected: string; onSelect: (row: WorklistRow) => void }) {
   return (
     <Panel title="ICU consultation worklist · 00:00–03:00 · surgical/oncology alerts">
+      <Eyebrow>TRIAGE QUEUE</Eyebrow>
       <DataTable
         rowKey={(row) => row.patient_id}
         rows={rows}
@@ -307,6 +370,7 @@ function OncoIcuCard({
               </button>
             }
           >
+            <Eyebrow>CURRENT CONCLUSION</Eyebrow>
             <dl className="hx-facts issue56-card-facts">
               <dt>Tumour and stage</dt>
               <dd>{card.tumour}<br />{card.stage}</dd>
@@ -328,6 +392,7 @@ function OncoIcuCard({
         )}
         {tab === 'sources' && (
           <Panel title="Synthetic sources read by the assistant">
+            <Eyebrow>CLAIM → SOURCE</Eyebrow>
             <DataTable
               rowKey={(source) => source.path}
               rows={scenario.sources}
@@ -343,6 +408,7 @@ function OncoIcuCard({
         {tab === 'physiology' && (
           <div className="hx-grid">
             <Panel title="ICU call physiology">
+              <Eyebrow>PHYSIOLOGY SNAPSHOT</Eyebrow>
               <div className="issue56-vitals">
                 {scenario.icu.vitals.map((vital) => (
                   <div key={vital.label} className={`issue56-vital ${vital.severity}`}>
@@ -354,6 +420,7 @@ function OncoIcuCard({
               </div>
             </Panel>
             <Panel title="Treatment-related or cancer-related causes to consider">
+              <Eyebrow>CAUSES TO INSPECT</Eyebrow>
               {scenario.icu.possible_causes.map((cause) => (
                 <p key={cause.cause} className="issue56-cause">
                   <Pill tone={tone(cause.severity)}>{cause.cause}</Pill><br />
@@ -366,6 +433,7 @@ function OncoIcuCard({
         )}
       </div>
       <Panel title="Behind the scenes and assistant output">
+        <Eyebrow>INSPECTABLE AGENT WORK</Eyebrow>
         {/* Keep the final compile stage spinning until the agent response arrives, then release it as completed. */}
         <Backstage
           key={compiling ? 'running' : compiled ? 'done' : 'idle'}
@@ -421,6 +489,7 @@ function Outcomes({
           </button>
         }
       >
+        <Eyebrow>FEDERATED QUERY</Eyebrow>
         <p><strong>Query:</strong> {scenario.outcomes.query}</p>
         <Backstage
           key={`outcomes-${runKey}`}
@@ -441,6 +510,7 @@ function Outcomes({
         <p className="issue56-note">{scenario.outcomes.disclaimer}</p>
       </Panel>
       <Panel title="Hospital aggregate returns">
+        <Eyebrow>DATA STAYS · INSIGHTS TRAVEL</Eyebrow>
         <DataTable
           rowKey={(row) => row.site}
           rows={scenario.outcomes.hospitals}
@@ -460,6 +530,7 @@ function Decision({ scenario }: { scenario: Scenario }) {
   return (
     <div className="hx-grid">
       <Panel title="What the card informs">
+        <Eyebrow>INFORMATION, NOT INSTRUCTION</Eyebrow>
         <ul className="issue56-checklist">
           <li>
             <Pill tone="info">Review</Pill> Reversible source-control question:{' '}
@@ -471,6 +542,7 @@ function Decision({ scenario }: { scenario: Scenario }) {
         </ul>
       </Panel>
       <Panel title="What remains human judgement">
+        <Eyebrow>VISIBLE HUMAN CONTROL</Eyebrow>
         <div className="issue56-human-grid">
           {['ICU admission', 'Ventilation and vasopressor intensity', 'Treatment limitations', 'Family communication', 'Oncology follow-up'].map((item) => (
             <div key={item}><strong>{item}</strong><span>Clinician reviews and documents explicitly</span></div>
@@ -504,6 +576,7 @@ function FollowUp({
         title="Draft follow-up for oncology"
         actions={sent ? <Pill tone="ok">Marked sent in demo</Pill> : <button type="submit" className="hx-btn primary">Review and send to oncology</button>}
       >
+        <Eyebrow>EDITABLE DRAFT</Eyebrow>
         <dl className="hx-facts">
           <dt>To</dt>
           <dd>{scenario.follow_up.to}</dd>
@@ -513,6 +586,7 @@ function FollowUp({
         <textarea value={draft} onChange={(event) => onDraft(event.target.value)} rows={14} aria-label="Oncology follow-up draft" />
       </Panel>
       <Panel title="Before sending, the human checks">
+        <Eyebrow>APPROVAL REQUIRED</Eyebrow>
         {scenario.follow_up.requires_approval.map((item) => (
           <p key={item}><Pill tone="warn">Needs review</Pill> {item}</p>
         ))}

@@ -1,31 +1,135 @@
-.issue56-two-col {
+.hx:has(.issue56-workspace) {
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(circle at top right, rgba(253, 142, 161, 0.12), transparent 28rem), var(--cp-bg);
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) .hx-appbar {
+  min-height: 56px;
+  background: linear-gradient(90deg, var(--cp-chrome), #10263a);
+  color: var(--cp-chrome-fg);
+  border-bottom: 1px solid rgba(142, 166, 186, 0.28);
+}
+
+.hx:has(.issue56-workspace) .hx-logo {
+  background: var(--cp-accent);
+  color: #111827;
+  border-radius: 6px;
+}
+
+.hx:has(.issue56-workspace) .hx-menubar,
+.hx:has(.issue56-workspace) .hx-toolbar,
+.hx:has(.issue56-workspace) .hx-statusbar,
+.hx:has(.issue56-workspace) .hx-nav {
+  background: var(--cp-bg-elevated);
+  border-color: var(--cp-border);
+  color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace) .hx-banner {
+  background: var(--cp-banner);
+  color: var(--cp-text);
+  border-bottom-color: var(--cp-border-strong);
+}
+
+.hx:has(.issue56-workspace) .hx-banner-dx,
+.hx:has(.issue56-workspace) .hx-banner span {
+  color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace) .hx-allergy {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.5);
+  color: var(--cp-danger);
+}
+
+.hx:has(.issue56-workspace) .hx-nav button {
+  color: var(--cp-text-soft);
+  border-left-color: transparent;
+}
+
+.hx:has(.issue56-workspace) .hx-nav button:hover {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) .hx-nav button.active {
+  background: var(--cp-accent-soft);
+  border-left-color: var(--cp-accent);
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) .hx-badge {
+  background: var(--cp-accent);
+  color: #111827;
+}
+
+.hx:has(.issue56-workspace) .hx-content {
+  padding: 20px;
+  gap: 16px;
+}
+
+.issue56-workspace {
   display: grid;
-  grid-template-columns: minmax(420px, 1.2fr) minmax(340px, 0.8fr);
-  gap: 12px;
+  gap: 16px;
 }
 
-.hx dl.hx-facts.issue56-card-facts {
-  margin-bottom: 10px;
-}
-
-.issue56-alert-list {
+.issue56-operational-strip {
   display: grid;
-  gap: 5px;
-  margin-top: 10px;
+  grid-template-columns: minmax(280px, 1fr) minmax(420px, 1.2fr);
+  gap: 16px;
+  align-items: stretch;
+  background: linear-gradient(135deg, rgba(31, 36, 41, 0.96), rgba(26, 39, 51, 0.96));
+  border: 1px solid var(--cp-border);
+  border-left: 6px solid var(--cp-accent);
+  border-radius: 16px;
+  padding: 18px 20px;
 }
 
-.issue56-alert-list p,
-.issue56-cause,
-.issue56-checklist li,
-.issue56-note {
-  margin: 0 0 6px;
+.issue56-operational-strip h2 {
+  margin: 4px 0 4px;
+  font-size: 24px;
+  line-height: 1.1;
 }
 
-.issue56-note {
-  color: var(--muted);
-  font-size: 12px;
+.issue56-operational-strip p {
+  margin: 0;
+  color: var(--cp-text-soft);
 }
 
+.issue56-status-grid,
 .issue56-vitals,
 .issue56-outcome-summary,
 .issue56-human-grid {
@@ -33,52 +137,270 @@
   gap: 8px;
 }
 
-.issue56-vitals {
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+.issue56-status-grid {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
 }
 
+.issue56-status-card,
 .issue56-vital,
 .issue56-outcome-summary > div,
 .issue56-human-grid > div {
-  border: 1px solid var(--border);
-  background: #f7f9fb;
-  padding: 8px;
   display: grid;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
 }
 
+.issue56-status-card {
+  border-top: 3px solid var(--cp-border-strong);
+}
+
+.issue56-status-card.ok {
+  border-top-color: var(--cp-success);
+}
+
+.issue56-status-card.warn {
+  border-top-color: var(--cp-warning);
+}
+
+.issue56-status-card.crit {
+  border-top-color: var(--cp-danger);
+}
+
+.issue56-status-card.info {
+  border-top-color: var(--cp-link);
+}
+
+.issue56-status-card span,
 .issue56-vital span,
 .issue56-outcome-summary span,
-.issue56-human-grid span {
-  color: var(--muted);
-  font-size: 12px;
+.issue56-human-grid span,
+.issue56-vital small,
+.issue56-cause small {
+  color: var(--cp-text-soft);
+  font-size: 11px;
 }
 
+.issue56-status-card strong,
 .issue56-vital strong,
 .issue56-outcome-summary strong {
-  font-size: 18px;
+  font-size: 17px;
+  color: var(--cp-text);
 }
 
-.issue56-vital.critical {
-  border-left: 4px solid var(--critical);
+.issue56-eyebrow {
+  margin-bottom: 8px;
+  color: var(--cp-chrome-muted);
+  font-family: Consolas, "Courier New", Courier, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
+.hx:has(.issue56-workspace) .hx-panel {
+  overflow: hidden;
+  background: var(--cp-surface);
+  border-color: var(--cp-border);
+  border-radius: 16px;
+}
+
+.hx:has(.issue56-workspace) .hx-panel > header {
+  background: var(--cp-surface-soft);
+  border-bottom-color: var(--cp-border);
+  padding: 12px 16px;
+}
+
+.hx:has(.issue56-workspace) .hx-panel h3 {
+  color: var(--cp-text);
+  font-size: 16px;
+}
+
+.hx:has(.issue56-workspace) .hx-panel-body {
+  padding: 16px;
+}
+
+.hx:has(.issue56-workspace) .hx-table {
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) .hx-table th {
+  background: var(--cp-bg-elevated);
+  border-bottom-color: var(--cp-border);
+  color: var(--cp-text-soft);
+  font-family: Consolas, "Courier New", Courier, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hx:has(.issue56-workspace) .hx-table td {
+  border-bottom-color: var(--cp-border);
+}
+
+.hx:has(.issue56-workspace) .hx-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.hx:has(.issue56-workspace) .hx-table tr.clickable:hover td,
+.hx:has(.issue56-workspace) .hx-table tr.selected td {
+  background: var(--cp-accent-soft);
+}
+
+.hx:has(.issue56-workspace) .hx-table tr.warn td:first-child,
 .issue56-vital.warning {
-  border-left: 4px solid var(--warning);
+  box-shadow: inset 4px 0 0 var(--cp-warning);
+}
+
+.hx:has(.issue56-workspace) .hx-table tr.crit td:first-child,
+.issue56-vital.critical {
+  box-shadow: inset 4px 0 0 var(--cp-danger);
 }
 
 .issue56-vital.info {
-  border-left: 4px solid var(--accent);
+  box-shadow: inset 4px 0 0 var(--cp-link);
+}
+
+.hx:has(.issue56-workspace) .hx-tabs {
+  gap: 6px;
+  border-bottom: 1px solid var(--cp-border);
+  margin-bottom: 12px;
+}
+
+.hx:has(.issue56-workspace) .hx-tabs button {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border);
+  border-radius: 10px 10px 0 0;
+  color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace) .hx-tabs button.active {
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  border-top: 2px solid var(--cp-accent);
+}
+
+.hx:has(.issue56-workspace) .hx-pill {
+  border-radius: 999px;
+  border-color: currentColor;
+}
+
+.hx:has(.issue56-workspace) .hx-pill-neutral {
+  background: rgba(145, 145, 145, 0.14);
+  color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace) .hx-pill-ok {
+  background: rgba(74, 222, 128, 0.12);
+  color: var(--cp-success);
+}
+
+.hx:has(.issue56-workspace) .hx-pill-warn {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--cp-warning);
+}
+
+.hx:has(.issue56-workspace) .hx-pill-crit {
+  background: rgba(248, 113, 113, 0.14);
+  color: var(--cp-danger);
+}
+
+.hx:has(.issue56-workspace) .hx-pill-info {
+  background: rgba(77, 166, 255, 0.12);
+  color: var(--cp-link);
+}
+
+.hx:has(.issue56-workspace) .hx-btn {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border-strong);
+  border-radius: 12px;
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) .hx-btn:hover:not(:disabled) {
+  border-color: var(--cp-accent);
+}
+
+.hx:has(.issue56-workspace) .hx-btn.primary {
+  background: var(--cp-accent);
+  border-color: var(--cp-accent-hover);
+  color: #111827;
+  font-weight: 700;
+}
+
+.hx:has(.issue56-workspace) select,
+.hx:has(.issue56-workspace) textarea {
+  background: #151a1f;
+  border-color: var(--cp-border);
+  border-radius: 10px;
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) textarea:focus,
+.hx:has(.issue56-workspace) select:focus,
+.hx:has(.issue56-workspace) button:focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 2px;
+}
+
+.issue56-two-col {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.2fr) minmax(340px, 0.8fr);
+  gap: 16px;
+}
+
+.hx dl.hx-facts.issue56-card-facts {
+  margin-bottom: 12px;
+}
+
+.issue56-alert-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.issue56-alert-list p,
+.issue56-cause,
+.issue56-checklist li,
+.issue56-note {
+  margin: 0 0 8px;
+}
+
+.issue56-note {
+  color: var(--cp-text-soft);
+  font-size: 12px;
+}
+
+.issue56-attention {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(77, 166, 255, 0.1);
+  border: 1px solid rgba(77, 166, 255, 0.4);
+  border-radius: 12px;
+}
+
+.issue56-attention.danger {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.42);
+}
+
+.issue56-vitals {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
 }
 
 .issue56-outcome-summary {
-  grid-template-columns: repeat(4, minmax(110px, 1fr));
-  margin: 10px 0;
+  grid-template-columns: repeat(4, minmax(118px, 1fr));
+  margin: 12px 0;
 }
 
 .issue56-range {
-  color: var(--muted);
   display: block;
+  color: var(--cp-text-soft);
   font-size: 11px;
 }
 
@@ -87,34 +409,83 @@
   list-style: none;
 }
 
+.issue56-checklist li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cp-border);
+}
+
 .issue56-human-grid {
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.issue56-human-grid > div {
+  border-left: 4px solid var(--cp-accent);
 }
 
 .issue56-agent-result {
-  margin-top: 10px;
+  margin-top: 12px;
+}
+
+.hx:has(.issue56-workspace) .trace li {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace) .block {
+  background: var(--cp-surface-soft);
+  border-color: var(--cp-border);
+  color: var(--cp-text);
+}
+
+.hx:has(.issue56-workspace) .hx-backstage {
+  background: #151a1f;
+  border-color: var(--cp-border-strong);
+  border-radius: 12px;
+}
+
+.hx:has(.issue56-workspace) .hx-backstage > header,
+.hx:has(.issue56-workspace) .hx-working {
+  color: var(--cp-link);
+}
+
+.hx:has(.issue56-workspace) .hx-stage-detail,
+.hx:has(.issue56-workspace) .hx-backstage-note,
+.hx:has(.issue56-workspace) .hx-empty,
+.hx:has(.issue56-workspace) .note {
+  color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace) .hx-spinner {
+  border-color: rgba(253, 142, 161, 0.28);
+  border-top-color: var(--cp-accent);
+}
+
+.hx:has(.issue56-workspace) .hx-btn .hx-spinner {
+  border-color: rgba(17, 24, 39, 0.28);
+  border-top-color: #111827;
 }
 
 .issue56-followup {
   display: grid;
   grid-template-columns: minmax(460px, 1fr) minmax(280px, 0.45fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .issue56-followup textarea {
   width: 100%;
-  min-height: 300px;
-  margin-top: 10px;
+  min-height: 320px;
+  margin-top: 12px;
   white-space: pre-wrap;
 }
 
 @media (max-width: 980px) {
+  .issue56-operational-strip,
   .issue56-two-col,
   .issue56-followup {
     grid-template-columns: 1fr;
   }
 
   .issue56-outcome-summary {
-    grid-template-columns: repeat(2, minmax(110px, 1fr));
+    grid-template-columns: repeat(2, minmax(118px, 1fr));
   }
 }
