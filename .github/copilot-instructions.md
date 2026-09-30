@@ -24,8 +24,9 @@ would work – then iterate.
    for clinical workflows; use an issue-local research or operations visual language when that
    better expresses the idea. In both cases, follow the shared
    [`design-language.md`](hackathon/design-language.md): institutional chrome, semantic tokens,
-   operational typography, inspectable detail and visible human control. Do not force every
-   prototype into the same layout; consistency comes from shared foundations.
+   operational typography, inspectable detail, visible human control, and separate visible
+   `Light` / `Dark` theme buttons. Do not force every prototype into the same layout; consistency
+   comes from shared foundations.
 6. Build demonstrable functionality, not architecture diagrams.
 7. Avoid unnecessary infrastructure (no databases, queues, extra services).
 8. Preserve the participant's clinical insight – it is the point of the idea.
