@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import './hospital.css';
 
 /*
@@ -7,6 +7,48 @@ import './hospital.css';
  * institutional chrome, cool neutral work surfaces, semantic --cp-* tokens and a restrained accent.
  * Everything inside <HospitalShell> uses the "hx" theme; existing UI blocks adapt automatically.
  */
+
+const THEME_STORAGE_KEY = 'hx-theme';
+type Theme = 'light' | 'dark';
+
+function readTheme(): Theme {
+  if (typeof document === 'undefined') return 'light';
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+}
+
+/**
+ * Explicit Light/Dark theme choice, applied via a `data-theme` attribute on `<html>` (set before
+ * paint by an inline script in index.html) so every idea workspace — chrome, guide, backstage,
+ * panels, tables and generated blocks — renders in the same theme without a flash.
+ */
+export function useTheme() {
+  const [theme, setThemeState] = useState<Theme>(readTheme);
+  const setTheme = (next: Theme) => {
+    setThemeState(next);
+    document.documentElement.dataset.theme = next;
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      // Storage may be disabled (private browsing); the choice still applies for this session.
+    }
+  };
+  return { theme, setTheme };
+}
+
+/** Separate, plainly labelled Light/Dark buttons; the active one is styled and `aria-pressed`. */
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <div className="hx-theme-toggle" role="group" aria-label="Theme">
+      <button type="button" aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
+        Light
+      </button>
+      <button type="button" aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
+        Dark
+      </button>
+    </div>
+  );
+}
 
 export type NavItem = { id: string; label: string; badge?: string | number };
 
@@ -60,6 +102,7 @@ export function HospitalShell({
         <span>Dr. M. Weber · Medical Oncology</span>
         <span className="hx-appbar-sep">|</span>
         <span>{today}</span>
+        <ThemeToggle />
       </div>
       <div className="hx-menubar" aria-hidden>
         {['File', 'Patient', 'Orders', 'Documents', 'View', 'Tools', 'Help'].map((m) => (

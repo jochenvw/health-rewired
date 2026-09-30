@@ -60,7 +60,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .hx {
+  html:not([data-theme]) .hx {
     --cp-bg: #2b3238;
     --cp-bg-elevated: #242a30;
     --cp-surface: #1f2429;
@@ -82,6 +82,31 @@
     --cp-danger: #f87171;
     --cp-link: #4da6ff;
   }
+}
+
+/* Explicit theme choice (the Light / Dark buttons in HospitalShell) always wins over the system
+   preference fallback above, and is what every idea workspace actually renders against. */
+html[data-theme='dark'] .hx {
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
 }
 
 .hx h1,
@@ -157,6 +182,34 @@
 
 .hx-spacer {
   flex: 1;
+}
+
+/* Persistent, plainly labelled Light/Dark theme controls (design-language.md §9): both remain
+   visible in either theme; the active one is styled and exposes aria-pressed="true". */
+.hx-theme-toggle {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 8px;
+  border: 1px solid var(--cp-chrome-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.hx-theme-toggle button {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--cp-chrome-fg);
+  cursor: pointer;
+}
+
+.hx-theme-toggle button[aria-pressed='true'] {
+  background: var(--cp-chrome-fg);
+  color: var(--cp-chrome);
 }
 
 /* Slim operational sub-bar under the header: monospace, uppercase, orientation only. */
