@@ -1,5 +1,5 @@
-# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"5fed519dd3043ec5d62a56ffa73e05a1e50492982d76a7267b2240db29e3ff8c","body_hash":"b8811a18260566b68dbad05fd0708af50e0433ec97bd1365279771b63c893771","compiler_version":"v0.88.8","strict":true,"agent_id":"copilot","engine_versions":{"copilot":"1.0.80"}}
-# gh-aw-manifest: {"version":1,"secrets":["COPILOT_GITHUB_TOKEN","GH_AW_AGENT_TOKEN","GH_AW_DEFAULT_OTLP_HEADERS","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/cache/restore","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/cache/save","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/checkout","sha":"3d3c42e5aac5ba805825da76410c181273ba90b1","version":"v7.0.1"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"5e508589e03a7757a7e05b26e834292f5445bfb6","version":"v0.88.8"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.28.14","digest":"sha256:f7df036c86575527b61f3f7df91c4412349a12b2a74988d929eafa2999230c98","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.28.14@sha256:f7df036c86575527b61f3f7df91c4412349a12b2a74988d929eafa2999230c98"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.14","digest":"sha256:6f95e2234dd9bd6333a8ff28ccea7ecf0204acd4a09108723844dbd2bf6268c5","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.14@sha256:6f95e2234dd9bd6333a8ff28ccea7ecf0204acd4a09108723844dbd2bf6268c5"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.28.14","digest":"sha256:2ce8df3abf3e9b76e9c0cf5863da41f1ab3f89b20ad14b988806ab89e7bf2cd5","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.28.14@sha256:2ce8df3abf3e9b76e9c0cf5863da41f1ab3f89b20ad14b988806ab89e7bf2cd5"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.4.18","digest":"sha256:85b940556a8faa4e1fdbef124bfd75f2c4ebd855a10b88a1c3b6f3e97f6f1a53","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.4.18@sha256:85b940556a8faa4e1fdbef124bfd75f2c4ebd855a10b88a1c3b6f3e97f6f1a53"},{"image":"ghcr.io/github/gh-aw-node","digest":"sha256:0daa8971fa4732b647150cb6524a6b0804b68d5d24f6f58b5dd1af23bd63fb23","pinned_image":"ghcr.io/github/gh-aw-node@sha256:0daa8971fa4732b647150cb6524a6b0804b68d5d24f6f58b5dd1af23bd63fb23"},{"image":"ghcr.io/github/github-mcp-server:v1.11.0","digest":"sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699","pinned_image":"ghcr.io/github/github-mcp-server:v1.11.0@sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699"}],"mcp_servers":[{"name":"github","tools":["get_commit","get_file_contents","get_latest_release","get_release_by_tag","get_tag","issue_read","list_branches","list_commits","list_issue_types","list_issues","list_releases","list_starred_repositories","list_tags","search_code","search_issues","search_repositories"]},{"name":"safeoutputs","tools":["add_comment","add_labels","assign_to_agent","missing_data","missing_tool","noop","remove_labels"]}]}
+# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"3e14dcfdcc024d22ecea28f06c2efdc388723d12d955cc158d1f285946e59ab4","body_hash":"715ef7dac3e73a0b201a6ac109f1aa0a666d6b0cb3106f64a5e55ded5f134712","compiler_version":"v0.88.8","strict":true,"agent_id":"copilot","engine_versions":{"copilot":"1.0.80"}}
+# gh-aw-manifest: {"version":1,"secrets":["COPILOT_GITHUB_TOKEN","GH_AW_DEFAULT_OTLP_HEADERS","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/cache/restore","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/cache/save","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/checkout","sha":"3d3c42e5aac5ba805825da76410c181273ba90b1","version":"v7.0.1"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"5e508589e03a7757a7e05b26e834292f5445bfb6","version":"v0.88.8"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.28.14","digest":"sha256:f7df036c86575527b61f3f7df91c4412349a12b2a74988d929eafa2999230c98","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.28.14@sha256:f7df036c86575527b61f3f7df91c4412349a12b2a74988d929eafa2999230c98"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.14","digest":"sha256:6f95e2234dd9bd6333a8ff28ccea7ecf0204acd4a09108723844dbd2bf6268c5","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.14@sha256:6f95e2234dd9bd6333a8ff28ccea7ecf0204acd4a09108723844dbd2bf6268c5"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.28.14","digest":"sha256:2ce8df3abf3e9b76e9c0cf5863da41f1ab3f89b20ad14b988806ab89e7bf2cd5","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.28.14@sha256:2ce8df3abf3e9b76e9c0cf5863da41f1ab3f89b20ad14b988806ab89e7bf2cd5"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.4.18","digest":"sha256:85b940556a8faa4e1fdbef124bfd75f2c4ebd855a10b88a1c3b6f3e97f6f1a53","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.4.18@sha256:85b940556a8faa4e1fdbef124bfd75f2c4ebd855a10b88a1c3b6f3e97f6f1a53"},{"image":"ghcr.io/github/gh-aw-node","digest":"sha256:0daa8971fa4732b647150cb6524a6b0804b68d5d24f6f58b5dd1af23bd63fb23","pinned_image":"ghcr.io/github/gh-aw-node@sha256:0daa8971fa4732b647150cb6524a6b0804b68d5d24f6f58b5dd1af23bd63fb23"},{"image":"ghcr.io/github/github-mcp-server:v1.11.0","digest":"sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699","pinned_image":"ghcr.io/github/github-mcp-server:v1.11.0@sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699"}],"mcp_servers":[{"name":"github","tools":["get_commit","get_file_contents","get_latest_release","get_release_by_tag","get_tag","issue_read","list_branches","list_commits","list_issue_types","list_issues","list_releases","list_starred_repositories","list_tags","search_code","search_issues","search_repositories"]},{"name":"safeoutputs","tools":["add_comment","missing_data","missing_tool","noop"]}]}
 # This file was automatically generated by gh-aw (v0.88.8). DO NOT EDIT. To debug this workflow, load the skill at https://github.com/github/gh-aw/blob/main/debug.md
 #
 #    ___                   _   _
@@ -23,13 +23,12 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Idea coach for Oncology Hackathon 2026 Munich. Reads each idea issue, applies the Markdown
-# guardrails in .github/hackathon/, coaches the participant in plain language and, once the idea is
-# ready, posts an implementation proposal and assigns the Copilot coding agent.
+# Presentation editor for completed Oncology Hackathon ideas. Converts focused participant
+# feedback into bounded, issue-specific copy overrides, then lets the deterministic PowerPoint
+# generator create a revised audience deck.
 #
 # Secrets used:
 #   - COPILOT_GITHUB_TOKEN
-#   - GH_AW_AGENT_TOKEN
 #   - GH_AW_DEFAULT_OTLP_HEADERS
 #   - GH_AW_GITHUB_MCP_SERVER_TOKEN
 #   - GH_AW_GITHUB_TOKEN
@@ -53,30 +52,25 @@
 #   - ghcr.io/github/gh-aw-node@sha256:0daa8971fa4732b647150cb6524a6b0804b68d5d24f6f58b5dd1af23bd63fb23
 #   - ghcr.io/github/github-mcp-server:v1.11.0@sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699
 
-name: "Idea coach · Oncology Hackathon 2026 Munich"
+name: "Presentation editor · Oncology Hackathon 2026 Munich"
 on:
   issue_comment:
     types:
       - created
-  issues:
-    types:
-      - opened
-      - edited
-      - reopened
 # roles: all # Roles processed as role check in pre-activation job
 
 permissions: {}
 
 concurrency:
   cancel-in-progress: false
-  group: idea-coach-${{ github.event.issue.number }}
+  group: presentation-editor-${{ github.event.issue.number }}
 
-run-name: "Idea coach · Oncology Hackathon 2026 Munich"
+run-name: "Presentation editor · Oncology Hackathon 2026 Munich"
 
 env:
   OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.GH_AW_DEFAULT_OTLP_ENDPOINT }}
-  OTEL_SERVICE_NAME: gh-aw.idea-coach
-  OTEL_RESOURCE_ATTRIBUTES: 'gh-aw.workflow.name=Idea%20coach%20%C2%B7%20Oncology%20Hackathon%202026%20Munich,gh-aw.repository=${{ github.repository }},gh-aw.run.id=${{ github.run_id }},github.run_id=${{ github.run_id }},gh-aw.engine.id=copilot'
+  OTEL_SERVICE_NAME: gh-aw.presentation-editor
+  OTEL_RESOURCE_ATTRIBUTES: 'gh-aw.workflow.name=Presentation%20editor%20%C2%B7%20Oncology%20Hackathon%202026%20Munich,gh-aw.repository=${{ github.repository }},gh-aw.run.id=${{ github.run_id }},github.run_id=${{ github.run_id }},gh-aw.engine.id=copilot'
   OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}
   GH_AW_OTLP_ENDPOINTS: '[{"url":"${{ vars.GH_AW_DEFAULT_OTLP_ENDPOINT }}","headers":"${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}"}]'
   GH_AW_OTLP_IF_MISSING: ignore
@@ -86,9 +80,8 @@ jobs:
     if: >
       github.event.issue.pull_request == null &&
       github.event.sender.type != 'Bot' &&
-      (github.event_name != 'issue_comment' ||
-      (!contains(github.event.issue.labels.*.name, 'ready-for-build') &&
-      !contains(github.event.issue.labels.*.name, 'preview-ready')))
+      contains(github.event.issue.labels.*.name, 'presentation-ready') &&
+      contains(github.event.comment.body, '/presentation revise')
     runs-on: ubuntu-slim
     permissions:
       actions: read
@@ -127,8 +120,8 @@ jobs:
           job-name: ${{ github.job }}
           safe-output-artifact-client: ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/idea-coach.lock.yml@${{ github.ref }}
+          GH_AW_SETUP_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/presentation-editor.lock.yml@${{ github.ref }}
           GH_AW_INFO_VERSION: "1.0.80"
           GH_AW_INFO_AWF_VERSION: "v0.28.14"
           GH_AW_INFO_ENGINE_ID: "copilot"
@@ -143,7 +136,7 @@ jobs:
           GH_AW_INFO_VERSION: "1.0.80"
           GH_AW_INFO_AGENT_VERSION: "1.0.80"
           GH_AW_INFO_CLI_VERSION: "v0.88.8"
-          GH_AW_INFO_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
+          GH_AW_INFO_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
           GH_AW_INFO_EXPERIMENTAL: "false"
           GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: "true"
           GH_AW_INFO_STAGED: "false"
@@ -169,8 +162,8 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: agentic-workflow-usage-ideacoach-${{ github.run_id }}
-          restore-keys: agentic-workflow-usage-ideacoach-
+          key: agentic-workflow-usage-presentationeditor-${{ github.run_id }}
+          restore-keys: agentic-workflow-usage-presentationeditor-
           path: /tmp/gh-aw/agentic-workflow-usage-cache.jsonl
       - name: Restore daily AIC usage cache (artifact fallback)
         id: restore-daily-aic-cache-fallback
@@ -194,8 +187,8 @@ jobs:
         if: ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_WORKFLOW_ID: "idea-coach"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_ID: "presentation-editor"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_WORKFLOW_DISPATCH_AW_CONTEXT: ${{ github.event.inputs.aw_context || '' }}
           GH_AW_HAS_SLASH_COMMAND: "false"
@@ -261,7 +254,7 @@ jobs:
         id: check-lock-file
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_FILE: "idea-coach.lock.yml"
+          GH_AW_WORKFLOW_FILE: "presentation-editor.lock.yml"
           GH_AW_CONTEXT_WORKFLOW_REF: "${{ github.workflow_ref }}"
         with:
           script: |
@@ -301,8 +294,8 @@ jobs:
         if: github.event_name == 'issues' || github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment' || github.event_name == 'discussion' || github.event_name == 'discussion_comment' || github.event_name == 'pull_request' && github.event.pull_request.head.repo.id == github.repository_id
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"👋 Thanks! The idea coach is reading your idea now – you'll usually get a reply here in 3–5 minutes.\",\"runSuccess\":\"✅ The idea coach has replied below.\",\"runFailure\":\"⚠️ The idea coach hit a problem ({status}). An organiser will take a look.\"}"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"🎨 The presentation editor is applying your feedback now.\",\"runSuccess\":\"✅ The presentation editor has prepared the next version.\",\"runFailure\":\"⚠️ The presentation editor hit a problem ({status}). An organiser will take a look.\"}"
         with:
           script: |
             const path = require('path');
@@ -327,17 +320,16 @@ jobs:
           GH_AW_EXPR_FF1D34CE: ${{ github.event.comment.id || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').comment_id }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GH_AW_GITHUB_EVENT_NAME: ${{ github.event_name }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
           GH_AW_INCLUDE_PR_CONTEXT: ${{ (github.event_name == 'issue_comment' && github.event.issue.pull_request != null) || github.event_name == 'pull_request_review_comment' || github.event_name == 'pull_request_review' }}
           GH_AW_PROMPT_CONTENT_0000: "<system>\n"
-          GH_AW_PROMPT_CONTENT_0001: "<safe-output-tools>\nTools: add_comment, add_labels(max:2), remove_labels(max:3), assign_to_agent, missing_tool, missing_data, noop\n"
+          GH_AW_PROMPT_CONTENT_0001: "<safe-output-tools>\nTools: add_comment, missing_tool, missing_data, noop\n"
           GH_AW_PROMPT_CONTENT_0002: "</safe-output-tools>\n"
           GH_AW_PROMPT_CONTENT_0003: "<github-context>\nThe following GitHub context information is available for this workflow:\n{{#if github.actor}}\n- **actor**: __GH_AW_GITHUB_ACTOR__\n{{/if}}\n{{#if github.repository}}\n- **repository**: __GH_AW_GITHUB_REPOSITORY__\n{{/if}}\n{{#if github.workspace}}\n- **workspace**: __GH_AW_GITHUB_WORKSPACE__\n{{/if}}\n{{#if github.event.issue.number || (github.aw.context.item_type == 'issue' && github.aw.context.item_number)}}\n- **issue-number**: #__GH_AW_EXPR_802A9F6A__\n{{/if}}\n{{#if github.event.discussion.number || (github.aw.context.item_type == 'discussion' && github.aw.context.item_number)}}\n- **discussion-number**: #__GH_AW_EXPR_1A3A194A__\n{{/if}}\n{{#if github.event.pull_request.number || (github.aw.context.item_type == 'pull_request' && github.aw.context.item_number)}}\n- **pull-request-number**: #__GH_AW_EXPR_463A214A__\n{{/if}}\n{{#if github.event.comment.id || github.aw.context.comment_id}}\n- **comment-id**: __GH_AW_EXPR_FF1D34CE__\n{{/if}}\n{{#if github.run_id}}\n- **workflow-run-id**: __GH_AW_GITHUB_RUN_ID__\n{{/if}}\n</github-context>\n\n"
           GH_AW_PROMPT_CONTENT_0004: "</system>\n"
-          GH_AW_PROMPT_CONTENT_0005: "{{#runtime-import .github/workflows/idea-coach.md}}\n"
+          GH_AW_PROMPT_CONTENT_0005: "{{#runtime-import .github/workflows/presentation-editor.md}}\n"
         with:
           script: |
             const { setupGlobals } = require(process.env.GH_AW_ACTIONS_DIR + '/setup_globals.cjs');
@@ -350,8 +342,6 @@ jobs:
           GH_AW_PROMPT: ${{ runner.temp }}/gh-aw/aw-prompts/prompt.txt
           GH_AW_ENGINE_ID: "copilot"
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GH_AW_GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
         with:
           script: |
             const path = require('path');
@@ -370,7 +360,6 @@ jobs:
           GH_AW_EXPR_FF1D34CE: ${{ github.event.comment.id || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').comment_id }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GH_AW_GITHUB_EVENT_NAME: ${{ github.event_name }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
@@ -395,7 +384,6 @@ jobs:
                 GH_AW_EXPR_FF1D34CE: process.env.GH_AW_EXPR_FF1D34CE,
                 GH_AW_GITHUB_ACTOR: process.env.GH_AW_GITHUB_ACTOR,
                 GH_AW_GITHUB_EVENT_ISSUE_NUMBER: process.env.GH_AW_GITHUB_EVENT_ISSUE_NUMBER,
-                GH_AW_GITHUB_EVENT_NAME: process.env.GH_AW_GITHUB_EVENT_NAME,
                 GH_AW_GITHUB_REPOSITORY: process.env.GH_AW_GITHUB_REPOSITORY,
                 GH_AW_GITHUB_RUN_ID: process.env.GH_AW_GITHUB_RUN_ID,
                 GH_AW_GITHUB_WORKSPACE: process.env.GH_AW_GITHUB_WORKSPACE,
@@ -443,7 +431,6 @@ jobs:
     permissions:
       contents: read
       issues: read
-      pull-requests: read
     timeout-minutes: 60
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -458,7 +445,7 @@ jobs:
       GH_AW_PR_HEAD_BASE_SHA: ""
       GH_AW_PR_HEAD_REPO: ""
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
-      GH_AW_WORKFLOW_ID_SANITIZED: ideacoach
+      GH_AW_WORKFLOW_ID_SANITIZED: presentationeditor
     outputs:
       agentic_engine_timeout: ${{ steps.detect-agent-errors.outputs.agentic_engine_timeout || 'false' }}
       ai_credits_rate_limit_error: ${{ steps.parse-mcp-gateway.outputs.ai_credits_rate_limit_error || 'false' }}
@@ -493,8 +480,8 @@ jobs:
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
           parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/idea-coach.lock.yml@${{ github.ref }}
+          GH_AW_SETUP_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/presentation-editor.lock.yml@${{ github.ref }}
           GH_AW_INFO_VERSION: "1.0.80"
           GH_AW_INFO_AWF_VERSION: "v0.28.14"
           GH_AW_INFO_ENGINE_ID: "copilot"
@@ -598,7 +585,7 @@ jobs:
         env:
           GH_AW_FILE_ROOT: "${{ runner.temp }}/gh-aw"
           GH_AW_FILE_CONFIG: "{\"files\":[{\"path\":\"safeoutputs/config.json\",\"content_env\":\"GH_AW_SAFE_OUTPUTS_CONFIG\"}]}"
-          GH_AW_SAFE_OUTPUTS_CONFIG: "{\"add_comment\":{\"hide_older_comments\":true,\"max\":1},\"add_labels\":{\"allowed\":[\"needs-refinement\",\"ready-for-build\",\"out-of-scope\"],\"max\":2},\"assign_to_agent\":{\"allowed\":[\"copilot\"],\"custom-instructions\":\"Build the latest \\\"🚀 Implementation proposal\\\" comment on this issue as a fast hackathon\\nprototype for non-technical clinicians to click through and iterate on: smallest version\\nthat shows the walkthrough end to end, visible over robust, no non-functional extras.\\nThe idea gets its own page: frontend/src/ideas/issue-<N>/index.tsx and\\nbackend/app/ideas/issue_<N>.py (rule 0 in implementation-guidelines.md). Do not edit the\\nlanding page (frontend/src/App.tsx) or backend/app/main.py.\\nMatch the visual language to the participant's work (rule 7). Use HospitalShell for\\npatient-level clinical workflows. For research networks, trial operations or other\\ncross-hospital work, use a distinct issue-local workspace when it better expresses the\\nproposal. Keep either approach dense, credible, full of synthetic data and clickable\\ninteractions; do not change shared shell components or other ideas.\\nTell the story of the vision: one concrete scenario, guided with StoryGuide, simulated\\nbehind-the-scenes work with Backstage, ending on the payoff. Every AI wait shows a\\nspinner and label immediately (Working / Backstage) – never a frozen screen.\\nFollow .github/copilot-instructions.md and every file in .github/hackathon/ (start with\\npurpose-and-learnings.md, then \\\"Hackathon mindset\\\" in implementation-guidelines.md). Use synthetic data from\\n/sample-data only, keep the GitHub Copilot SDK central.\\n\",\"max\":1,\"name\":\"copilot\",\"target\":\"triggering\"},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"remove_labels\":{\"allowed\":[\"needs-refinement\",\"ready-for-build\",\"out-of-scope\"],\"max\":3},\"report_incomplete\":{}}"
+          GH_AW_SAFE_OUTPUTS_CONFIG: "{\"add_comment\":{\"max\":1},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"report_incomplete\":{}}"
         with:
           script: |
             const path = require('path');
@@ -612,10 +599,7 @@ jobs:
           GH_AW_TOOLS_META_JSON: |
             {
               "description_suffixes": {
-                "add_comment": " CONSTRAINTS: Maximum 1 comment(s) can be added. Supports reply_to_id for discussion threading.",
-                "add_labels": " CONSTRAINTS: Maximum 2 label(s) can be added. Only these labels are allowed: [\"needs-refinement\" \"ready-for-build\" \"out-of-scope\"].",
-                "assign_to_agent": " CONSTRAINTS: Maximum 1 issue(s) can be assigned to agent.",
-                "remove_labels": " CONSTRAINTS: Maximum 3 label(s) can be removed. Only these labels can be removed: [needs-refinement ready-for-build out-of-scope]."
+                "add_comment": " CONSTRAINTS: Maximum 1 comment(s) can be added. Supports reply_to_id for discussion threading."
               },
               "repo_params": {},
               "dynamic_tools": []
@@ -662,65 +646,6 @@ jobs:
                     "pattern": "^#?aw_[A-Za-z0-9_]{3,12}$"
                   }
                 }
-              },
-              "add_labels": {
-                "defaultMax": 5,
-                "fields": {
-                  "item_number": {
-                    "issueNumberOrTemporaryId": true
-                  },
-                  "labels": {
-                    "required": true,
-                    "type": "array"
-                  },
-                  "repo": {
-                    "type": "string",
-                    "maxLength": 256
-                  }
-                }
-              },
-              "assign_to_agent": {
-                "defaultMax": 1,
-                "fields": {
-                  "agent": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 128
-                  },
-                  "confidence": {
-                    "type": "string",
-                    "enum": [
-                      "LOW",
-                      "MEDIUM",
-                      "HIGH"
-                    ],
-                    "x-strip-on-error": true
-                  },
-                  "issue_number": {
-                    "issueNumberOrTemporaryId": true
-                  },
-                  "pull_number": {
-                    "optionalPositiveInteger": true
-                  },
-                  "pull_request_repo": {
-                    "type": "string",
-                    "maxLength": 256
-                  },
-                  "rationale": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 280,
-                    "x-strip-on-error": true
-                  },
-                  "repo": {
-                    "type": "string",
-                    "maxLength": 256
-                  },
-                  "suggest": {
-                    "type": "boolean"
-                  }
-                },
-                "customValidation": "requiresOneOf:issue_number,pull_number"
               },
               "missing_data": {
                 "defaultMax": 20,
@@ -776,22 +701,6 @@ jobs:
                     "type": "string",
                     "sanitize": true,
                     "maxLength": 65000
-                  }
-                }
-              },
-              "remove_labels": {
-                "defaultMax": 5,
-                "fields": {
-                  "item_number": {
-                    "issueNumberOrTemporaryId": true
-                  },
-                  "labels": {
-                    "required": true,
-                    "type": "array"
-                  },
-                  "repo": {
-                    "type": "string",
-                    "maxLength": 256
                   }
                 }
               },
@@ -971,7 +880,7 @@ jobs:
       - name: Execute GitHub Copilot CLI
         id: agentic_execution
         # Copilot CLI tool arguments (sorted):
-        timeout-minutes: 15
+        timeout-minutes: 10
         run: |
           set -o pipefail
           printf '%s' "$(date +%s%3N)" > /tmp/gh-aw/agent_cli_start_ms.txt
@@ -1038,7 +947,7 @@ jobs:
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_TIMEOUT_MINUTES: 15
+          GH_AW_TIMEOUT_MINUTES: 10
           GH_AW_VERSION: v0.88.8
           GITHUB_API_URL: ${{ github.api_url }}
           GITHUB_AW: true
@@ -1061,7 +970,7 @@ jobs:
         continue-on-error: true
         env:
           GH_AW_AGENTIC_EXECUTION_OUTCOME: ${{ steps.agentic_execution.outcome }}
-          GH_AW_ENGINE_STEP_TIMEOUT_MINUTES: 15
+          GH_AW_ENGINE_STEP_TIMEOUT_MINUTES: 10
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -1259,7 +1168,7 @@ jobs:
       issues: write
       pull-requests: write
     concurrency:
-      group: "gh-aw-conclusion-idea-coach"
+      group: "gh-aw-conclusion-presentation-editor"
       cancel-in-progress: false
       queue: max
     env:
@@ -1279,8 +1188,8 @@ jobs:
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
           parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/idea-coach.lock.yml@${{ github.ref }}
+          GH_AW_SETUP_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/presentation-editor.lock.yml@${{ github.ref }}
           GH_AW_INFO_VERSION: "1.0.80"
           GH_AW_INFO_AWF_VERSION: "v0.28.14"
           GH_AW_INFO_ENGINE_ID: "copilot"
@@ -1340,8 +1249,8 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: agentic-workflow-usage-ideacoach-${{ github.run_id }}
-          restore-keys: agentic-workflow-usage-ideacoach-
+          key: agentic-workflow-usage-presentationeditor-${{ github.run_id }}
+          restore-keys: agentic-workflow-usage-presentationeditor-
           path: /tmp/gh-aw/agentic-workflow-usage-cache.jsonl
       - name: Write daily AIC usage cache entry
         id: write-daily-aic-cache
@@ -1363,7 +1272,7 @@ jobs:
         continue-on-error: true
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: agentic-workflow-usage-ideacoach-${{ github.run_id }}
+          key: agentic-workflow-usage-presentationeditor-${{ github.run_id }}
           path: /tmp/gh-aw/agentic-workflow-usage-cache.jsonl
       - name: Upload daily AIC usage cache artifact
         id: upload-daily-aic-cache
@@ -1381,14 +1290,14 @@ jobs:
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
           GH_AW_NOOP_MAX: "1"
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/idea-coach.md"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/presentation-editor.md"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
           GH_AW_NOOP_REPORT_AS_ISSUE: "false"
           GH_AW_AIC: ${{ needs.agent.outputs.aic }}
           GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
-          GH_AW_WORKFLOW_ID: "idea-coach"
+          GH_AW_WORKFLOW_ID: "presentation-editor"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -1404,8 +1313,8 @@ jobs:
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
           GH_AW_MISSING_TOOL_CREATE_ISSUE: "true"
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/idea-coach.md"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/presentation-editor.md"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -1421,8 +1330,8 @@ jobs:
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
           GH_AW_REPORT_INCOMPLETE_CREATE_ISSUE: "true"
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/idea-coach.md"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/presentation-editor.md"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -1438,11 +1347,11 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/idea-coach.md"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/presentation-editor.md"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_WORKFLOW_ID: "idea-coach"
+          GH_AW_WORKFLOW_ID: "presentation-editor"
           GH_AW_ACTION_FAILURE_ISSUE_EXPIRES_HOURS: "0"
           GH_AW_ENGINE_ID: "copilot"
           GH_AW_SECRET_VERIFICATION_RESULT: ${{ needs.activation.outputs.secret_verification_result }}
@@ -1463,20 +1372,18 @@ jobs:
           GH_AW_MISSING_MODEL_PRICING_MODEL_NAME: ${{ needs.agent.outputs.missing_model_pricing_model_name }}
           GH_AW_SHELL_EXPANSION_GUARD_REJECTED: ${{ needs.agent.outputs.shell_expansion_guard_rejected }}
           GH_AW_ENGINE_API_HOSTS: "api.enterprise.githubcopilot.com,api.githubcopilot.com,api.business.githubcopilot.com,api.individual.githubcopilot.com"
-          GH_AW_ASSIGNMENT_ERRORS: ${{ needs.safe_outputs.outputs.assign_to_agent_assignment_errors }}
-          GH_AW_ASSIGNMENT_ERROR_COUNT: ${{ needs.safe_outputs.outputs.assign_to_agent_assignment_error_count }}
           GH_AW_LOCKDOWN_CHECK_FAILED: ${{ needs.activation.outputs.lockdown_check_failed }}
           GH_AW_OAUTH_TOKEN_CHECK_FAILED: ${{ needs.activation.outputs.oauth_token_check_failed }}
           GH_AW_STALE_LOCK_FILE_FAILED: ${{ needs.activation.outputs.stale_lock_file_failed }}
           GH_AW_DAILY_AI_CREDITS_EXCEEDED: ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
           GH_AW_DAILY_AI_CREDITS_TOTAL_EFFECTIVE_TOKENS: ${{ needs.activation.outputs.daily_ai_credits_total_effective_tokens }}
           GH_AW_DAILY_AI_CREDITS_THRESHOLD: ${{ needs.activation.outputs.daily_ai_credits_threshold }}
-          GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"👋 Thanks! The idea coach is reading your idea now – you'll usually get a reply here in 3–5 minutes.\",\"runSuccess\":\"✅ The idea coach has replied below.\",\"runFailure\":\"⚠️ The idea coach hit a problem ({status}). An organiser will take a look.\"}"
+          GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"🎨 The presentation editor is applying your feedback now.\",\"runSuccess\":\"✅ The presentation editor has prepared the next version.\",\"runFailure\":\"⚠️ The presentation editor hit a problem ({status}). An organiser will take a look.\"}"
           GH_AW_GROUP_REPORTS: "false"
           GH_AW_FAILURE_REPORT_AS_ISSUE: "true"
           GH_AW_MISSING_TOOL_REPORT_AS_FAILURE: "true"
           GH_AW_MISSING_DATA_REPORT_AS_FAILURE: "true"
-          GH_AW_TIMEOUT_MINUTES: "15"
+          GH_AW_TIMEOUT_MINUTES: "10"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -1492,8 +1399,8 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/idea-coach.md"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/presentation-editor.md"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_REPORT_FAILED_JOBS: "true"
         with:
@@ -1513,11 +1420,10 @@ jobs:
           GH_AW_COMMENT_ID: ${{ needs.activation.outputs.comment_id }}
           GH_AW_COMMENT_REPO: ${{ needs.activation.outputs.comment_repo }}
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
+          GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
           GH_AW_SAFE_OUTPUTS_RESULT: ${{ needs.safe_outputs.result }}
-          GH_AW_ASSIGNMENT_ERROR_COUNT: ${{ needs.safe_outputs.outputs.assign_to_agent_assignment_error_count }}
-          GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"👋 Thanks! The idea coach is reading your idea now – you'll usually get a reply here in 3–5 minutes.\",\"runSuccess\":\"✅ The idea coach has replied below.\",\"runFailure\":\"⚠️ The idea coach hit a problem ({status}). An organiser will take a look.\"}"
+          GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"🎨 The presentation editor is applying your feedback now.\",\"runSuccess\":\"✅ The presentation editor has prepared the next version.\",\"runFailure\":\"⚠️ The presentation editor hit a problem ({status}). An organiser will take a look.\"}"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -1542,19 +1448,16 @@ jobs:
       GH_AW_AGENT_AIC: ${{ needs.agent.outputs.aic }}
       GH_AW_AIC: ${{ needs.agent.outputs.aic }}
       GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
-      GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/idea-coach"
+      GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/presentation-editor"
       GH_AW_EFFECTIVE_TOKENS: ${{ needs.agent.outputs.effective_tokens }}
       GH_AW_ENGINE_ID: "copilot"
       GH_AW_ENGINE_MODEL: ${{ needs.agent.outputs.model }}
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
-      GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"👋 Thanks! The idea coach is reading your idea now – you'll usually get a reply here in 3–5 minutes.\",\"runSuccess\":\"✅ The idea coach has replied below.\",\"runFailure\":\"⚠️ The idea coach hit a problem ({status}). An organiser will take a look.\"}"
-      GH_AW_WORKFLOW_ID: "idea-coach"
-      GH_AW_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-      GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/idea-coach.md"
+      GH_AW_SAFE_OUTPUT_MESSAGES: "{\"runStarted\":\"🎨 The presentation editor is applying your feedback now.\",\"runSuccess\":\"✅ The presentation editor has prepared the next version.\",\"runFailure\":\"⚠️ The presentation editor hit a problem ({status}). An organiser will take a look.\"}"
+      GH_AW_WORKFLOW_ID: "presentation-editor"
+      GH_AW_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+      GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/presentation-editor.md"
     outputs:
-      assign_to_agent_assigned: ${{ steps.process_safe_outputs.outputs.assign_to_agent_assigned }}
-      assign_to_agent_assignment_error_count: ${{ steps.process_safe_outputs.outputs.assign_to_agent_assignment_error_count }}
-      assign_to_agent_assignment_errors: ${{ steps.process_safe_outputs.outputs.assign_to_agent_assignment_errors }}
       code_push_failure_count: ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
       code_push_failure_errors: ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
       comment_id: ${{ steps.process_safe_outputs.outputs.comment_id }}
@@ -1581,8 +1484,8 @@ jobs:
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
           parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Idea coach · Oncology Hackathon 2026 Munich"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/idea-coach.lock.yml@${{ github.ref }}
+          GH_AW_SETUP_WORKFLOW_NAME: "Presentation editor · Oncology Hackathon 2026 Munich"
+          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/presentation-editor.lock.yml@${{ github.ref }}
           GH_AW_INFO_VERSION: "1.0.80"
           GH_AW_INFO_AWF_VERSION: "v0.28.14"
           GH_AW_INFO_ENGINE_ID: "copilot"
@@ -1623,8 +1526,7 @@ jobs:
           GH_AW_ALLOWED_DOMAINS: "api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"hide_older_comments\":true,\"max\":1},\"add_labels\":{\"allowed\":[\"needs-refinement\",\"ready-for-build\",\"out-of-scope\"],\"max\":2},\"assign_to_agent\":{\"allowed\":[\"copilot\"],\"custom-instructions\":\"Build the latest \\\"🚀 Implementation proposal\\\" comment on this issue as a fast hackathon\\nprototype for non-technical clinicians to click through and iterate on: smallest version\\nthat shows the walkthrough end to end, visible over robust, no non-functional extras.\\nThe idea gets its own page: frontend/src/ideas/issue-<N>/index.tsx and\\nbackend/app/ideas/issue_<N>.py (rule 0 in implementation-guidelines.md). Do not edit the\\nlanding page (frontend/src/App.tsx) or backend/app/main.py.\\nMatch the visual language to the participant's work (rule 7). Use HospitalShell for\\npatient-level clinical workflows. For research networks, trial operations or other\\ncross-hospital work, use a distinct issue-local workspace when it better expresses the\\nproposal. Keep either approach dense, credible, full of synthetic data and clickable\\ninteractions; do not change shared shell components or other ideas.\\nTell the story of the vision: one concrete scenario, guided with StoryGuide, simulated\\nbehind-the-scenes work with Backstage, ending on the payoff. Every AI wait shows a\\nspinner and label immediately (Working / Backstage) – never a frozen screen.\\nFollow .github/copilot-instructions.md and every file in .github/hackathon/ (start with\\npurpose-and-learnings.md, then \\\"Hackathon mindset\\\" in implementation-guidelines.md). Use synthetic data from\\n/sample-data only, keep the GitHub Copilot SDK central.\\n\",\"max\":1,\"name\":\"copilot\",\"target\":\"triggering\"},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"remove_labels\":{\"allowed\":[\"needs-refinement\",\"ready-for-build\",\"out-of-scope\"],\"max\":3},\"report_incomplete\":{}}"
-          GH_AW_ASSIGN_TO_AGENT_TOKEN: ${{ secrets.GH_AW_AGENT_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"report_incomplete\":{}}"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |

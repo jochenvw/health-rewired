@@ -1,0 +1,165 @@
+name: Participant feedback
+
+# Keeps clinicians and researchers on their idea issue. Human comments on an approved idea are
+# relayed to the linked Copilot pull request, then acknowledged on the issue in plain language.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: participant-feedback-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.sender.type != 'Bot' &&
+      !contains(github.event.comment.body, '/architecture') &&
+      !contains(github.event.comment.body, 'ready for architecture') &&
+      !contains(github.event.comment.body, 'prototype is done') &&
+      !contains(github.event.issue.labels.*.name, 'architecture-coaching') &&
+      !contains(github.event.issue.labels.*.name, 'architecture-ready')
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Find the linked Copilot build
+        id: build
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const participantComment = context.payload.comment;
+            const labels = new Set(issue.labels.map((label) => label.name));
+            if (!labels.has("ready-for-build") && !labels.has("preview-ready")) {
+              core.notice("The idea is not approved yet; the idea coach will handle this comment.");
+              core.notice("The idea is not approved yet; the idea coach will handle this comment.");
+              core.setOutput("pull-request", "");
+              return;
+            }
+
+            const acknowledgementMarker =
+              `<!-- health-rewired-feedback-relayed comment:${participantComment.id} -->`;
+
+            async function findCopilotPullRequest() {
+              const timeline = await github.paginate(github.rest.issues.listEventsForTimeline, {
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
+              return timeline
+                .filter((event) =>
+                  event.event === "cross-referenced" &&
+                  event.source?.issue?.pull_request &&
+                  event.source.issue.state === "open" &&
+                  event.source.issue.user?.type === "Bot" &&
+                  ["copilot", "copilot-swe-agent"].includes(
+                    event.source.issue.user.login.replace(/\[bot\]$/i, "").toLowerCase(),
+                  ),
+                )
+                .map((event) => event.source.issue)
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+            }
+
+            let pullRequest;
+            for (let attempt = 1; attempt <= 20; attempt += 1) {
+              pullRequest = await findCopilotPullRequest();
+              if (pullRequest) break;
+              core.info(`Waiting for the Copilot pull request (${attempt}/20).`);
+              await new Promise((resolve) => setTimeout(resolve, 15000));
+            }
+
+            if (!pullRequest) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: [
+                  acknowledgementMarker,
+                  `### ⚠️ Your feedback is saved, but we could not connect it to the build yet`,
+                  ``,
+                  `An organiser has been notified. You do not need to repeat your comment.`,
+                ].join("\n"),
+              });
+              core.setFailed("No linked open Copilot pull request was found.");
+              return;
+            }
+
+            core.setOutput("pull-request", String(pullRequest.number));
+
+      - name: Relay feedback to Copilot
+        if: steps.build.outputs.pull-request != ''
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GH_AW_AGENT_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const participantComment = context.payload.comment;
+            const pullRequest = Number("${{ steps.build.outputs.pull-request }}");
+            const feedbackMarker =
+              `<!-- health-rewired-participant-feedback issue:#${issue.number} comment:${participantComment.id} -->`;
+            const pullComments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: pullRequest,
+              per_page: 100,
+            });
+            if (!pullComments.some((comment) => comment.body?.includes(feedbackMarker))) {
+              const quotedFeedback = participantComment.body
+                .split(/\r?\n/)
+                .map((line) => `> ${line}`)
+                .join("\n");
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pullRequest,
+                body: [
+                  feedbackMarker,
+                  `@copilot`,
+                  ``,
+                  `Participant feedback from [idea #${issue.number}](${issue.html_url}):`,
+                  ``,
+                  quotedFeedback,
+                  ``,
+                  `Please update the existing prototype to reflect this feedback. Keep the same`,
+                  `clinician-facing walkthrough, synthetic-data boundary and human decisions.`,
+                ].join("\n"),
+              });
+            }
+
+      - name: Acknowledge feedback on the idea
+        if: steps.build.outputs.pull-request != ''
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const participantComment = context.payload.comment;
+            const acknowledgementMarker =
+              `<!-- health-rewired-feedback-relayed comment:${participantComment.id} -->`;
+            const issueComments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issue.number,
+              per_page: 100,
+            });
+            if (!issueComments.some((comment) => comment.body?.includes(acknowledgementMarker))) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: [
+                  acknowledgementMarker,
+                  `### 💬 Feedback sent to the prototype builder`,
+                  ``,
+                  `Thanks — Copilot has your note. We will post a new version on this issue when it is ready.`,
+                ].join("\n"),
+              });
+            }
