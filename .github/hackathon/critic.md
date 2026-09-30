@@ -32,6 +32,9 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
   component style, lacks institutional chrome or current-object context, uses color decoratively,
   hides status or uncertainty, or makes consequential output impossible to inspect. Distinct
   issue-local workspaces are welcome; independent design systems are not.
+- The page does not provide separate, plainly labelled `Light` and `Dark` buttons in a persistent
+  top-level area, does not identify the active choice with `aria-pressed`, or leaves parts of the
+  walkthrough in the wrong theme.
 - The page **does not tell the story**: no guided steps (`StoryGuide`), the mechanism of the
   vision stays invisible (no `Backstage` showing what happens behind the scenes), or a newcomer
   cannot reach the payoff just by following the steps.

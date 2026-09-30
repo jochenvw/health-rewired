@@ -19,6 +19,9 @@ applyTo: "frontend/**"
   semantic `--cp-*` tokens, typography, spacing, status meanings, institutional chrome and
   inspectability patterns. Keep it dense, functional and data-rich rather than a marketing page,
   and do not change shared shell styles to achieve an idea-specific look.
+- Every idea page exposes separate, labelled `Light` and `Dark` buttons in its persistent header or
+  top-level controls. The active button uses `aria-pressed`, and the chosen theme covers the entire
+  workspace; do not substitute an icon-only or ambiguous single toggle.
 - Tell the idea's story with `StoryGuide` and `Backstage` from `src/hospital/Story.tsx`, or an
   equally clear issue-local guided-step treatment when using a purpose-built shell.
 - Every wait (AI call, simulated process, loading) shows a spinner and label immediately:
