@@ -71,6 +71,9 @@ click through, react to, and iterate on with you. Speed to something visible bea
      cool neutral work surfaces, semantic `--cp-*` tokens, restrained accent, operational
      typography, explicit status, inspectable detail and visible human control. Reuse the token
      values rather than inventing an unrelated palette in each issue.
+   - **Visible theme choice.** Put separate, labelled `Light` and `Dark` buttons in the persistent
+     header or top-level controls. Show the selected theme with styling and `aria-pressed`; apply
+     it to the complete workspace. Do not use only an icon or ambiguous single toggle.
    - For patient-level clinical workflows, default to `HospitalShell` from
      `frontend/src/hospital/HospitalShell.tsx` (hospital app bar, patient banner, left navigation,
      status bar) and its `Panel`, `DataTable`, `Tabs` and `Pill` pieces.
