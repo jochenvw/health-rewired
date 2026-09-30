@@ -1,4 +1,50 @@
-/* Idea #36 – cancer digital twin: shared timeline, what-if controls and trade-off table. */
+/* Idea #36 – cancer digital twin: shared timeline, what-if controls and trade-off table.
+   Workspace variation for "Treatment and tolerability": accent-tinted canvas, three-column
+   board, rounded header (.github/hackathon/design-language.md §6). */
+.twin-canvas {
+  display: grid;
+  gap: 16px;
+  background: var(--cp-accent-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.twin-compare-header > header {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--cp-accent-soft);
+  border-bottom-color: var(--cp-accent);
+}
+
+.twin-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.twin-board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+
+.twin-board-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .twin-board {
+    grid-template-columns: 1fr;
+  }
+}
+
 .twin-whatif {
   display: flex;
   align-items: flex-end;
@@ -113,17 +159,17 @@
 }
 
 .twin-ladder-cell.tone-ok {
-  background: #e2f1e3;
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
   color: var(--ok);
 }
 
 .twin-ladder-cell.tone-warn {
-  background: #fbe9d0;
+  background: color-mix(in srgb, var(--warning) 18%, transparent);
   color: var(--warning);
 }
 
 .twin-ladder-cell.tone-crit {
-  background: #f8d9d9;
+  background: color-mix(in srgb, var(--critical) 18%, transparent);
   color: var(--critical);
 }
 

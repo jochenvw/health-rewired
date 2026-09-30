@@ -1,28 +1,87 @@
-/* Plain hospital-software theme. Scoped to .hx; overrides the global design tokens so existing
-   generative-UI blocks render in the same light, dense clinical style. */
+/* Shared institutional-workstation theme for idea pages. Scoped to .hx; follows
+   .github/hackathon/design-language.md: dark institutional chrome, cool neutral work surfaces,
+   semantic --cp-* tokens, restrained accent, operational typography and visible human control.
+   Existing generative-UI blocks and idea pages render in this theme automatically. */
 .hx {
-  --bg: #e9edf2;
-  --bg-soft: #f4f6f9;
-  --surface: #ffffff;
-  --surface-strong: #eef2f6;
-  --border: #c6ced8;
-  --text: #1c2733;
-  --muted: #56606c;
-  --accent: #1f5c99;
-  --accent-2: #1f5c99;
-  --ok: #2e7d32;
-  --warning: #b26a00;
-  --critical: #c62828;
-  --radius: 3px;
-  --shadow: none;
-  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1.4;
+  /* Canonical design-language tokens (light values; overridden below for dark/system preference). */
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+
+  /* Internal shorthand aliases used throughout this file and idea-specific CSS; these always
+     resolve to the canonical tokens above, so an idea page only ever needs one set of names. */
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --border-strong: var(--cp-border-strong);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --muted-soft: var(--cp-text-soft);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --accent-hover: var(--cp-accent-hover);
+  --accent-soft: var(--cp-accent-soft);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+  --link: var(--cp-link);
+  --radius: 8px;
+  --radius-lg: 16px;
+  --radius-sm: 6px;
+  --shadow: 0 8px 24px rgba(16, 30, 43, 0.18);
+
+  font-family: var(--font-sans, 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
   color: var(--text);
   background: var(--bg);
   min-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hx {
+    --cp-bg: #2b3238;
+    --cp-bg-elevated: #242a30;
+    --cp-surface: #1f2429;
+    --cp-surface-soft: #262c32;
+    --cp-border: #3f4953;
+    --cp-border-strong: #5f5f5f;
+    --cp-text: #dedede;
+    --cp-text-muted: #919191;
+    --cp-text-soft: #b0b0b0;
+    --cp-chrome: #0b1a29;
+    --cp-chrome-fg: #dbe7f1;
+    --cp-chrome-muted: #8ea6ba;
+    --cp-banner: #1a2733;
+    --cp-accent: #fd8ea1;
+    --cp-accent-hover: #fb7b91;
+    --cp-accent-soft: rgba(253, 142, 161, 0.14);
+    --cp-success: #4ade80;
+    --cp-warning: #fbbf24;
+    --cp-danger: #f87171;
+    --cp-link: #4da6ff;
+  }
 }
 
 .hx h1,
@@ -32,58 +91,102 @@
   font-weight: 600;
 }
 
+/* Keyboard-only skip link, per the design language's accessibility requirements. */
+.hx-skip-link {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  border: 1px solid var(--cp-accent);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  z-index: 100;
+  transition: top 0.15s ease;
+}
+
+.hx-skip-link:focus {
+  top: 8px;
+}
+
+.hx *:focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 4px;
+}
+
+/* Prototype / synthetic-data strip: always the topmost element. */
+.hx-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cp-accent-soft);
+  color: var(--cp-accent);
+  border-bottom: 1px solid var(--cp-border);
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Institutional header: dark navy chrome establishing product, place and system state. */
 .hx-appbar {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #22405f;
-  color: #e6edf5;
-  padding: 6px 12px;
-  font-size: 12px;
+  min-height: 56px;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-fg);
+  padding: 8px 16px;
+  font-size: 12.5px;
 }
 
 .hx-logo {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  background: #fff;
-  color: #22405f;
+  width: 28px;
+  height: 28px;
+  background: var(--cp-chrome-fg);
+  color: var(--cp-chrome);
   font-weight: 800;
-  font-size: 10px;
-  border-radius: 2px;
+  font-size: 11px;
+  border-radius: var(--radius-sm);
 }
 
 .hx-appbar-sep {
-  opacity: 0.4;
+  color: var(--cp-chrome-muted);
 }
 
 .hx-spacer {
   flex: 1;
 }
 
+/* Slim operational sub-bar under the header: monospace, uppercase, orientation only. */
 .hx-menubar {
   display: flex;
-  gap: 18px;
-  background: #f4f6f9;
-  border-bottom: 1px solid var(--border);
-  padding: 4px 12px;
-  color: #33404d;
-  font-size: 12px;
+  gap: 20px;
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--cp-border);
+  padding: 6px 16px;
+  color: var(--cp-text-soft);
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
+/* Context banner: current patient/case identity and the handful of facts that matter now. */
 .hx-banner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 18px;
-  background: #dfe9f4;
-  border-bottom: 2px solid #9fb6ce;
-  padding: 8px 12px;
+  gap: 6px 20px;
+  background: var(--cp-banner);
+  border-bottom: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-accent);
+  padding: 10px 16px;
 }
 
 .hx-banner-name {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .hx-banner-dx {
@@ -91,11 +194,11 @@
 }
 
 .hx-allergy {
-  background: #fbe3e3;
+  background: color-mix(in srgb, var(--critical) 14%, transparent);
   color: var(--critical);
-  border: 1px solid #efb2b2;
+  border: 1px solid color-mix(in srgb, var(--critical) 40%, transparent);
   padding: 1px 8px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
 }
 
@@ -105,12 +208,13 @@
   min-height: 0;
 }
 
+/* Sidebar: persistent workspace map, not a second command bar. */
 .hx-nav {
-  width: 200px;
+  width: 208px;
   flex-shrink: 0;
-  background: #f4f6f9;
-  border-right: 1px solid var(--border);
-  padding: 8px 0;
+  background: var(--cp-bg-elevated);
+  border-right: 1px solid var(--cp-border);
+  padding: 12px 0;
   display: flex;
   flex-direction: column;
 }
@@ -124,23 +228,23 @@
   background: none;
   border: none;
   border-left: 3px solid transparent;
-  padding: 7px 12px;
+  padding: 8px 14px;
   color: var(--text);
   cursor: pointer;
 }
 
 .hx-nav button:hover {
-  background: #e6ebf1;
+  background: var(--cp-surface-soft);
 }
 
 .hx-nav button.active {
-  background: #fff;
-  border-left-color: var(--accent);
+  background: var(--cp-surface);
+  border-left-color: var(--cp-accent);
   font-weight: 600;
 }
 
 .hx-badge {
-  background: var(--accent);
+  background: var(--cp-accent);
   color: #fff;
   border-radius: 8px;
   padding: 0 6px;
@@ -159,28 +263,67 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  background: #f9fafb;
-  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--cp-border);
 }
 
 .hx-content {
-  padding: 12px;
+  padding: 20px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
   align-content: start;
 }
 
 .hx-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 12px;
+  gap: 16px;
+}
+
+/* Small monospaced operational label above a plain-language heading. */
+.hx-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cp-text-soft);
+}
+
+/* Attention / blocking state: a semantic edge, a status badge and one explanation. */
+.hx-attention {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-link);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+.hx-attention.warn {
+  border-left-color: var(--warning);
+}
+
+.hx-attention.crit {
+  border-left-color: var(--critical);
+}
+
+.hx-attention.ok {
+  border-left-color: var(--ok);
+}
+
+.hx-attention p {
+  margin: 0;
 }
 
 .hx-panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 .hx-panel > header {
@@ -188,13 +331,14 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(#f7f9fb, #e9eef3);
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
-  padding: 5px 10px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 10px 16px;
 }
 
 .hx-panel h3 {
-  font-size: 13px;
+  font-size: 16px;
   margin: 0;
 }
 
@@ -206,32 +350,32 @@
 }
 
 .hx-panel-body {
-  padding: 10px;
+  padding: 16px;
 }
 
 .hx-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .hx-table th {
   text-align: left;
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
-  padding: 5px 8px;
+  padding: 6px 10px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .hx-table td {
-  border-bottom: 1px solid #e3e8ee;
-  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
   vertical-align: top;
 }
 
 .hx-table tr:nth-child(even) td {
-  background: #fafbfc;
+  background: color-mix(in srgb, var(--cp-surface-soft) 45%, transparent);
 }
 
 .hx-table tr.clickable {
@@ -239,11 +383,11 @@
 }
 
 .hx-table tr.clickable:hover td {
-  background: #eaf1f8;
+  background: var(--cp-accent-soft);
 }
 
 .hx-table tr.selected td {
-  background: #d6e5f5;
+  background: var(--cp-accent-soft);
 }
 
 .hx-table tr.warn td:first-child {
@@ -267,17 +411,17 @@
 
 .hx-tabs button {
   font: inherit;
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border: 1px solid var(--border);
   border-bottom: none;
-  border-radius: 3px 3px 0 0;
-  padding: 5px 14px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  padding: 6px 16px;
   cursor: pointer;
   color: var(--text);
 }
 
 .hx-tabs button.active {
-  background: #fff;
+  background: var(--surface);
   font-weight: 600;
   position: relative;
   top: 1px;
@@ -286,86 +430,103 @@
 .hx-pill {
   display: inline-block;
   padding: 0 7px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   font-size: 11.5px;
   font-weight: 600;
   border: 1px solid transparent;
 }
 
 .hx-pill-neutral {
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border-color: var(--border);
 }
 
 .hx-pill-ok {
-  background: #e3f2e5;
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
   color: var(--ok);
 }
 
 .hx-pill-warn {
-  background: #fdf0da;
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
   color: var(--warning);
 }
 
 .hx-pill-crit {
-  background: #fbe3e3;
+  background: color-mix(in srgb, var(--critical) 16%, transparent);
   color: var(--critical);
 }
 
 .hx-pill-info {
-  background: #dfe9f4;
-  color: var(--accent);
+  background: var(--cp-accent-soft);
+  color: var(--cp-accent);
 }
 
 .hx-statusbar {
   display: flex;
-  gap: 18px;
-  background: #dde3ea;
+  gap: 20px;
+  background: var(--cp-bg-elevated);
   border-top: 1px solid var(--border);
-  padding: 3px 12px;
+  padding: 4px 16px;
   font-size: 11.5px;
-  color: #33404d;
+  color: var(--muted);
 }
 
-/* Form controls and buttons in the hospital theme. */
+/* Form controls and buttons. */
 .hx select,
 .hx input,
 .hx textarea {
   font: inherit;
   color: var(--text);
-  background: #fff;
-  border: 1px solid #aab4c0;
-  border-radius: 2px;
-  padding: 4px 6px;
+  background: var(--cp-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  min-height: 36px;
+}
+
+.hx textarea {
+  min-height: unset;
 }
 
 .hx label {
   color: var(--muted);
   font-size: 12px;
-  gap: 3px;
+  gap: 4px;
 }
 
 .hx .button,
 .hx-btn {
   font: inherit;
-  font-size: 12.5px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 2px;
-  padding: 4px 12px;
-  border: 1px solid #9aa6b3;
-  background: linear-gradient(#ffffff, #e8edf2);
+  min-height: 36px;
+  border-radius: 12px;
+  padding: 6px 16px;
+  border: 1px solid var(--border-strong);
+  background: var(--cp-surface);
   color: var(--text);
   cursor: pointer;
 }
 
+.hx .button:hover,
+.hx-btn:hover:not(:disabled) {
+  background: var(--cp-surface-soft);
+}
+
 .hx .button.primary,
 .hx-btn.primary {
-  background: linear-gradient(#2d6fb2, #1f5c99);
-  border-color: #174a7c;
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
   color: #fff;
+}
+
+.hx .button.primary:hover,
+.hx-btn.primary:hover:not(:disabled) {
+  background: var(--cp-accent-hover);
+  border-color: var(--cp-accent-hover);
 }
 
 .hx .button:disabled,
@@ -375,12 +536,12 @@
 }
 
 .hx .chip {
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   border-style: solid;
-  background: #fff;
+  background: var(--cp-surface);
   color: var(--text);
   text-align: left;
-  padding: 4px 8px;
+  padding: 5px 10px;
 }
 
 .hx .agent-form {
@@ -399,7 +560,7 @@
 }
 
 .hx .block {
-  padding: 10px;
+  padding: 14px;
 }
 
 .hx .block-kind {
@@ -407,7 +568,7 @@
 }
 
 .hx .block-header h4 {
-  font-size: 13px;
+  font-size: 15px;
   margin: 0 0 8px;
 }
 
@@ -416,7 +577,7 @@
 }
 
 .hx .trace li {
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
 }
 
 .hx dl.hx-facts {
@@ -434,10 +595,11 @@
   margin: 0;
 }
 
-/* Guided demo bar and simulated behind-the-scenes work (Story.tsx). */
+/* Guided demo bar and simulated behind-the-scenes work (Story.tsx). Integrated into the
+   institutional chrome and semantic tokens rather than a floating tutorial overlay. */
 .hx-story {
-  background: #fffbea;
-  border-bottom: 1px solid #e6d58f;
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--border);
 }
 
 .hx-story-steps {
@@ -445,7 +607,7 @@
   flex-wrap: wrap;
   gap: 2px;
   margin: 0;
-  padding: 6px 12px 0;
+  padding: 8px 16px 0;
   list-style: none;
 }
 
@@ -457,7 +619,7 @@
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  padding: 4px 10px 6px;
+  padding: 4px 10px 8px;
   color: var(--muted);
   cursor: pointer;
 }
@@ -465,7 +627,7 @@
 .hx-story-steps li.current button {
   color: var(--text);
   font-weight: 600;
-  border-bottom-color: #d9a400;
+  border-bottom-color: var(--cp-accent);
 }
 
 .hx-story-steps li.done button {
@@ -478,18 +640,21 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #eee3b8;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--border);
   font-size: 11px;
   font-weight: 700;
 }
 
 .hx-story-steps li.current .hx-story-num {
-  background: #d9a400;
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
   color: #fff;
 }
 
 .hx-story-steps li.done .hx-story-num {
-  background: #d7ecd9;
+  background: color-mix(in srgb, var(--ok) 20%, transparent);
+  border-color: var(--ok);
 }
 
 .hx-story-explain {
@@ -497,30 +662,32 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  padding: 6px 12px 8px;
-  border-top: 1px solid #efe3ad;
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--border);
 }
 
 .hx-story-tag {
-  font-size: 11px;
+  font-family: var(--font-mono, Consolas, 'Courier New', Courier, monospace);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8a6a00;
+  letter-spacing: 0.06em;
+  color: var(--cp-text-soft);
 }
 
 .hx-backstage {
-  background: #f7f9fb;
-  border: 1px dashed #9fb6ce;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--link);
   border-radius: var(--radius);
-  padding: 8px 12px;
+  padding: 12px 16px;
 }
 
 .hx-backstage > header {
   display: flex;
   justify-content: space-between;
   color: var(--accent);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .hx-backstage ol {
@@ -528,7 +695,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .hx-backstage li {
@@ -584,7 +751,7 @@
   display: inline-block;
   width: 12px;
   height: 12px;
-  border: 2px solid #c6d4e3;
+  border: 2px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: hx-spin 0.8s linear infinite;
@@ -593,6 +760,12 @@
 @keyframes hx-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-skip-link {
+    transition: none;
   }
 }
 
@@ -611,5 +784,9 @@
 
   .hx-menubar {
     display: none;
+  }
+
+  .hx-content {
+    padding: 12px;
   }
 }

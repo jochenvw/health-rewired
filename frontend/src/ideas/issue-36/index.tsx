@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { api, type AgentResult, type BiopsyResult, type Priority, type TreatmentPath, type TwinSimulation, type WhatIf } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
+import { AttentionStrip, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './twin.css';
@@ -181,7 +181,7 @@ export default function CancerDigitalTwin() {
         ) : undefined
       }
     >
-      {notice && <Panel title="Information">{notice}</Panel>}
+      {notice && <AttentionStrip tone="info">{notice}</AttentionStrip>}
 
       {section === 'worklist' && (
         <Panel title={`Clinic worklist · Medical Oncology · ${new Date().toLocaleDateString('de-DE')}`}>
@@ -309,6 +309,7 @@ function TwinTimeline({ paths }: { paths: TreatmentPath[] }) {
   const months = [0, 1, 3, 6];
   return (
     <div className="twin-timeline">
+      <TwinPathBoard paths={paths} />
       <TimelineChart title="Simulated response (%)" paths={paths} field="response_pct" />
       <TimelineChart title="Progression risk (%)" paths={paths} field="progression_risk_pct" />
       <div className="twin-legend">
@@ -354,6 +355,30 @@ function TwinTimeline({ paths }: { paths: TreatmentPath[] }) {
             ))
         )}
       </ul>
+    </div>
+  );
+}
+
+/** Three-column board: one card per path, giving an at-a-glance orientation before the shared timeline. */
+function TwinPathBoard({ paths }: { paths: TreatmentPath[] }) {
+  const last = (path: TreatmentPath) => path.trajectory[path.trajectory.length - 1];
+  return (
+    <div className="twin-board" role="list" aria-label="Path orientation at month 6">
+      {paths.map((path, i) => {
+        const point = last(path);
+        return (
+          <div className="twin-board-card" role="listitem" key={path.id} style={{ borderTopColor: pathColor(i) }}>
+            <span className="hx-eyebrow">Path {i + 1}</span>
+            <strong>{path.name}</strong>
+            {point && (
+              <div className="twin-board-stats">
+                <span>Response {point.response_pct}%</span>
+                <Pill tone={toxicityTone(point.toxicity_grade)}>Toxicity grade {point.toxicity_grade}</Pill>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -558,8 +583,8 @@ function CompareAndDecide({
         note="In this prototype the steps are shown for explanation; the numbers are an illustrative simulation, not modelled from real outcome data."
       />
       {simulation && (
-        <>
-          <Panel title={simulation.headline}>
+        <div className="twin-canvas">
+          <Panel title={simulation.headline} className="twin-compare-header">
             <p className="note">{simulation.note}</p>
             <WhatIfControls whatIf={simulation.what_if} updating={updating} onChange={onWhatIfChange} />
             <p className="note">{simulation.what_if_explanation}</p>
@@ -614,7 +639,7 @@ function CompareAndDecide({
             )}
           </Panel>
           <TwinAssistant />
-        </>
+        </div>
       )}
     </>
   );

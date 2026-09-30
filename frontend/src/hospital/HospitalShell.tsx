@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import './hospital.css';
 
 /*
- * Hospital-software look for idea pages: a deliberately plain clinical information system, so a
- * clinician can picture the idea inside the software they use every day.
- * Everything inside <HospitalShell> uses the light "hx" theme; existing UI blocks adapt automatically.
+ * Hospital-software look for idea pages: a clinical information system a clinician would recognise,
+ * following the shared prototype design language (.github/hackathon/design-language.md) — dark
+ * institutional chrome, cool neutral work surfaces, semantic --cp-* tokens and a restrained accent.
+ * Everything inside <HospitalShell> uses the "hx" theme; existing UI blocks adapt automatically.
  */
 
 export type NavItem = { id: string; label: string; badge?: string | number };
@@ -44,6 +45,10 @@ export function HospitalShell({
   const today = new Date().toLocaleDateString('de-DE');
   return (
     <div className="hx">
+      <a className="hx-skip-link" href="#hx-main-content">
+        Skip to content
+      </a>
+      <div className="hx-strip">Hackathon prototype · synthetic data only · not for clinical use</div>
       <div className="hx-appbar">
         <span className="hx-logo">KR</span>
         <strong>Klinikum Rewired München</strong>
@@ -77,7 +82,7 @@ export function HospitalShell({
             </button>
           ))}
         </nav>
-        <main className="hx-main">
+        <main className="hx-main" id="hx-main-content">
           {toolbar && <div className="hx-toolbar">{toolbar}</div>}
           <div className="hx-content">{children}</div>
         </main>
@@ -111,9 +116,20 @@ export function PatientBanner({ patient }: { patient: BannerPatient }) {
   );
 }
 
-export function Panel({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
+export function Panel({
+  title,
+  actions,
+  children,
+  className,
+}: {
+  title: string;
+  actions?: ReactNode;
+  children: ReactNode;
+  /** Extra class on the panel, e.g. for a workspace-specific accent header. */
+  className?: string;
+}) {
   return (
-    <section className="hx-panel">
+    <section className={className ? `hx-panel ${className}` : 'hx-panel'}>
       <header>
         <h3>{title}</h3>
         {actions && <div className="hx-panel-actions">{actions}</div>}
@@ -212,4 +228,27 @@ export function Tabs({
 
 export function Pill({ tone = 'neutral', children }: { tone?: 'neutral' | 'ok' | 'warn' | 'crit' | 'info'; children: ReactNode }) {
   return <span className={`hx-pill hx-pill-${tone}`}>{children}</span>;
+}
+
+/** Small monospaced operational label placed above a plain-language heading, e.g. "STEP 2 · SIMULATE". */
+export function Eyebrow({ children }: { children: ReactNode }) {
+  return <span className="hx-eyebrow">{children}</span>;
+}
+
+/**
+ * A semantic-edge callout for a state that needs attention or blocks progress
+ * (missing result, recomputed simulation, error) — never colour alone.
+ */
+export function AttentionStrip({
+  tone = 'info',
+  children,
+}: {
+  tone?: 'info' | 'warn' | 'crit' | 'ok';
+  children: ReactNode;
+}) {
+  return (
+    <div className={`hx-attention ${tone}`} role={tone === 'crit' ? 'alert' : 'status'}>
+      <p>{children}</p>
+    </div>
+  );
 }
