@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, type AgentResult, type PatientRecord, type PatientSummary, type Trial } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
-import { DataTable, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
+import { AttentionStrip, DataTable, Drawer, HospitalShell, Panel, Pill, Tabs } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 
@@ -207,7 +207,7 @@ export default function OutcomeRisk() {
     >
       {notice && <Panel title="Information">{notice}</Panel>}
       {section === 'worklist' && (
-        <Panel title={`Clinic worklist · Medical Oncology · ${new Date().toLocaleDateString('de-DE')}`}>
+        <Panel eyebrow="Today's list" title={`Clinic worklist · Medical Oncology · ${new Date().toLocaleDateString('de-DE')}`}>
           <DataTable
             rowKey={(r) => r.id}
             rows={worklist}
@@ -271,7 +271,7 @@ function Chart({ record }: { record: PatientRecord }) {
       />
       {tab === 'summary' && (
         <div className="hx-grid">
-          <Panel title="Diagnosis">
+          <Panel eyebrow="Chart summary" title="Diagnosis">
             <dl className="hx-facts">
               <dt>Primary</dt>
               <dd>{record.diagnosis.primary}</dd>
@@ -401,6 +401,7 @@ function OutcomeRiskPanel({
   const [runs, setRuns] = useState(0);
   const [trials, setTrials] = useState<Trial[]>([]);
   const [disagreeReason, setDisagreeReason] = useState('');
+  const [openTrial, setOpenTrial] = useState<Trial | null>(null);
 
   useEffect(() => {
     api.sampleData<Trial[]>('trials.csv').then(setTrials).catch(() => setTrials([]));
@@ -449,6 +450,7 @@ function OutcomeRiskPanel({
   return (
     <div className="hx-grid" style={{ gridTemplateColumns: 'minmax(320px, 3fr) minmax(280px, 2fr)' }}>
       <Panel
+        eyebrow="Federated multimodal model · human review required"
         title={result ? result.headline : `Outcome risk for ${record.name}`}
         actions={
           <>
@@ -466,6 +468,17 @@ function OutcomeRiskPanel({
         }
       >
         {error && <p className="error">{error}</p>}
+        {outcomeBlocks.length > 0 && !decision && (
+          <AttentionStrip tone={severity === 'critical' ? 'crit' : 'warn'} label={severity === 'critical' ? 'Critical' : 'Emerging concern'}>
+            <strong>Not yet reviewed.</strong> This case needs an Agree, Disagree or Flag-for-MDT decision before it leaves this screen — the
+            model never decides on treatment or referral by itself.
+          </AttentionStrip>
+        )}
+        {decision && (
+          <AttentionStrip tone="ok" label="Reviewed">
+            Clinician decision recorded: <strong>{decision === 'agree' ? 'Agree' : decision === 'disagree' ? 'Disagree' : 'Flag for MDT'}</strong>.
+          </AttentionStrip>
+        )}
         <Backstage
           key={runs}
           title="Behind the scenes — the federated outcome model"
@@ -541,7 +554,7 @@ function OutcomeRiskPanel({
         )}
       </Panel>
       <div>
-        <Panel title="Similar patients across the federation">
+        <Panel eyebrow="Simulated network stats" title="Similar patients across the federation">
           <DataTable
             rowKey={(s) => s.site}
             rows={federationSites}
@@ -555,11 +568,12 @@ function OutcomeRiskPanel({
             {totalSimilar} similar patients found across the network (simulated) — counts only; no raw data was shared.
           </p>
         </Panel>
-        <Panel title="Matching trials">
+        <Panel eyebrow="Evidence grounding" title="Matching trials">
           <DataTable
             rowKey={(t) => t.trial_id}
             rows={relevantTrials}
             selected={matchedTrialId}
+            onSelect={(t) => setOpenTrial(t)}
             empty="No synthetic trials for this cancer type."
             columns={[
               { key: 'trial_id', label: 'Trial', render: (t) => <strong>{t.trial_id}</strong> },
@@ -568,8 +582,31 @@ function OutcomeRiskPanel({
               { key: 'key_inclusion', label: 'Key inclusion' },
             ]}
           />
+          <p className="hx-empty" style={{ marginTop: 8 }}>
+            Click a trial to inspect its full record — the same evidence the model matched on.
+          </p>
         </Panel>
       </div>
+      <Drawer title={openTrial?.trial_id ?? 'Trial'} eyebrow="Full trial record" open={openTrial !== null} onClose={() => setOpenTrial(null)}>
+        {openTrial && (
+          <dl className="hx-facts">
+            <dt>Title</dt>
+            <dd>{openTrial.title}</dd>
+            <dt>Phase</dt>
+            <dd>{openTrial.phase}</dd>
+            <dt>Cancer type</dt>
+            <dd>{openTrial.cancer_type}</dd>
+            <dt>Key inclusion</dt>
+            <dd>{openTrial.key_inclusion}</dd>
+            <dt>Key exclusion</dt>
+            <dd>{openTrial.key_exclusion}</dd>
+            <dt>Site</dt>
+            <dd>{openTrial.site}</dd>
+            <dt>Status</dt>
+            <dd>{openTrial.status}</dd>
+          </dl>
+        )}
+      </Drawer>
     </div>
   );
 }

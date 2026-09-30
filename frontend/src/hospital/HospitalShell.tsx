@@ -1,10 +1,12 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import './hospital.css';
 
 /*
- * Hospital-software look for idea pages: a deliberately plain clinical information system, so a
- * clinician can picture the idea inside the software they use every day.
- * Everything inside <HospitalShell> uses the light "hx" theme; existing UI blocks adapt automatically.
+ * Shared clinical-workstation shell for idea pages, built on the prototype design language
+ * (.github/hackathon/design-language.md): dark institutional chrome, cool neutral work surfaces,
+ * semantic --cp-* tokens, one restrained accent, and layered disclosure (banner -> task ->
+ * supporting detail -> inspection drawer). Everything inside <HospitalShell> uses the "hx" theme;
+ * existing generative-UI blocks adapt automatically because the shared tokens are remapped.
  */
 
 export type NavItem = { id: string; label: string; badge?: string | number };
@@ -111,15 +113,115 @@ export function PatientBanner({ patient }: { patient: BannerPatient }) {
   );
 }
 
-export function Panel({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
+export function Panel({
+  title,
+  eyebrow,
+  actions,
+  children,
+}: {
+  title: string;
+  /** Small monospaced operational label above the title, e.g. "CURRENT CONCLUSION". */
+  eyebrow?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <section className="hx-panel">
       <header>
-        <h3>{title}</h3>
+        <div>
+          {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+          <h3>{title}</h3>
+        </div>
         {actions && <div className="hx-panel-actions">{actions}</div>}
       </header>
       <div className="hx-panel-body">{children}</div>
     </section>
+  );
+}
+
+/** Small monospaced operational label that orients a section, e.g. "HUMAN REVIEW REQUIRED". */
+export function Eyebrow({ children }: { children: ReactNode }) {
+  return <span className="hx-eyebrow">{children}</span>;
+}
+
+/**
+ * Attention strip: a 4px semantic edge, a status badge and one plain-language explanation. Keep it
+ * visible until the condition is genuinely resolved (design-language.md, "Attention and blocking
+ * states").
+ */
+export function AttentionStrip({
+  tone = 'info',
+  label,
+  children,
+  action,
+}: {
+  tone?: 'info' | 'warn' | 'crit' | 'ok';
+  label: string;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="hx-attention" data-tone={tone} role="status">
+      <Pill tone={tone === 'info' ? 'info' : tone}>{label}</Pill>
+      <div className="hx-attention-body">
+        {children}
+        {action}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Inspection drawer: right-side panel for evidence, provenance and complete records, one action
+ * away from a consequential summary. Handles Escape and restores focus to the trigger on close.
+ */
+export function Drawer({
+  title,
+  eyebrow = 'Inspectable by design',
+  open,
+  onClose,
+  children,
+}: {
+  title: string;
+  eyebrow?: string;
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const lastFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    lastFocused.current = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      lastFocused.current?.focus();
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <>
+      <div className="hx-drawer-backdrop" onClick={onClose} />
+      <div className="hx-drawer" role="dialog" aria-modal="true" aria-label={title}>
+        <header>
+          <div>
+            <Eyebrow>{eyebrow}</Eyebrow>
+            <h3 style={{ margin: 0 }}>{title}</h3>
+          </div>
+          <button ref={closeRef} type="button" className="hx-drawer-close" onClick={onClose}>
+            Close
+          </button>
+        </header>
+        <div className="hx-drawer-body">{children}</div>
+      </div>
+    </>
   );
 }
 
