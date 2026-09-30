@@ -20,6 +20,7 @@ type Scenario = Issue56Scenario;
 type Section = 'worklist' | 'card' | 'outcomes' | 'decision' | 'followup';
 
 type Tone = 'neutral' | 'ok' | 'warn' | 'crit' | 'info';
+type Theme = 'light' | 'dark';
 
 const story: StoryStep[] = [
   {
@@ -77,6 +78,7 @@ export default function Issue56OncoIcu() {
   const [draft, setDraft] = useState('');
   const [sent, setSent] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
     api
@@ -196,12 +198,31 @@ export default function Issue56OncoIcu() {
             </select>
           </label>
           <span className="hx-spacer" />
+          <div className="issue56-theme-controls" aria-label="Workspace theme">
+            <span>Theme</span>
+            <button
+              type="button"
+              className="issue56-theme-button"
+              aria-pressed={theme === 'light'}
+              onClick={() => setTheme('light')}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              className="issue56-theme-button"
+              aria-pressed={theme === 'dark'}
+              onClick={() => setTheme('dark')}
+            >
+              Dark
+            </button>
+          </div>
           <Pill tone="warn">Night consult</Pill>
           <Pill tone="info">Hackathon prototype – synthetic data – not for clinical use</Pill>
         </>
       }
     >
-      <div className="issue56-workspace">
+      <div className={`issue56-workspace issue56-theme-${theme}`}>
         <OperationalStrip
           phase={activeLabel}
           cardCompiled={cardCompiled}

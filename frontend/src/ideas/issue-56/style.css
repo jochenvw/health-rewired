@@ -36,6 +36,42 @@
   color: var(--cp-text);
 }
 
+.hx:has(.issue56-workspace.issue56-theme-light) {
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+  background: radial-gradient(circle at top right, rgba(177, 31, 75, 0.08), transparent 28rem), var(--cp-bg);
+}
+
 .hx:has(.issue56-workspace) .hx-appbar {
   min-height: 56px;
   background: linear-gradient(90deg, var(--cp-chrome), #10263a);
@@ -96,9 +132,62 @@
   color: #111827;
 }
 
+.hx:has(.issue56-workspace.issue56-theme-light) .hx-badge,
+.hx:has(.issue56-workspace.issue56-theme-light) .hx-logo,
+.hx:has(.issue56-workspace.issue56-theme-light) .hx-btn.primary {
+  color: #ffffff;
+}
+
 .hx:has(.issue56-workspace) .hx-content {
   padding: 20px;
   gap: 16px;
+}
+
+.issue56-theme-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
+}
+
+.issue56-theme-controls span {
+  padding: 0 6px;
+  color: var(--cp-text-soft);
+  font-family: Consolas, "Courier New", Courier, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.issue56-theme-button {
+  font: inherit;
+  min-width: 54px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--cp-text-soft);
+  cursor: pointer;
+}
+
+.issue56-theme-button[aria-pressed='true'] {
+  background: var(--cp-accent);
+  border-color: var(--cp-accent-hover);
+  color: #111827;
+  font-weight: 700;
+}
+
+.hx:has(.issue56-workspace.issue56-theme-light) .issue56-theme-button[aria-pressed='true'] {
+  color: #ffffff;
+}
+
+.issue56-theme-button[aria-pressed='false']:hover {
+  border-color: var(--cp-accent);
+  color: var(--cp-text);
 }
 
 .issue56-workspace {
@@ -127,6 +216,10 @@
 .issue56-operational-strip p {
   margin: 0;
   color: var(--cp-text-soft);
+}
+
+.hx:has(.issue56-workspace.issue56-theme-light) .issue56-operational-strip {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(226, 235, 242, 0.9));
 }
 
 .issue56-status-grid,
@@ -339,6 +432,11 @@
   color: var(--cp-text);
 }
 
+.hx:has(.issue56-workspace.issue56-theme-light) select,
+.hx:has(.issue56-workspace.issue56-theme-light) textarea {
+  background: #ffffff;
+}
+
 .hx:has(.issue56-workspace) textarea:focus,
 .hx:has(.issue56-workspace) select:focus,
 .hx:has(.issue56-workspace) button:focus-visible {
@@ -443,6 +541,10 @@
   border-radius: 12px;
 }
 
+.hx:has(.issue56-workspace.issue56-theme-light) .hx-backstage {
+  background: #ffffff;
+}
+
 .hx:has(.issue56-workspace) .hx-backstage > header,
 .hx:has(.issue56-workspace) .hx-working {
   color: var(--cp-link);
@@ -463,6 +565,11 @@
 .hx:has(.issue56-workspace) .hx-btn .hx-spinner {
   border-color: rgba(17, 24, 39, 0.28);
   border-top-color: #111827;
+}
+
+.hx:has(.issue56-workspace.issue56-theme-light) .hx-btn.primary .hx-spinner {
+  border-color: rgba(255, 255, 255, 0.42);
+  border-top-color: #ffffff;
 }
 
 .issue56-followup {
