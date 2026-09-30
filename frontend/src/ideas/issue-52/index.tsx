@@ -11,6 +11,7 @@ import {
   Tabs,
   Working,
   Workspace,
+  useTheme,
   type GuideStep,
   type Stage,
 } from './Workspace';
@@ -199,6 +200,7 @@ const stages: Stage[] = [
 type Section = 'worklist' | 'mdt' | 'explanation' | 'gp' | 'check';
 
 export default function MDTExplanation() {
+  const [theme, setTheme] = useTheme();
   const [section, setSection] = useState<Section>('worklist');
   const [cases, setCases] = useState<CaseRow[]>([]);
   const [patientId, setPatientId] = useState('P-010');
@@ -307,6 +309,8 @@ export default function MDTExplanation() {
       module={moduleLabel}
       organisation="Klinikum Rewired München · Colorectal cancer care"
       location="Outpatient clinic 3B"
+      theme={theme}
+      onTheme={setTheme}
       banner={
         section === 'worklist' || !detail
           ? null

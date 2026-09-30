@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useStages, type Stage } from '../../hospital/Story';
 import './issue-52.css';
 
@@ -11,6 +11,49 @@ import './issue-52.css';
 
 export type Tone = 'neutral' | 'ok' | 'warn' | 'danger' | 'info' | 'accent';
 
+export type Theme = 'light' | 'dark';
+
+const THEME_KEY = 'x52-theme';
+
+/**
+ * Theme choice for the whole idea workspace. Read synchronously so the first paint already carries
+ * the stored (or system) preference instead of flashing the wrong one.
+ */
+export function useTheme(): [Theme, (theme: Theme) => void] {
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored = window.localStorage.getItem(THEME_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+  const choose = useCallback((next: Theme) => {
+    setTheme(next);
+    try {
+      window.localStorage.setItem(THEME_KEY, next);
+    } catch {
+      /* private mode: the choice simply does not persist */
+    }
+  }, []);
+  return [theme, choose];
+}
+
+/** Two plainly labelled buttons, never an icon-only or ambiguous single toggle. */
+export function ThemeControl({ theme, onChange }: { theme: Theme; onChange: (theme: Theme) => void }) {
+  return (
+    <span className="x52-theme">
+      <span id="x52-theme-label">Theme</span>
+      <span className="x52-theme-btns" role="group" aria-labelledby="x52-theme-label">
+        <button type="button" aria-pressed={theme === 'light'} onClick={() => onChange('light')}>
+          Light
+        </button>
+        <button type="button" aria-pressed={theme === 'dark'} onClick={() => onChange('dark')}>
+          Dark
+        </button>
+      </span>
+    </span>
+  );
+}
+
 export type NavItem = { id: string; label: string; detail?: string; count?: number | string };
 
 export type BannerFact = { label: string; value: ReactNode };
@@ -20,6 +63,8 @@ export function Workspace({
   module,
   organisation,
   location,
+  theme,
+  onTheme,
   banner,
   nav,
   active,
@@ -33,6 +78,8 @@ export function Workspace({
   module: string;
   organisation: string;
   location: string;
+  theme: Theme;
+  onTheme: (theme: Theme) => void;
   banner?: { name: string; sub: string; facts: BannerFact[]; action?: ReactNode } | null;
   nav: NavItem[];
   active: string;
@@ -44,7 +91,7 @@ export function Workspace({
 }) {
   const now = new Date();
   return (
-    <div className="x52">
+    <div className="x52" data-theme={theme}>
       <a className="x52-skip" href="#x52-canvas">
         Skip to the current task
       </a>
@@ -75,6 +122,7 @@ export function Workspace({
             <strong>Dr. M. Weber</strong> · Nurse specialist desk
           </span>
         </span>
+        <ThemeControl theme={theme} onChange={onTheme} />
       </header>
       {banner && (
         <div className="x52-banner">

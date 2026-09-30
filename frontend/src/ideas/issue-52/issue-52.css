@@ -32,6 +32,13 @@
   --cp-warning: #f59e0b;
   --cp-danger: #dc2626;
   --cp-link: #0078d4;
+  --cp-ok-fg: #11703a;
+  --cp-warn-fg: #8a5a06;
+  --cp-danger-fg: #a81d1d;
+  --cp-info-fg: #0a5c9e;
+  --cp-shadow: rgba(16, 26, 36, 0.28);
+  --cp-source-bg: var(--cp-surface-soft);
+  color-scheme: light;
 
   --font-sans: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: Consolas, 'Courier New', Courier, monospace;
@@ -44,6 +51,74 @@
   min-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
+}
+
+/*
+ * Dark presentation. The Light / Dark buttons in the institutional header set data-theme on this
+ * root element, so the choice covers the whole workspace: chrome, guided rail, backstage, panels,
+ * tables, reports and the inspection drawer.
+ */
+.x52[data-theme='dark'] {
+  --cp-bg: #0e1319;
+  --cp-bg-elevated: #151b22;
+  --cp-surface: #19212a;
+  --cp-surface-soft: #202935;
+  --cp-border: #2e3946;
+  --cp-border-strong: #56657a;
+  --cp-text: #e9eef4;
+  --cp-text-muted: #a7b4c2;
+  --cp-text-soft: #8a97a6;
+  --cp-chrome: #081625;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #9db4c8;
+  --cp-banner: #141d27;
+  --cp-accent: #f06a90;
+  --cp-accent-hover: #ff89a8;
+  --cp-accent-soft: rgba(240, 106, 144, 0.16);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #6cb8f5;
+  --cp-ok-fg: #7ee2a8;
+  --cp-warn-fg: #f4ce7a;
+  --cp-danger-fg: #fca5a5;
+  --cp-info-fg: #8ecdff;
+  --cp-shadow: rgba(0, 0, 0, 0.62);
+  color-scheme: dark;
+}
+
+.x52[data-theme='dark'] .x52-badge.ok {
+  border-color: rgba(74, 222, 128, 0.42);
+  background: rgba(74, 222, 128, 0.14);
+}
+
+.x52[data-theme='dark'] .x52-badge.warn {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.x52[data-theme='dark'] .x52-badge.danger {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.15);
+}
+
+.x52[data-theme='dark'] .x52-badge.info {
+  border-color: rgba(108, 184, 245, 0.4);
+  background: rgba(108, 184, 245, 0.14);
+}
+
+.x52[data-theme='dark'] .x52-sentence.approved {
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.x52[data-theme='dark'] .x52-risk {
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.x52[data-theme='dark'] .x52-proto {
+  background: #2a2210;
+  border-bottom-color: #4a3c14;
+  color: #f4ce7a;
 }
 
 .x52 *,
@@ -177,6 +252,61 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+/* Theme control: two plainly labelled buttons, both visible in both themes. */
+.x52-theme {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.x52-theme > span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--cp-chrome-muted);
+}
+
+.x52-theme-btns {
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.x52-theme-btns button {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  padding: 4px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  background: transparent;
+  color: var(--cp-chrome-fg);
+}
+
+.x52-theme-btns button + button {
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.x52-theme-btns button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.x52-theme-btns button[aria-pressed='true'] {
+  background: var(--cp-chrome-fg);
+  color: var(--cp-chrome);
+}
+
+.x52-theme-btns button:focus-visible {
+  outline: 2px solid var(--cp-chrome-fg);
+  outline-offset: -2px;
 }
 
 .x52-conn::before {
@@ -667,25 +797,25 @@
 .x52-badge.ok {
   border-color: rgba(22, 163, 74, 0.4);
   background: rgba(22, 163, 74, 0.1);
-  color: #11703a;
+  color: var(--cp-ok-fg);
 }
 
 .x52-badge.warn {
   border-color: rgba(245, 158, 11, 0.45);
   background: rgba(245, 158, 11, 0.12);
-  color: #8a5a06;
+  color: var(--cp-warn-fg);
 }
 
 .x52-badge.danger {
   border-color: rgba(220, 38, 38, 0.4);
   background: rgba(220, 38, 38, 0.1);
-  color: #a81d1d;
+  color: var(--cp-danger-fg);
 }
 
 .x52-badge.info {
   border-color: rgba(0, 120, 212, 0.35);
   background: rgba(0, 120, 212, 0.09);
-  color: #0a5c9e;
+  color: var(--cp-info-fg);
 }
 
 .x52-badge.accent {
@@ -894,7 +1024,7 @@
   background: rgba(245, 158, 11, 0.08);
   border-radius: 0 6px 6px 0;
   font-size: 12px;
-  color: #6f4a05;
+  color: var(--cp-warn-fg);
 }
 
 .x52-sentence-actions {
@@ -1141,7 +1271,7 @@
   flex-direction: column;
   background: var(--cp-surface);
   border-left: 1px solid var(--cp-border-strong);
-  box-shadow: -18px 0 48px rgba(16, 26, 36, 0.28);
+  box-shadow: -18px 0 48px var(--cp-shadow);
   z-index: 50;
 }
 
