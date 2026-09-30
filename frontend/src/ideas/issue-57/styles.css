@@ -19,6 +19,24 @@
   --cp-warning: #fbbf24;
   --cp-danger: #f87171;
   --cp-link: #4da6ff;
+  --issue57-top-gradient: rgba(11, 26, 41, 0.72);
+  --issue57-logo-fg: #18070c;
+  --issue57-primary-fg: #1d0a10;
+  --issue57-menubar-bg: #111f2d;
+  --issue57-input-bg: #151a20;
+  --issue57-table-row-alt: rgba(255, 255, 255, 0.02);
+  --issue57-border-faint: rgba(216, 223, 229, 0.12);
+  --issue57-chrome-rule: rgba(255, 255, 255, 0.08);
+  --issue57-warning-bg: rgba(251, 191, 36, 0.09);
+  --issue57-warning-border: rgba(251, 191, 36, 0.28);
+  --issue57-warning-strong-border: rgba(251, 191, 36, 0.3);
+  --issue57-link-bg: rgba(77, 166, 255, 0.14);
+  --issue57-success-bg: rgba(74, 222, 128, 0.12);
+  --issue57-success-fill: rgba(74, 222, 128, 0.24);
+  --issue57-warning-pill-bg: rgba(251, 191, 36, 0.14);
+  --issue57-danger-bg: rgba(248, 113, 113, 0.14);
+  --issue57-danger-fill: rgba(248, 113, 113, 0.26);
+  --issue57-spinner-border: rgba(253, 142, 161, 0.28);
   --font-sans: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: Consolas, "Courier New", Courier, monospace;
   --bg: var(--cp-bg);
@@ -37,8 +55,49 @@
   font-family: var(--font-sans);
   font-size: 14px;
   background:
-    linear-gradient(180deg, rgba(11, 26, 41, 0.72), transparent 220px),
+    linear-gradient(180deg, var(--issue57-top-gradient), transparent 220px),
     var(--cp-bg);
+}
+
+.hx:has(.issue57[data-theme='light']) {
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+  --issue57-top-gradient: rgba(16, 48, 77, 0.16);
+  --issue57-logo-fg: #ffffff;
+  --issue57-primary-fg: #ffffff;
+  --issue57-menubar-bg: #d8e4ee;
+  --issue57-input-bg: #ffffff;
+  --issue57-table-row-alt: rgba(16, 48, 77, 0.025);
+  --issue57-border-faint: rgba(36, 36, 36, 0.08);
+  --issue57-chrome-rule: rgba(255, 255, 255, 0.16);
+  --issue57-warning-bg: rgba(245, 158, 11, 0.12);
+  --issue57-warning-border: rgba(245, 158, 11, 0.32);
+  --issue57-warning-strong-border: rgba(245, 158, 11, 0.36);
+  --issue57-link-bg: rgba(0, 120, 212, 0.1);
+  --issue57-success-bg: rgba(22, 163, 74, 0.1);
+  --issue57-success-fill: rgba(22, 163, 74, 0.18);
+  --issue57-warning-pill-bg: rgba(245, 158, 11, 0.13);
+  --issue57-danger-bg: rgba(220, 38, 38, 0.1);
+  --issue57-danger-fill: rgba(220, 38, 38, 0.16);
+  --issue57-spinner-border: rgba(177, 31, 75, 0.24);
 }
 
 .hx:has(.issue57) .hx-appbar {
@@ -46,7 +105,7 @@
   padding: 10px 20px;
   background: var(--cp-chrome);
   color: var(--cp-chrome-fg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--issue57-chrome-rule);
   font-size: 13px;
 }
 
@@ -55,7 +114,7 @@
   height: 32px;
   border-radius: 10px;
   background: var(--cp-accent);
-  color: #18070c;
+  color: var(--issue57-logo-fg);
   font-family: var(--font-mono);
   font-size: 12px;
 }
@@ -68,7 +127,7 @@
 .hx:has(.issue57) .hx-menubar {
   gap: 24px;
   padding: 7px 20px;
-  background: #111f2d;
+  background: var(--issue57-menubar-bg);
   border-bottom-color: var(--cp-border);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -110,7 +169,7 @@
   min-width: 22px;
   border-radius: 999px;
   background: var(--cp-accent);
-  color: #1d0a10;
+  color: var(--issue57-primary-fg);
   text-align: center;
 }
 
@@ -166,11 +225,11 @@
 }
 
 .hx:has(.issue57) .hx-table td {
-  border-bottom-color: rgba(216, 223, 229, 0.12);
+  border-bottom-color: var(--issue57-border-faint);
 }
 
 .hx:has(.issue57) .hx-table tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--issue57-table-row-alt);
 }
 
 .hx:has(.issue57) .hx-table tr.warn td:first-child {
@@ -191,7 +250,7 @@
 .hx:has(.issue57) input,
 .hx:has(.issue57) textarea {
   min-height: 40px;
-  background: #151a20;
+  background: var(--issue57-input-bg);
   border-color: var(--cp-border);
   border-radius: 12px;
   color: var(--cp-text);
@@ -215,7 +274,7 @@
 .hx:has(.issue57) .hx-btn.primary {
   border-color: transparent;
   background: var(--cp-accent);
-  color: #1d0a10;
+  color: var(--issue57-primary-fg);
   font-weight: 700;
 }
 
@@ -235,27 +294,27 @@
 }
 
 .hx:has(.issue57) .hx-pill-info {
-  background: rgba(77, 166, 255, 0.14);
+  background: var(--issue57-link-bg);
   color: var(--cp-link);
 }
 
 .hx:has(.issue57) .hx-pill-ok {
-  background: rgba(74, 222, 128, 0.12);
+  background: var(--issue57-success-bg);
   color: var(--cp-success);
 }
 
 .hx:has(.issue57) .hx-pill-warn {
-  background: rgba(251, 191, 36, 0.14);
+  background: var(--issue57-warning-pill-bg);
   color: var(--cp-warning);
 }
 
 .hx:has(.issue57) .hx-pill-crit {
-  background: rgba(248, 113, 113, 0.14);
+  background: var(--issue57-danger-bg);
   color: var(--cp-danger);
 }
 
 .hx:has(.issue57) .hx-story {
-  background: #142232;
+  background: var(--cp-bg-elevated);
   border-bottom-color: var(--cp-border);
 }
 
@@ -284,11 +343,11 @@
 
 .hx:has(.issue57) .hx-story-steps li.current .hx-story-num {
   background: var(--cp-accent);
-  color: #1d0a10;
+  color: var(--issue57-primary-fg);
 }
 
 .hx:has(.issue57) .hx-story-steps li.done .hx-story-num {
-  background: rgba(74, 222, 128, 0.14);
+  background: var(--issue57-success-bg);
 }
 
 .hx:has(.issue57) .hx-story-explain {
@@ -325,7 +384,7 @@
 }
 
 .hx:has(.issue57) .hx-spinner {
-  border-color: rgba(253, 142, 161, 0.28);
+  border-color: var(--issue57-spinner-border);
   border-top-color: var(--cp-accent);
 }
 
@@ -334,6 +393,38 @@
 .hx:has(.issue57) .trace li {
   background: var(--cp-bg-elevated);
   border-color: var(--cp-border);
+  color: var(--cp-text);
+}
+
+.issue57-theme-controls {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--cp-bg-elevated);
+  border: 1px solid var(--cp-border);
+  border-radius: 14px;
+}
+
+.issue57-theme-controls button {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--cp-text-soft);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.issue57-theme-controls button[aria-pressed='true'] {
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
+  color: var(--issue57-primary-fg);
+}
+
+.issue57-theme-controls button[aria-pressed='false']:hover {
+  background: var(--cp-surface-soft);
   color: var(--cp-text);
 }
 
@@ -348,7 +439,7 @@
   gap: 16px;
   padding: 20px;
   background:
-    linear-gradient(90deg, rgba(253, 142, 161, 0.08), transparent 55%),
+    linear-gradient(90deg, var(--cp-accent-soft), transparent 55%),
     var(--cp-surface);
   border: 1px solid var(--cp-border);
   border-left: 8px solid var(--cp-accent);
@@ -402,8 +493,8 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: rgba(251, 191, 36, 0.09);
-  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: var(--issue57-warning-bg);
+  border: 1px solid var(--issue57-warning-border);
   border-left: 4px solid var(--cp-warning);
   border-radius: 12px;
   color: var(--cp-text);
@@ -479,18 +570,18 @@
 }
 
 .issue57-bar.strict span {
-  background: rgba(248, 113, 113, 0.26);
+  background: var(--issue57-danger-fill);
 }
 
 .issue57-bar.adjusted span {
-  background: rgba(74, 222, 128, 0.24);
+  background: var(--issue57-success-fill);
 }
 
 .issue57-callout {
   padding: 14px 16px;
   margin: 10px 0 12px;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: var(--issue57-warning-bg);
+  border: 1px solid var(--issue57-warning-strong-border);
   border-left: 4px solid var(--cp-warning);
   border-radius: 12px;
 }

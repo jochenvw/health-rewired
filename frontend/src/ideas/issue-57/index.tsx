@@ -14,6 +14,7 @@ export const meta: IdeaMeta = {
 };
 
 type Section = 'criteria' | 'rules' | 'network' | 'equity' | 'decision';
+type Theme = 'light' | 'dark';
 
 type Centre = {
   id: string;
@@ -121,13 +122,21 @@ const networkStages: Stage[] = [
 ];
 
 const HIGH_EXCLUSION_THRESHOLD = 40;
+const THEME_STORAGE_KEY = 'health-rewired.issue57.theme';
 
 function percent(part: number, whole: number) {
   if (whole === 0) return '–';
   return `${Math.round((part / whole) * 100)}%`;
 }
 
+function initialTheme(): Theme {
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
 export default function Issue57TrialDesign() {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
   const [section, setSection] = useState<Section>('criteria');
   const [criteria, setCriteria] = useState(draftCriteria);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -146,6 +155,10 @@ export default function Issue57TrialDesign() {
       .then(setSnapshot)
       .catch(() => setError('Could not load the synthetic feasibility dataset.'));
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   const startNetwork = () => {
     setNetworkRunId((id) => id + 1);
@@ -206,6 +219,7 @@ export default function Issue57TrialDesign() {
           <Pill tone="info">Second-line metastatic colorectal cancer</Pill>
           <Pill tone="neutral">Six synthetic European hospitals</Pill>
           <span className="hx-spacer" />
+          <ThemeButtons theme={theme} setTheme={setTheme} />
           <button type="button" className="hx-btn" onClick={() => setCriteria(draftCriteria)}>
             Reset draft
           </button>
@@ -221,7 +235,7 @@ export default function Issue57TrialDesign() {
         </>
       }
     >
-      <div className="issue57">
+      <div className="issue57" data-theme={theme}>
         {error && <Panel title="Could not load data">{error}</Panel>}
         {!snapshot && !error && (
           <Panel title="Loading feasibility workspace">
@@ -277,6 +291,19 @@ export default function Issue57TrialDesign() {
         )}
       </div>
     </HospitalShell>
+  );
+}
+
+function ThemeButtons({ theme, setTheme }: { theme: Theme; setTheme: (theme: Theme) => void }) {
+  return (
+    <div className="issue57-theme-controls" aria-label="Workspace theme">
+      <button type="button" onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>
+        Light
+      </button>
+      <button type="button" onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>
+        Dark
+      </button>
+    </div>
   );
 }
 
