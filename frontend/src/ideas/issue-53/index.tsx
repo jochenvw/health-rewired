@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { AgentResult } from '../../api';
+import { api, type AgentResult, type Issue53Hospital, type Issue53QualitySnapshot } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import { DataTable, Panel, Pill } from '../../hospital/HospitalShell';
@@ -11,43 +11,6 @@ export const meta: IdeaMeta = {
   issue: 53,
   title: 'Turn a quality signal into improvement within weeks',
   tagline: 'A network quality meeting finds Hospital F’s rectal-cancer MRI bottleneck and tests a fix.',
-};
-
-type Indicator = { key: string; label: string; unit: string; target: number; lower_is_better?: boolean };
-type Hospital = {
-  id: string;
-  name: string;
-  country: string;
-  cases: number;
-  totals_only: boolean;
-  indicators: Record<string, number>;
-  median_mri_wait_days: number;
-  patient_mix: Record<string, number>;
-  process: Record<string, number>;
-  next_quarter: { time_to_treatment: number; median_mri_wait_days: number };
-};
-type AuditCase = { local_id: string; age_band: string; tumour: string; mri_wait_days: number; treatment_wait_days: number; reason: string };
-type QualitySnapshot = {
-  quarter: string;
-  next_quarter: string;
-  indicators: Indicator[];
-  hospitals: Hospital[];
-  network_average: Record<string, number>;
-  signal: {
-    hospital_id: string;
-    headline: string;
-    observed: number;
-    network_average: number;
-    target: number;
-    gap: number;
-    likely_cause: string;
-    cause_detail: string;
-    next_quarter_observed: number;
-  };
-  audit_cases: AuditCase[];
-  agenda: string[];
-  intervention: { label: string; expected_effect: string };
-  data_flow: { step: string; detail: string }[];
 };
 
 type Section = 'network' | 'signal' | 'investigate' | 'audit' | 'action' | 'flow';
@@ -93,18 +56,9 @@ const investigationStages: Stage[] = [
   { label: 'Drafting agenda and simulated improvement effect', detail: 'Extra MRI capacity scenario for next quarter' },
 ];
 
-async function issue53Request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/ideas/53${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return (await response.json()) as T;
-}
-
 export default function Issue53QualityLoop() {
   const [section, setSection] = useState<Section>('network');
-  const [snapshot, setSnapshot] = useState<QualitySnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<Issue53QualitySnapshot | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [assistant, setAssistant] = useState<AgentResult | null>(null);
   const [assistantError, setAssistantError] = useState<string | null>(null);
@@ -115,7 +69,8 @@ export default function Issue53QualityLoop() {
   const [actionApproved, setActionApproved] = useState(false);
 
   useEffect(() => {
-    issue53Request<QualitySnapshot>('/quality-snapshot')
+    api.issue53
+      .qualitySnapshot()
       .then(setSnapshot)
       .catch((err) => setLoadError(err instanceof Error ? err.message : 'Could not load the synthetic quality data.'));
   }, []);
@@ -132,12 +87,9 @@ export default function Issue53QualityLoop() {
     setAssistantError(null);
     try {
       setAssistant(
-        await issue53Request<AgentResult>('/assistant', {
-          method: 'POST',
-          body: JSON.stringify({
-            task: 'Investigate Hospital F rectal-cancer time-to-treatment deviation and propose the audit agenda.',
-            role: 'Tumour working group chair',
-          }),
+        await api.issue53.assistant({
+          task: 'Investigate Hospital F rectal-cancer time-to-treatment deviation and propose the audit agenda.',
+          role: 'Tumour working group chair',
         }),
       );
     } catch (err) {
@@ -177,10 +129,55 @@ export default function Issue53QualityLoop() {
 
   return (
     <main className="q53">
-      <header className="q53-header">
+      <a className="q53-skip" href="#q53-workspace">
+        Skip to quality workspace
+      </a>
+      <header className="q53-chrome" aria-label="Institutional system context">
+        <div className="q53-mark" aria-hidden>
+          QR
+        </div>
         <div>
-          <p className="q53-kicker">Rectal cancer network quality meeting · {snapshot.quarter}</p>
-          <h1>Find the signal, close the loop</h1>
+          <p className="q53-eyebrow">Network quality workstation</p>
+          <strong>Rectal cancer improvement loop</strong>
+          <span>Munich Oncology Hackathon · Tumour working group</span>
+        </div>
+        <div className="q53-chrome-status">
+          <span>Workstation QI-07</span>
+          <span>Federated mode</span>
+          <span className="q53-status success">Connected</span>
+        </div>
+      </header>
+
+      <section className="q53-context" aria-label="Current quality signal">
+        <div>
+          <p className="q53-eyebrow">Current object</p>
+          <h1>Hospital F quality signal</h1>
+          <span>Rectal cancer pathway · {snapshot.quarter} · eight-hospital network</span>
+        </div>
+        <dl>
+          <div>
+            <dt>Flag</dt>
+            <dd>Treatment within 31 days</dd>
+          </div>
+          <div>
+            <dt>Observed</dt>
+            <dd>{snapshot.signal.observed}%</dd>
+          </div>
+          <div>
+            <dt>Network</dt>
+            <dd>{snapshot.signal.network_average}%</dd>
+          </div>
+          <div>
+            <dt>Boundary</dt>
+            <dd>Totals only</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="q53-header" aria-labelledby="q53-title">
+        <div>
+          <p className="q53-eyebrow">Guided meeting task</p>
+          <h2 id="q53-title">Find the signal, close the loop</h2>
           <p>
             Hospital-level indicators are calculated locally. The chair sees a deviation, asks the assistant to explain it,
             approves an audit agenda and tests one improvement action.
@@ -191,11 +188,28 @@ export default function Issue53QualityLoop() {
           <strong>Hospital F · treatment within 31 days {snapshot.signal.observed}%</strong>
           <Pill tone="warn">{snapshot.signal.gap} point gap vs network</Pill>
         </div>
-      </header>
+      </section>
 
       <StoryGuide steps={story} current={section} onGo={go} nextLabel={section === 'signal' ? 'Investigate Hospital F' : undefined} />
 
-      <div className="q53-body">
+      <section className="q53-attention" aria-label="Current attention state">
+        <span className="q53-status warning">Human review required</span>
+        <div>
+          <strong>{snapshot.signal.headline}</strong>
+          <p>{snapshot.signal.cause_detail} The group must decide whether to audit before any comparison is published.</p>
+        </div>
+        <button type="button" className="hx-btn primary" onClick={runInvestigation} disabled={investigating}>
+          {investigating ? (
+            <>
+              <span className="hx-spinner" aria-hidden /> Investigating…
+            </>
+          ) : (
+            'Focus investigation'
+          )}
+        </button>
+      </section>
+
+      <div id="q53-workspace" className="q53-body">
         <nav className="q53-tabs" aria-label="Quality loop sections">
           {story.map((step) => (
             <button key={step.id} className={section === step.id ? 'active' : undefined} type="button" onClick={() => go(step.id)}>
@@ -229,7 +243,7 @@ export default function Issue53QualityLoop() {
   );
 }
 
-function NetworkTotals({ snapshot }: { snapshot: QualitySnapshot }) {
+function NetworkTotals({ snapshot }: { snapshot: Issue53QualitySnapshot }) {
   return (
     <div className="q53-grid wide">
       <Panel title="Eight hospitals · local calculation, shared totals only">
@@ -244,7 +258,7 @@ function NetworkTotals({ snapshot }: { snapshot: QualitySnapshot }) {
             ...snapshot.indicators.map((indicator) => ({
               key: indicator.key,
               label: indicator.label,
-              render: (row: Hospital) => (
+              render: (row: Issue53Hospital) => (
                 <span className={indicator.key === 'time_to_treatment' && row.id === 'F' ? 'q53-bad' : undefined}>
                   {row.indicators[indicator.key]}{indicator.unit}
                 </span>
@@ -252,6 +266,13 @@ function NetworkTotals({ snapshot }: { snapshot: QualitySnapshot }) {
             })),
           ]}
         />
+        <details className="q53-evidence">
+          <summary>Inspect source and boundary</summary>
+          <p>
+            Source: synthetic registry/pathway aggregates in <code>sample-data/rectal-quality-network.json</code>. Each row is a
+            hospital-level total or median; no patient-level rows are shown here.
+          </p>
+        </details>
       </Panel>
       <Panel title="Network averages">
         <div className="q53-metric-grid">
@@ -266,6 +287,7 @@ function NetworkTotals({ snapshot }: { snapshot: QualitySnapshot }) {
             </div>
           ))}
         </div>
+        <p className="q53-provenance">CLAIM → SOURCE · weighted from local hospital totals; denominators stay inside each hospital.</p>
       </Panel>
     </div>
   );
@@ -277,13 +299,13 @@ function SignalView({
   onInvestigate,
   investigating,
 }: {
-  snapshot: QualitySnapshot;
-  hospitalF: Hospital;
+  snapshot: Issue53QualitySnapshot;
+  hospitalF: Issue53Hospital;
   onInvestigate: () => void;
   investigating: boolean;
 }) {
   const peerHospitals = snapshot.hospitals.filter((hospital) => hospital.id !== 'F');
-  const peerAverage = (read: (hospital: Hospital) => number) =>
+  const peerAverage = (read: (hospital: Issue53Hospital) => number) =>
     Math.round((peerHospitals.reduce((sum, hospital) => sum + read(hospital), 0) / peerHospitals.length) * 10) / 10;
 
   return (
@@ -319,6 +341,12 @@ function SignalView({
             <small>Quarterly review threshold</small>
           </div>
         </div>
+        <ol className="q53-reasoning" aria-label="Public reasoning path">
+          <li><strong>Trying to answer:</strong> is this patient mix or a process delay?</li>
+          <li><strong>Considered:</strong> stage, frailty, low-rectal-tumour share and pathway medians.</li>
+          <li><strong>This showed:</strong> MRI wait is the outlier; patient mix is similar to peers.</li>
+          <li><strong>Uncertain:</strong> clinicians must still decide clinical relevance and feasibility.</li>
+        </ol>
       </Panel>
       <Panel title="First checks before blaming quality">
         <DataTable
@@ -357,6 +385,13 @@ function SignalView({
             { key: 'finding', label: 'Finding', render: (row) => <Pill tone={row.finding === 'Outlier' ? 'warn' : 'ok'}>{row.finding}</Pill> },
           ]}
         />
+        <details className="q53-evidence">
+          <summary>Open provenance for the comparison</summary>
+          <p>
+            Patient-mix values are aggregate percentages from the synthetic network file. Peer values are recalculated in the
+            browser from all hospitals except Hospital F.
+          </p>
+        </details>
       </Panel>
     </div>
   );
@@ -377,7 +412,7 @@ function Investigation({
   runs: number;
   started: boolean;
   onInvestigate: () => void;
-  snapshot: QualitySnapshot;
+  snapshot: Issue53QualitySnapshot;
 }) {
   return (
     <div className="q53-grid">
@@ -408,6 +443,13 @@ function Investigation({
         />
         {!started && <span className="hx-empty">Click Investigate to let the assistant trace the quality signal.</span>}
         {error && <p className="error">{error}</p>}
+        <details className="q53-evidence">
+          <summary>What the assistant is allowed to inspect</summary>
+          <p>
+            The tool returns aggregate indicators, process medians, anonymised local audit IDs and the draft agenda. It does
+            not receive names, scans, notes or patient-level tables.
+          </p>
+        </details>
       </Panel>
       <Panel
         title={assistant?.headline ?? 'Likely cause summary'}
@@ -429,6 +471,7 @@ function Investigation({
                 <RenderBlock key={index} block={block} />
               ))}
             </div>
+            <p className="q53-provenance">PUBLIC SUMMARY · generated from the issue-local quality-signal tool, not private model deliberation.</p>
           </div>
         )}
       </Panel>
@@ -436,7 +479,7 @@ function Investigation({
   );
 }
 
-function AuditView({ snapshot, approved, onApprove, onAction }: { snapshot: QualitySnapshot; approved: boolean; onApprove: () => void; onAction: () => void }) {
+function AuditView({ snapshot, approved, onApprove, onAction }: { snapshot: Issue53QualitySnapshot; approved: boolean; onApprove: () => void; onAction: () => void }) {
   return (
     <div className="q53-grid">
       <Panel title="Five anonymised Hospital F cases for audit">
@@ -451,6 +494,7 @@ function AuditView({ snapshot, approved, onApprove, onAction }: { snapshot: Qual
             { key: 'reason', label: 'Why this case' },
           ]}
         />
+        <p className="q53-provenance">LOCAL AUDIT LIST · anonymised Hospital F identifiers selected for discussion, not export.</p>
       </Panel>
       <Panel
         title="Draft quality-meeting audit agenda"
@@ -470,6 +514,7 @@ function AuditView({ snapshot, approved, onApprove, onAction }: { snapshot: Qual
             Simulate improvement action →
           </button>
         )}
+        <p className="q53-provenance">HUMAN CONTROL · the agenda is only active after the chair approves it.</p>
       </Panel>
     </div>
   );
@@ -481,8 +526,8 @@ function ActionView({
   approved,
   onApprove,
 }: {
-  snapshot: QualitySnapshot;
-  hospitalF: Hospital;
+  snapshot: Issue53QualitySnapshot;
+  hospitalF: Issue53Hospital;
   approved: boolean;
   onApprove: () => void;
 }) {
@@ -501,6 +546,7 @@ function ActionView({
         </p>
         <p>{snapshot.intervention.expected_effect}</p>
         <p className="note">Clinicians still decide whether the deviation is clinically relevant and whether this action is feasible.</p>
+        <p className="q53-provenance">UNCERTAINTY · this is a simulated next-quarter effect for iteration, not evidence of real impact.</p>
       </Panel>
       <Panel title={`${snapshot.next_quarter}: simulated Hospital F change`}>
         <div className="q53-before-after">
@@ -519,12 +565,13 @@ function ActionView({
             <small>Median MRI wait</small>
           </div>
         </div>
+        {!approved && <p className="q53-provenance">Waiting for human approval before showing the simulated following quarter.</p>}
       </Panel>
     </div>
   );
 }
 
-function DataFlow({ snapshot }: { snapshot: QualitySnapshot }) {
+function DataFlow({ snapshot }: { snapshot: Issue53QualitySnapshot }) {
   return (
     <div className="q53-grid">
       <Panel title="Data-flow proof for the quality meeting">
@@ -536,6 +583,7 @@ function DataFlow({ snapshot }: { snapshot: QualitySnapshot }) {
             </li>
           ))}
         </ol>
+        <p className="q53-provenance">INSPECTABLE BY DESIGN · every cross-boundary step names what moved and what stayed local.</p>
       </Panel>
       <Panel title="What left Hospital F">
         <div className="q53-checklist">
