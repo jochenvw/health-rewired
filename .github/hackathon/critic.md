@@ -28,6 +28,10 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
   workflow ignores `HospitalShell` without reason; a research/network/operations idea is forced
   into a generic blue EHR despite the proposal; or the result is a chat box, marketing page or
   sparse dashboard with too little synthetic data to picture a real working day.
+- The page ignores [`design-language.md`](design-language.md): it invents an unrelated palette or
+  component style, lacks institutional chrome or current-object context, uses color decoratively,
+  hides status or uncertainty, or makes consequential output impossible to inspect. Distinct
+  issue-local workspaces are welcome; independent design systems are not.
 - The page **does not tell the story**: no guided steps (`StoryGuide`), the mechanism of the
   vision stays invisible (no `Backstage` showing what happens behind the scenes), or a newcomer
   cannot reach the payoff just by following the steps.
