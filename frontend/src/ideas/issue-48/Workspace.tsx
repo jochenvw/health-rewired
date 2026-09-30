@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import './design.css';
 
 /*
@@ -8,6 +8,52 @@ import './design.css';
  */
 
 export type NavItem = { id: string; label: string; detail?: string };
+
+export type Theme = 'light' | 'dark';
+
+const THEME_KEY = 'i48-theme';
+
+/**
+ * Explicit theme choice for the whole workspace. The system preference only picks the first
+ * value; the two labelled buttons stay available and the choice is remembered for the next visit.
+ */
+export function useTheme(): [Theme, (next: Theme) => void] {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(THEME_KEY) : null;
+    if (stored === 'light' || stored === 'dark') return stored;
+    return typeof matchMedia !== 'undefined' && matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* private mode: the choice simply is not remembered */
+    }
+  }, [theme]);
+  return [theme, setTheme];
+}
+
+function ThemeChoice({ theme, onTheme }: { theme: Theme; onTheme: (next: Theme) => void }) {
+  return (
+    <div className="i48-theme">
+      <span id="i48-theme-label">Theme</span>
+      <div className="i48-theme-buttons" role="group" aria-labelledby="i48-theme-label">
+        {(['light', 'dark'] as Theme[]).map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={theme === option}
+            onClick={() => onTheme(option)}
+          >
+            {option === 'light' ? 'Light' : 'Dark'}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export type Fact = { label: string; value: ReactNode };
 
@@ -190,6 +236,8 @@ export function Workspace({
   module,
   org,
   workstation,
+  theme,
+  onTheme,
   nav,
   active,
   onNav,
@@ -203,6 +251,8 @@ export function Workspace({
   module: string;
   org: string;
   workstation: string;
+  theme: Theme;
+  onTheme: (next: Theme) => void;
   nav: NavItem[];
   active: string;
   onNav: (id: string) => void;
@@ -215,7 +265,7 @@ export function Workspace({
 }) {
   const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   return (
-    <div className="i48">
+    <div className="i48" data-theme={theme}>
       <a className="i48-skip" href="#i48-main">
         Skip to the current task
       </a>
@@ -235,6 +285,7 @@ export function Workspace({
           </span>
           <span className="i48-conn">Four source systems connected</span>
           {chromeAction}
+          <ThemeChoice theme={theme} onTheme={onTheme} />
         </div>
       </header>
       {banner && (

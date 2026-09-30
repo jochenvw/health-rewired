@@ -12,6 +12,7 @@ import {
   Table,
   Tabs,
   Workspace,
+  useTheme,
   type StatusTone,
 } from './Workspace';
 
@@ -126,6 +127,7 @@ const statusLabel: Record<Field['status'], string> = {
 type Section = 'worklist' | 'dataset' | 'reuse' | 'score';
 
 export default function ConfirmOnce() {
+  const [theme, setTheme] = useTheme();
   const [section, setSection] = useState<Section>('worklist');
   const [data, setData] = useState<Dataset | null>(null);
   const [running, setRunning] = useState(false);
@@ -192,6 +194,8 @@ export default function ConfirmOnce() {
 
   return (
     <Workspace
+      theme={theme}
+      onTheme={setTheme}
       module="Tumour board preparation"
       org="Klinikum Rewired München · Colorectal multidisciplinary team"
       workstation="MDT office 2 · workstation MDT-A4"
