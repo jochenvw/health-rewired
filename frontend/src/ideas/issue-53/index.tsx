@@ -14,6 +14,29 @@ export const meta: IdeaMeta = {
 };
 
 type Section = 'network' | 'signal' | 'investigate' | 'audit' | 'action' | 'flow';
+type ThemeChoice = 'light' | 'dark';
+
+const themeStorageKey = 'health-rewired-idea-53-theme';
+
+function initialTheme(): ThemeChoice {
+  if (typeof window === 'undefined') return 'light';
+  const stored = window.localStorage.getItem(themeStorageKey);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function ThemeControls({ theme, onTheme }: { theme: ThemeChoice; onTheme: (theme: ThemeChoice) => void }) {
+  return (
+    <div className="q53-theme-controls" aria-label="Theme">
+      <button type="button" aria-pressed={theme === 'light'} onClick={() => onTheme('light')}>
+        Light
+      </button>
+      <button type="button" aria-pressed={theme === 'dark'} onClick={() => onTheme('dark')}>
+        Dark
+      </button>
+    </div>
+  );
+}
 
 const story: StoryStep[] = [
   {
@@ -58,6 +81,7 @@ const investigationStages: Stage[] = [
 
 export default function Issue53QualityLoop() {
   const [section, setSection] = useState<Section>('network');
+  const [theme, setTheme] = useState<ThemeChoice>(initialTheme);
   const [snapshot, setSnapshot] = useState<Issue53QualitySnapshot | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [assistant, setAssistant] = useState<AgentResult | null>(null);
@@ -74,6 +98,10 @@ export default function Issue53QualityLoop() {
       .then(setSnapshot)
       .catch((err) => setLoadError(err instanceof Error ? err.message : 'Could not load the synthetic quality data.'));
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(themeStorageKey, theme);
+  }, [theme]);
 
   const hospitalF = useMemo(() => snapshot?.hospitals.find((hospital) => hospital.id === 'F') ?? null, [snapshot]);
 
@@ -109,26 +137,56 @@ export default function Issue53QualityLoop() {
 
   if (loadError) {
     return (
-      <main className="q53">
-        <Panel title="Network quality dashboard">
-          <p className="error">{loadError}</p>
-        </Panel>
+      <main className="q53" data-theme={theme}>
+        <header className="q53-chrome" aria-label="Institutional system context">
+          <div className="q53-mark" aria-hidden>
+            QR
+          </div>
+          <div>
+            <p className="q53-eyebrow">Network quality workstation</p>
+            <strong>Rectal cancer improvement loop</strong>
+            <span>Could not load the synthetic quality data</span>
+          </div>
+          <div className="q53-chrome-status">
+            <ThemeControls theme={theme} onTheme={setTheme} />
+          </div>
+        </header>
+        <div className="q53-loading">
+          <Panel title="Network quality dashboard">
+            <p className="error">{loadError}</p>
+          </Panel>
+        </div>
       </main>
     );
   }
 
   if (!snapshot || !hospitalF) {
     return (
-      <main className="q53">
-        <Panel title="Network quality dashboard">
-          <Working label="Loading synthetic rectal-cancer quality data" />
-        </Panel>
+      <main className="q53" data-theme={theme}>
+        <header className="q53-chrome" aria-label="Institutional system context">
+          <div className="q53-mark" aria-hidden>
+            QR
+          </div>
+          <div>
+            <p className="q53-eyebrow">Network quality workstation</p>
+            <strong>Rectal cancer improvement loop</strong>
+            <span>Loading synthetic quality data</span>
+          </div>
+          <div className="q53-chrome-status">
+            <ThemeControls theme={theme} onTheme={setTheme} />
+          </div>
+        </header>
+        <div className="q53-loading">
+          <Panel title="Network quality dashboard">
+            <Working label="Loading synthetic rectal-cancer quality data" />
+          </Panel>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="q53">
+    <main className="q53" data-theme={theme}>
       <a className="q53-skip" href="#q53-workspace">
         Skip to quality workspace
       </a>
@@ -145,6 +203,7 @@ export default function Issue53QualityLoop() {
           <span>Workstation QI-07</span>
           <span>Federated mode</span>
           <span className="q53-status success">Connected</span>
+          <ThemeControls theme={theme} onTheme={setTheme} />
         </div>
       </header>
 
