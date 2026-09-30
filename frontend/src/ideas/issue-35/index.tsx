@@ -405,13 +405,16 @@ function MissionShell({
   return (
     <div className="mission-control">
       <header className="mission-hero">
-        <div className="mission-kicker">European clinical-research mission control · synthetic data</div>
+        <div className="mission-kicker">TRIAL OPS COMMAND · SYNTHETIC FEDERATION</div>
         <div className="mission-title-row">
           <div>
             <h1>EU-LUNG-17 trial launch</h1>
             <p>Live orchestration for EGFR-mutant NSCLC recruitment, site bottlenecks and external-control readiness.</p>
           </div>
-          <div className="mission-disclaimer">Hackathon prototype · synthetic data · not for clinical use</div>
+          <div className="mission-disclaimer">
+            <strong>Prototype strip</strong>
+            <span>Hackathon prototype · synthetic data · not for clinical use</span>
+          </div>
         </div>
         <div className="mission-command-strip" aria-label="Trial status summary">
           <Metric label="Forecast" value={`${trial.forecast} / ${trial.target}`} />
@@ -453,6 +456,24 @@ function MissionShell({
         </label>
         <span className="mission-step-marker">Step {currentIndex + 1} / {story.length}</span>
       </div>
+
+      <section className="mission-attention" aria-label="Current operational state">
+        <div>
+          <Badge tone="warn">Human review required</Badge>
+          <strong>Site eligibility, outreach and external-control use remain investigator/statistician decisions.</strong>
+        </div>
+        <details>
+          <summary>Inspect evidence and provenance</summary>
+          <dl>
+            <dt>Recruitment signals</dt>
+            <dd>Synthetic site counts and patient rows embedded in issue #35 prototype data.</dd>
+            <dt>Agent path</dt>
+            <dd>POST /api/ideas/35/run · Copilot SDK with deterministic fallback when not configured.</dd>
+            <dt>Uncertainty</dt>
+            <dd>Missing EGFR, prior-treatment and pathology fields block several records until local review.</dd>
+          </dl>
+        </details>
+      </section>
 
       <main className="mission-stage">{children}</main>
     </div>
