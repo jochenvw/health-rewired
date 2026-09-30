@@ -1,28 +1,81 @@
-/* Plain hospital-software theme. Scoped to .hx; overrides the global design tokens so existing
-   generative-UI blocks render in the same light, dense clinical style. */
+/* Health Rewired design language (.github/hackathon/design-language.md), scoped to .hx: dark
+   institutional chrome, cool neutral work surfaces, one restrained accent, semantic status colors
+   and visible human control. Overrides the global tokens so generative-UI blocks render in the
+   same institutional style. Supports light/dark via prefers-color-scheme. */
 .hx {
-  --bg: #e9edf2;
-  --bg-soft: #f4f6f9;
-  --surface: #ffffff;
-  --surface-strong: #eef2f6;
-  --border: #c6ced8;
-  --text: #1c2733;
-  --muted: #56606c;
-  --accent: #1f5c99;
-  --accent-2: #1f5c99;
-  --ok: #2e7d32;
-  --warning: #b26a00;
-  --critical: #c62828;
-  --radius: 3px;
+  --font-sans: 'Segoe UI', Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: Consolas, 'Courier New', Courier, monospace;
+
+  --cp-bg: #eef2f5;
+  --cp-bg-elevated: #f8fafb;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f3f6f8;
+  --cp-border: #d8dfe5;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-chrome: #10304d;
+  --cp-chrome-fg: #eaf2f8;
+  --cp-chrome-muted: #a9c0d4;
+  --cp-banner: #e2ebf2;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-success: #16a34a;
+  --cp-warning: #f59e0b;
+  --cp-danger: #dc2626;
+  --cp-link: #0078d4;
+
+  /* Legacy aliases used by existing rules below. */
+  --bg: var(--cp-bg);
+  --bg-soft: var(--cp-bg-elevated);
+  --surface: var(--cp-surface);
+  --surface-strong: var(--cp-surface-soft);
+  --border: var(--cp-border);
+  --text: var(--cp-text);
+  --muted: var(--cp-text-muted);
+  --accent: var(--cp-accent);
+  --accent-2: var(--cp-accent);
+  --ok: var(--cp-success);
+  --warning: var(--cp-warning);
+  --critical: var(--cp-danger);
+  --radius: 12px;
   --shadow: none;
-  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1.4;
+
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
   color: var(--text);
   background: var(--bg);
   min-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hx {
+    --cp-bg: #2b3238;
+    --cp-bg-elevated: #242a30;
+    --cp-surface: #1f2429;
+    --cp-surface-soft: #262c32;
+    --cp-border: #3f4953;
+    --cp-border-strong: #5f5f5f;
+    --cp-text: #dedede;
+    --cp-text-muted: #919191;
+    --cp-text-soft: #b0b0b0;
+    --cp-chrome: #0b1a29;
+    --cp-chrome-fg: #dbe7f1;
+    --cp-chrome-muted: #8ea6ba;
+    --cp-banner: #1a2733;
+    --cp-accent: #fd8ea1;
+    --cp-accent-hover: #fb7b91;
+    --cp-accent-soft: rgba(253, 142, 161, 0.14);
+    --cp-success: #4ade80;
+    --cp-warning: #fbbf24;
+    --cp-danger: #f87171;
+    --cp-link: #4da6ff;
+  }
 }
 
 .hx h1,
@@ -32,44 +85,93 @@
   font-weight: 600;
 }
 
-.hx-appbar {
+/* Prototype / synthetic-data strip, ahead of the institutional header. */
+.hx-strip {
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-muted);
+  text-align: center;
+  font-size: 11px;
+  padding: 3px 12px;
+}
+
+/* Institutional header — product identity, organization, location, system state. */
+.hx-chrome {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #22405f;
-  color: #e6edf5;
-  padding: 6px 12px;
-  font-size: 12px;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-fg);
+  padding: 8px 16px;
 }
 
-.hx-logo {
+.hx-chrome-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hx-mark {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  background: #fff;
-  color: #22405f;
-  font-weight: 800;
-  font-size: 10px;
-  border-radius: 2px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--cp-accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  border-radius: 6px;
 }
 
-.hx-appbar-sep {
-  opacity: 0.4;
+.hx-chrome-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.hx-chrome-sep {
+  color: var(--cp-chrome-muted);
+  margin: 0 2px;
+  font-weight: 400;
+}
+
+.hx-chrome-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--cp-chrome-muted);
+  margin-top: 1px;
+}
+
+.hx-chrome-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--cp-chrome-muted);
+  flex-shrink: 0;
+}
+
+.hx-chrome-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cp-chrome-fg);
+}
+
+.hx-chrome-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cp-success);
+  display: inline-block;
 }
 
 .hx-spacer {
   flex: 1;
-}
-
-.hx-menubar {
-  display: flex;
-  gap: 18px;
-  background: #f4f6f9;
-  border-bottom: 1px solid var(--border);
-  padding: 4px 12px;
-  color: #33404d;
-  font-size: 12px;
 }
 
 .hx-banner {
@@ -77,9 +179,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 18px;
-  background: #dfe9f4;
-  border-bottom: 2px solid #9fb6ce;
-  padding: 8px 12px;
+  background: var(--cp-banner);
+  border-bottom: 2px solid var(--cp-border-strong);
+  padding: 8px 16px;
 }
 
 .hx-banner-name {
@@ -91,11 +193,12 @@
 }
 
 .hx-allergy {
-  background: #fbe3e3;
-  color: var(--critical);
-  border: 1px solid #efb2b2;
+  background: var(--cp-danger);
+  background: color-mix(in srgb, var(--cp-danger) 16%, transparent);
+  color: var(--cp-danger);
+  border: 1px solid var(--cp-danger);
   padding: 1px 8px;
-  border-radius: 2px;
+  border-radius: 4px;
   font-weight: 600;
 }
 
@@ -105,14 +208,19 @@
   min-height: 0;
 }
 
+/* Sidebar — persistent workspace map, not a second command bar. */
 .hx-nav {
-  width: 200px;
+  width: 220px;
   flex-shrink: 0;
-  background: #f4f6f9;
+  background: var(--cp-bg-elevated);
   border-right: 1px solid var(--border);
-  padding: 8px 0;
+  padding: 10px 0;
   display: flex;
   flex-direction: column;
+}
+
+.hx-nav-eyebrow {
+  padding: 0 14px 8px;
 }
 
 .hx-nav button {
@@ -124,23 +232,24 @@
   background: none;
   border: none;
   border-left: 3px solid transparent;
-  padding: 7px 12px;
+  padding: 8px 14px;
   color: var(--text);
   cursor: pointer;
+  min-height: 36px;
 }
 
 .hx-nav button:hover {
-  background: #e6ebf1;
+  background: var(--cp-surface-soft);
 }
 
 .hx-nav button.active {
-  background: #fff;
-  border-left-color: var(--accent);
+  background: var(--cp-accent-soft);
+  border-left-color: var(--cp-accent);
   font-weight: 600;
 }
 
 .hx-badge {
-  background: var(--accent);
+  background: var(--cp-accent);
   color: #fff;
   border-radius: 8px;
   padding: 0 6px;
@@ -159,43 +268,50 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  background: #f9fafb;
+  padding: 8px 16px;
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
 }
 
 .hx-content {
-  padding: 12px;
+  padding: 16px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
   align-content: start;
+}
+
+@media (min-width: 900px) {
+  .hx-content {
+    padding: 24px;
+  }
 }
 
 .hx-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .hx-panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .hx-panel > header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  background: linear-gradient(#f7f9fb, #e9eef3);
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
-  padding: 5px 10px;
+  padding: 10px 16px;
 }
 
 .hx-panel h3 {
-  font-size: 13px;
-  margin: 0;
+  font-size: 16px;
+  margin: 2px 0 0;
 }
 
 .hx-panel-actions {
@@ -206,32 +322,128 @@
 }
 
 .hx-panel-body {
-  padding: 10px;
+  padding: 16px;
+}
+
+/* Eyebrow — small monospaced operational label above a plain-language heading. */
+.hx-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
+}
+
+/* Attention strip — blocking or attention-worthy states. */
+.hx-attention {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--cp-warning);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.hx-attention p {
+  margin: 4px 0 0;
+  color: var(--cp-text-muted);
+}
+
+.hx-attention-warning {
+  border-left-color: var(--cp-warning);
+}
+
+.hx-attention-danger {
+  border-left-color: var(--cp-danger);
+}
+
+.hx-attention-info {
+  border-left-color: var(--cp-link);
+}
+
+.hx-attention-success {
+  border-left-color: var(--cp-success);
+}
+
+.hx-attention-action {
+  flex-shrink: 0;
+}
+
+/* Inspection drawer — evidence, provenance and complete records, one action away. */
+.hx-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 24, 0.4);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 40;
+}
+
+.hx-drawer {
+  width: min(420px, 100%);
+  height: 100%;
+  background: var(--cp-surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.2);
+}
+
+.hx-drawer > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--cp-surface-soft);
+}
+
+.hx-drawer h3 {
+  margin: 2px 0 0;
+  font-size: 16px;
+}
+
+.hx-drawer-close {
+  font: inherit;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.hx-drawer-body {
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .hx-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .hx-table th {
   text-align: left;
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border-bottom: 1px solid var(--border);
-  padding: 5px 8px;
+  padding: 7px 10px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .hx-table td {
-  border-bottom: 1px solid #e3e8ee;
-  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  padding: 7px 10px;
   vertical-align: top;
-}
-
-.hx-table tr:nth-child(even) td {
-  background: #fafbfc;
 }
 
 .hx-table tr.clickable {
@@ -239,11 +451,11 @@
 }
 
 .hx-table tr.clickable:hover td {
-  background: #eaf1f8;
+  background: var(--cp-surface-soft);
 }
 
 .hx-table tr.selected td {
-  background: #d6e5f5;
+  background: var(--cp-accent-soft);
 }
 
 .hx-table tr.warn td:first-child {
@@ -267,76 +479,81 @@
 
 .hx-tabs button {
   font: inherit;
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border: 1px solid var(--border);
   border-bottom: none;
-  border-radius: 3px 3px 0 0;
-  padding: 5px 14px;
+  border-radius: 8px 8px 0 0;
+  padding: 6px 14px;
   cursor: pointer;
   color: var(--text);
 }
 
 .hx-tabs button.active {
-  background: #fff;
+  background: var(--cp-surface);
   font-weight: 600;
+  color: var(--cp-accent);
   position: relative;
   top: 1px;
 }
 
 .hx-pill {
-  display: inline-block;
-  padding: 0 7px;
-  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
   font-size: 11.5px;
   font-weight: 600;
   border: 1px solid transparent;
 }
 
 .hx-pill-neutral {
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
   border-color: var(--border);
+  color: var(--cp-text-muted);
 }
 
 .hx-pill-ok {
-  background: #e3f2e5;
-  color: var(--ok);
+  background: color-mix(in srgb, var(--cp-success) 14%, transparent);
+  color: var(--cp-success);
 }
 
 .hx-pill-warn {
-  background: #fdf0da;
-  color: var(--warning);
+  background: color-mix(in srgb, var(--cp-warning) 16%, transparent);
+  color: var(--cp-warning);
 }
 
 .hx-pill-crit {
-  background: #fbe3e3;
-  color: var(--critical);
+  background: color-mix(in srgb, var(--cp-danger) 14%, transparent);
+  color: var(--cp-danger);
 }
 
 .hx-pill-info {
-  background: #dfe9f4;
-  color: var(--accent);
+  background: color-mix(in srgb, var(--cp-link) 14%, transparent);
+  color: var(--cp-link);
 }
 
 .hx-statusbar {
   display: flex;
+  align-items: center;
   gap: 18px;
-  background: #dde3ea;
+  background: var(--cp-chrome);
+  color: var(--cp-chrome-muted);
   border-top: 1px solid var(--border);
-  padding: 3px 12px;
+  padding: 5px 16px;
   font-size: 11.5px;
-  color: #33404d;
 }
 
-/* Form controls and buttons in the hospital theme. */
+/* Form controls and buttons. */
 .hx select,
 .hx input,
 .hx textarea {
   font: inherit;
   color: var(--text);
-  background: #fff;
-  border: 1px solid #aab4c0;
-  border-radius: 2px;
-  padding: 4px 6px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border-strong);
+  border-radius: 8px;
+  padding: 5px 8px;
 }
 
 .hx label {
@@ -348,24 +565,30 @@
 .hx .button,
 .hx-btn {
   font: inherit;
-  font-size: 12.5px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 2px;
-  padding: 4px 12px;
-  border: 1px solid #9aa6b3;
-  background: linear-gradient(#ffffff, #e8edf2);
+  border-radius: 12px;
+  padding: 6px 14px;
+  border: 1px solid var(--cp-border-strong);
+  background: var(--cp-surface);
   color: var(--text);
   cursor: pointer;
 }
 
 .hx .button.primary,
 .hx-btn.primary {
-  background: linear-gradient(#2d6fb2, #1f5c99);
-  border-color: #174a7c;
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
   color: #fff;
+}
+
+.hx .button.primary:hover:not(:disabled),
+.hx-btn.primary:hover:not(:disabled) {
+  background: var(--cp-accent-hover);
+  border-color: var(--cp-accent-hover);
 }
 
 .hx .button:disabled,
@@ -375,9 +598,9 @@
 }
 
 .hx .chip {
-  border-radius: 2px;
+  border-radius: 8px;
   border-style: solid;
-  background: #fff;
+  background: var(--cp-surface);
   color: var(--text);
   text-align: left;
   padding: 4px 8px;
@@ -416,7 +639,7 @@
 }
 
 .hx .trace li {
-  background: #eef2f6;
+  background: var(--cp-surface-soft);
 }
 
 .hx dl.hx-facts {
@@ -434,10 +657,11 @@
   margin: 0;
 }
 
-/* Guided demo bar and simulated behind-the-scenes work (Story.tsx). */
+/* Guided demo bar and simulated behind-the-scenes work (Story.tsx) — part of the design language,
+   not decoration: visually integrated with institutional chrome and semantic tokens. */
 .hx-story {
-  background: #fffbea;
-  border-bottom: 1px solid #e6d58f;
+  background: var(--cp-bg-elevated);
+  border-bottom: 1px solid var(--border);
 }
 
 .hx-story-steps {
@@ -445,7 +669,7 @@
   flex-wrap: wrap;
   gap: 2px;
   margin: 0;
-  padding: 6px 12px 0;
+  padding: 8px 16px 0;
   list-style: none;
 }
 
@@ -457,7 +681,7 @@
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  padding: 4px 10px 6px;
+  padding: 4px 10px 8px;
   color: var(--muted);
   cursor: pointer;
 }
@@ -465,11 +689,11 @@
 .hx-story-steps li.current button {
   color: var(--text);
   font-weight: 600;
-  border-bottom-color: #d9a400;
+  border-bottom-color: var(--cp-accent);
 }
 
 .hx-story-steps li.done button {
-  color: var(--ok);
+  color: var(--cp-success);
 }
 
 .hx-story-num {
@@ -478,18 +702,21 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #eee3b8;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--border);
   font-size: 11px;
   font-weight: 700;
 }
 
 .hx-story-steps li.current .hx-story-num {
-  background: #d9a400;
+  background: var(--cp-accent);
+  border-color: var(--cp-accent);
   color: #fff;
 }
 
 .hx-story-steps li.done .hx-story-num {
-  background: #d7ecd9;
+  background: color-mix(in srgb, var(--cp-success) 18%, transparent);
+  border-color: var(--cp-success);
 }
 
 .hx-story-explain {
@@ -497,29 +724,31 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  padding: 6px 12px 8px;
-  border-top: 1px solid #efe3ad;
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--border);
 }
 
 .hx-story-tag {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8a6a00;
+  letter-spacing: 0.08em;
+  color: var(--cp-text-soft);
 }
 
 .hx-backstage {
-  background: #f7f9fb;
-  border: 1px dashed #9fb6ce;
-  border-radius: var(--radius);
-  padding: 8px 12px;
+  background: var(--cp-bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--cp-accent);
+  border-radius: 8px;
+  padding: 10px 14px;
 }
 
 .hx-backstage > header {
   display: flex;
   justify-content: space-between;
-  color: var(--accent);
+  color: var(--cp-accent);
   margin-bottom: 6px;
 }
 
@@ -542,7 +771,7 @@
 }
 
 .hx-backstage li.done .hx-stage-icon {
-  color: var(--ok);
+  color: var(--cp-success);
   font-weight: 700;
 }
 
@@ -567,7 +796,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--accent);
+  color: var(--cp-accent);
 }
 
 .hx-working-time,
@@ -584,10 +813,16 @@
   display: inline-block;
   width: 12px;
   height: 12px;
-  border: 2px solid #c6d4e3;
-  border-top-color: var(--accent);
+  border: 2px solid var(--border);
+  border-top-color: var(--cp-accent);
   border-radius: 50%;
   animation: hx-spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-spinner {
+    animation-duration: 2.4s;
+  }
 }
 
 @keyframes hx-spin {
@@ -597,6 +832,15 @@
 }
 
 @media (max-width: 760px) {
+  .hx-strip {
+    display: none;
+  }
+
+  .hx-chrome {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
   .hx-body {
     flex-direction: column;
   }
@@ -604,12 +848,17 @@
   .hx-nav {
     width: auto;
     flex-direction: row;
+    flex-wrap: wrap;
     overflow-x: auto;
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
 
-  .hx-menubar {
+  .hx-nav-eyebrow {
     display: none;
+  }
+
+  .hx-drawer {
+    width: 100%;
   }
 }

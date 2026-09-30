@@ -1,10 +1,12 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import './hospital.css';
 
 /*
- * Hospital-software look for idea pages: a deliberately plain clinical information system, so a
- * clinician can picture the idea inside the software they use every day.
- * Everything inside <HospitalShell> uses the light "hx" theme; existing UI blocks adapt automatically.
+ * Shared institutional shell for idea prototypes, built on the Health Rewired design language
+ * (.github/hackathon/design-language.md): dark institutional chrome, cool neutral work surfaces,
+ * one restrained accent, semantic status colors and visible human control. Everything inside
+ * <HospitalShell> uses the "hx" theme's --cp-* tokens; existing generative-UI blocks adapt
+ * automatically. Vary the workspace's structure per idea — not these shared foundations.
  */
 
 export type NavItem = { id: string; label: string; badge?: string | number };
@@ -21,6 +23,7 @@ export type BannerPatient = {
 
 export function HospitalShell({
   module,
+  orgLine = 'Klinikum Rewired München · Medical Oncology',
   nav,
   active,
   onNav,
@@ -31,6 +34,8 @@ export function HospitalShell({
 }: {
   /** Name of the module/screen in the hospital system, e.g. "Tumour board preparation". */
   module: string;
+  /** Organization / department line shown under the module in the institutional header. */
+  orgLine?: string;
   nav: NavItem[];
   active: string;
   onNav: (id: string) => void;
@@ -42,29 +47,35 @@ export function HospitalShell({
   children: ReactNode;
 }) {
   const today = new Date().toLocaleDateString('de-DE');
+  const time = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   return (
     <div className="hx">
-      <div className="hx-appbar">
-        <span className="hx-logo">KR</span>
-        <strong>Klinikum Rewired München</strong>
-        <span className="hx-appbar-sep">|</span>
-        <span>Oncology Information System</span>
-        <span className="hx-appbar-sep">|</span>
-        <span>{module}</span>
-        <span className="hx-spacer" />
-        <span>Dr. M. Weber · Medical Oncology</span>
-        <span className="hx-appbar-sep">|</span>
-        <span>{today}</span>
-      </div>
-      <div className="hx-menubar" aria-hidden>
-        {['File', 'Patient', 'Orders', 'Documents', 'View', 'Tools', 'Help'].map((m) => (
-          <span key={m}>{m}</span>
-        ))}
-      </div>
+      <div className="hx-strip">Hackathon prototype · Synthetic data only — not for clinical use</div>
+      <header className="hx-chrome">
+        <div className="hx-chrome-id">
+          <span className="hx-mark" aria-hidden>
+            HR
+          </span>
+          <div>
+            <strong className="hx-chrome-title">
+              Health Rewired <span className="hx-chrome-sep">/</span> {module}
+            </strong>
+            <span className="hx-chrome-sub">{orgLine}</span>
+          </div>
+        </div>
+        <div className="hx-chrome-meta">
+          <span>{today}</span>
+          <span>{time}</span>
+          <span className="hx-chrome-status">
+            <span className="hx-chrome-dot" aria-hidden /> Connected
+          </span>
+        </div>
+      </header>
       {guide}
       {patient && <PatientBanner patient={patient} />}
       <div className="hx-body">
         <nav className="hx-nav" aria-label={module}>
+          <span className="hx-eyebrow hx-nav-eyebrow">Workspace</span>
           {nav.map((item) => (
             <button
               key={item.id}
@@ -83,8 +94,9 @@ export function HospitalShell({
         </main>
       </div>
       <div className="hx-statusbar">
-        <span>● Connected</span>
-        <span>Synthetic data only – not for clinical use</span>
+        <span className="hx-chrome-status">
+          <span className="hx-chrome-dot" aria-hidden /> Connected
+        </span>
         <span className="hx-spacer" />
         <span>OIS 12.4.2 · Hackathon prototype</span>
       </div>
@@ -111,15 +123,109 @@ export function PatientBanner({ patient }: { patient: BannerPatient }) {
   );
 }
 
-export function Panel({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
+/** Small monospaced operational label above a plain-language heading, e.g. "STRUCTURED QUERY". */
+export function Eyebrow({ children }: { children: ReactNode }) {
+  return <span className="hx-eyebrow">{children}</span>;
+}
+
+export function Panel({
+  title,
+  eyebrow,
+  actions,
+  children,
+}: {
+  title: string;
+  /** Small monospaced operational label shown above the title. */
+  eyebrow?: ReactNode;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <section className="hx-panel">
       <header>
-        <h3>{title}</h3>
+        <div>
+          {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+          <h3>{title}</h3>
+        </div>
         {actions && <div className="hx-panel-actions">{actions}</div>}
       </header>
       <div className="hx-panel-body">{children}</div>
     </section>
+  );
+}
+
+/**
+ * Blocking or attention-worthy state: a 4 px semantic edge, a status badge and one plain-language
+ * explanation, with an optional action that focuses the required human input. Keep visible until
+ * genuinely resolved — see design-language.md "Attention and blocking states".
+ */
+export function AttentionStrip({
+  tone = 'warning',
+  title,
+  children,
+  action,
+}: {
+  tone?: 'warning' | 'danger' | 'info' | 'success';
+  title: string;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
+  return (
+    <div className={`hx-attention hx-attention-${tone}`} role="status">
+      <div className="hx-attention-body">
+        <strong>{title}</strong>
+        {children && <p>{children}</p>}
+      </div>
+      {action && <div className="hx-attention-action">{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * Right-side inspection drawer for evidence, provenance and complete records — "inspectable by
+ * design" rather than hidden. Handles Escape and restores focus to the close control on open.
+ */
+export function Drawer({
+  open,
+  onClose,
+  title,
+  eyebrow = 'Inspectable by design',
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  eyebrow?: ReactNode;
+  children: ReactNode;
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="hx-drawer-overlay" onClick={onClose}>
+      <aside className="hx-drawer" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+        <header>
+          <div>
+            <Eyebrow>{eyebrow}</Eyebrow>
+            <h3>{title}</h3>
+          </div>
+          <button ref={closeRef} type="button" className="hx-drawer-close" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div className="hx-drawer-body">{children}</div>
+      </aside>
+    </div>
   );
 }
 

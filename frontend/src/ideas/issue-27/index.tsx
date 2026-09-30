@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { request, type AgentResult, type UIItem } from '../../api';
-import { DataTable, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
+import { AttentionStrip, DataTable, Drawer, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 
@@ -328,6 +328,15 @@ export default function EuropeanCohortNetwork() {
 
   const centresContributing = new Set(invited.map((r) => r.site)).size;
 
+  const [inspect, setInspect] = useState<{
+    label: string;
+    site: string;
+    status?: string | null;
+    reason?: string;
+    source?: string | null;
+    outcome?: string;
+  } | null>(null);
+
   return (
     <HospitalShell
       module="Research · European Oncology Network"
@@ -376,13 +385,13 @@ export default function EuropeanCohortNetwork() {
       )}
 
       {section === 'trial' && !selectedTrial && (
-        <Panel title="Synthetic trials open across the network">
+        <Panel title="Synthetic trials open across the network" eyebrow="Step 1 · trial catalogue">
           <Working label="Loading the synthetic trial list" />
         </Panel>
       )}
 
       {section === 'trial' && selectedTrial && (
-        <Panel title="Synthetic trials open across the network">
+        <Panel title="Synthetic trials open across the network" eyebrow="Step 1 · trial catalogue">
           <DataTable
             rowKey={(t) => t.trial_id}
             rows={trials}
@@ -409,7 +418,7 @@ export default function EuropeanCohortNetwork() {
       )}
 
       {section === 'query' && (
-        <Panel title={`Structured query · ${selectedTrial?.trial_id ?? ''}`}>
+        <Panel title={`Structured query · ${selectedTrial?.trial_id ?? ''}`} eyebrow="Step 2 · structured query">
           {loadingQuery && (
             <>
               <button type="button" className="hx-btn primary" disabled>
@@ -450,9 +459,25 @@ export default function EuropeanCohortNetwork() {
                   ))}
                 </ul>
               )}
-              <button type="button" className="hx-btn primary" onClick={() => setQueryApproved(true)} disabled={queryApproved}>
-                {queryApproved ? 'Query approved ✓' : 'Approve structured query'}
-              </button>
+              {!queryApproved && (
+                <AttentionStrip
+                  tone="warning"
+                  title="Waiting for your approval"
+                  action={
+                    <button type="button" className="hx-btn primary" onClick={() => setQueryApproved(true)}>
+                      Approve structured query
+                    </button>
+                  }
+                >
+                  The AI proposed these cohort rules from the trial's free-text criteria. Adjust any field above, then
+                  approve — nothing is sent to the network until you do.
+                </AttentionStrip>
+              )}
+              {queryApproved && (
+                <button type="button" className="hx-btn primary" disabled>
+                  Query approved ✓
+                </button>
+              )}
             </>
           )}
           {!loadingQuery && Object.keys(queryFields).length === 0 && (
@@ -464,7 +489,10 @@ export default function EuropeanCohortNetwork() {
       )}
 
       {section === 'network' && (
-        <Panel title={`Asking the network · ${homeSite} + ${partnerSites.length} partner centres`}>
+        <Panel
+          title={`Asking the network · ${homeSite} + ${partnerSites.length} partner centres`}
+          eyebrow="Step 3 · federated query"
+        >
           <Backstage
             title="Behind the scenes — federated query"
             stages={hospitalStages}
@@ -485,7 +513,7 @@ export default function EuropeanCohortNetwork() {
 
       {section === 'candidates' && (
         <div className="hx-grid" style={{ gridTemplateColumns: '1fr' }}>
-          <Panel title="Pre-selected candidates (ranked, pseudonymised)">
+          <Panel title="Pre-selected candidates (ranked, pseudonymised)" eyebrow="Step 4 · cohort classification">
             {!cohortReady && (
               <Working
                 label={buildingCohort ? 'Finalising classification against the approved query' : 'Reading the trial and network results'}
@@ -515,6 +543,8 @@ export default function EuropeanCohortNetwork() {
                   site: homeSite,
                   detail: i.detail ?? '',
                   outcome: outcomeFor(i) ?? '',
+                  status: i.status,
+                  source: i.source,
                 })),
                 ...network.candidates.map((c) => ({
                   key: c.key,
@@ -522,6 +552,8 @@ export default function EuropeanCohortNetwork() {
                   site: c.site,
                   detail: `${c.matchReason}${c.missing ? ` · Missing: ${c.missing}` : ''}`,
                   outcome: '',
+                  status: undefined as string | undefined,
+                  source: undefined as string | undefined,
                 })),
               ]}
               columns={[
@@ -537,10 +569,33 @@ export default function EuropeanCohortNetwork() {
                 { key: 'site', label: 'Site' },
                 { key: 'detail', label: 'Why matched' },
                 { key: 'outcome', label: 'Real-world outcome so far' },
+                {
+                  key: 'inspect',
+                  label: '',
+                  width: '84px',
+                  render: (r) => (
+                    <button
+                      type="button"
+                      className="hx-btn"
+                      onClick={() =>
+                        setInspect({
+                          label: r.label,
+                          site: r.site,
+                          status: r.status ?? 'eligible',
+                          reason: r.detail,
+                          source: r.source,
+                          outcome: r.outcome,
+                        })
+                      }
+                    >
+                      Inspect
+                    </button>
+                  ),
+                },
               ]}
             />
           </Panel>
-          <Panel title="Left out — and why (hint of an external control arm)">
+          <Panel title="Left out — and why (hint of an external control arm)" eyebrow="Excluded — evidence trail">
             <p className="note">
               These patients did not meet the trial's criteria, or their eligibility could not be confirmed. Their
               real-world outcomes are shown for comparison only — this is descriptive, not a validated external
@@ -554,6 +609,7 @@ export default function EuropeanCohortNetwork() {
                 status: i.status ?? 'unknown',
                 reason: i.detail ?? '',
                 outcome: outcomeFor(i) ?? '',
+                source: i.source,
               }))}
               empty={cohortReady ? 'No excluded patients recorded at this site for this trial.' : 'Waiting for the cohort classification…'}
               columns={[
@@ -565,6 +621,29 @@ export default function EuropeanCohortNetwork() {
                 },
                 { key: 'reason', label: 'Reason' },
                 { key: 'outcome', label: 'Outcome (descriptive, not causal)' },
+                {
+                  key: 'inspect',
+                  label: '',
+                  width: '84px',
+                  render: (r) => (
+                    <button
+                      type="button"
+                      className="hx-btn"
+                      onClick={() =>
+                        setInspect({
+                          label: r.label,
+                          site: homeSite,
+                          status: r.status,
+                          reason: r.reason,
+                          source: r.source,
+                          outcome: r.outcome,
+                        })
+                      }
+                    >
+                      Inspect
+                    </button>
+                  ),
+                },
               ]}
             />
           </Panel>
@@ -572,8 +651,12 @@ export default function EuropeanCohortNetwork() {
       )}
 
       {section === 'contact' && (
-        <Panel title={`Draft invitations · ${invited.length} candidates selected`}>
-          {invited.length === 0 && <span className="hx-empty">Go back to Review candidates and select at least one patient.</span>}
+        <Panel title={`Draft invitations · ${invited.length} candidates selected`} eyebrow="Step 5 · outreach">
+          {invited.length === 0 && (
+            <AttentionStrip tone="warning" title="No candidates selected">
+              Go back to Review candidates and select at least one patient to draft an invitation.
+            </AttentionStrip>
+          )}
           {invited.map((row) => (
             <div key={row.key} className="hx-panel" style={{ marginBottom: 12, border: '1px solid var(--border)' }}>
               <div className="hx-panel-body">
@@ -598,7 +681,7 @@ export default function EuropeanCohortNetwork() {
       )}
 
       {section === 'tracker' && (
-        <Panel title="Opt-in tracker">
+        <Panel title="Opt-in tracker" eyebrow="Step 6 · the cohort keeps learning">
           <Backstage
             title="Behind the scenes — replies arriving over the following weeks"
             stages={trackerStages}
@@ -637,6 +720,44 @@ export default function EuropeanCohortNetwork() {
           </p>
         </Panel>
       )}
+
+      <Drawer
+        open={!!inspect}
+        onClose={() => setInspect(null)}
+        title={inspect?.label ?? ''}
+        eyebrow="Evidence & provenance"
+      >
+        {inspect && (
+          <dl className="hx-facts">
+            <dt>Site</dt>
+            <dd>{inspect.site}</dd>
+            {inspect.status && (
+              <>
+                <dt>Verdict</dt>
+                <dd>
+                  <Pill tone={inspect.status === 'eligible' ? 'ok' : inspect.status === 'unknown' ? 'warn' : 'neutral'}>
+                    {inspect.status}
+                  </Pill>
+                </dd>
+              </>
+            )}
+            {inspect.reason && (
+              <>
+                <dt>Reason</dt>
+                <dd>{inspect.reason}</dd>
+              </>
+            )}
+            {inspect.outcome && (
+              <>
+                <dt>Outcome</dt>
+                <dd>{inspect.outcome} (descriptive, not causal)</dd>
+              </>
+            )}
+            <dt>Source record</dt>
+            <dd>{inspect.source ?? 'Simulated network match — pseudonymised, no source record linked in this demo.'}</dd>
+          </dl>
+        )}
+      </Drawer>
     </HospitalShell>
   );
 }
