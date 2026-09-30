@@ -121,6 +121,45 @@
   font-size: 12px;
 }
 
+.mission-theme-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 6px;
+  border: 1px solid rgba(234, 242, 248, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mission-theme-controls span {
+  padding: 0 6px;
+  color: var(--cp-chrome-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mission-theme-controls button {
+  min-height: 34px;
+  min-width: 64px;
+  border: 1px solid rgba(234, 242, 248, 0.32);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--cp-chrome-fg);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.mission-theme-controls button.active,
+.mission-theme-controls button[aria-pressed='true'] {
+  background: var(--cp-chrome-fg);
+  color: var(--cp-chrome);
+  border-color: var(--cp-chrome-fg);
+}
+
 .mission-command-strip,
 .payoff-metrics,
 .metric-grid {
@@ -912,34 +951,32 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .mission-control {
-    --cp-bg: #2b3238;
-    --cp-bg-elevated: #242a30;
-    --cp-surface: #1f2429;
-    --cp-surface-soft: #262c32;
-    --cp-border: #3f4953;
-    --cp-border-strong: #5f5f5f;
-    --cp-text: #dedede;
-    --cp-text-muted: #919191;
-    --cp-text-soft: #b0b0b0;
-    --cp-chrome: #0b1a29;
-    --cp-chrome-fg: #dbe7f1;
-    --cp-chrome-muted: #8ea6ba;
-    --cp-banner: #1a2733;
-    --cp-accent: #fd8ea1;
-    --cp-accent-hover: #fb7b91;
-    --cp-accent-soft: rgba(253, 142, 161, 0.14);
-    --cp-success: #4ade80;
-    --cp-warning: #fbbf24;
-    --cp-danger: #f87171;
-    --cp-link: #4da6ff;
-  }
+.mission-control[data-theme='dark'] {
+  --cp-bg: #2b3238;
+  --cp-bg-elevated: #242a30;
+  --cp-surface: #1f2429;
+  --cp-surface-soft: #262c32;
+  --cp-border: #3f4953;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-chrome: #0b1a29;
+  --cp-chrome-fg: #dbe7f1;
+  --cp-chrome-muted: #8ea6ba;
+  --cp-banner: #1a2733;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-success: #4ade80;
+  --cp-warning: #fbbf24;
+  --cp-danger: #f87171;
+  --cp-link: #4da6ff;
+}
 
-  .site-network-map::before,
-  .map-wash {
-    background: rgba(255, 255, 255, 0.04);
-  }
+.mission-control[data-theme='dark'] .site-network-map::before,
+.mission-control[data-theme='dark'] .map-wash {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 @media (max-width: 1120px) {

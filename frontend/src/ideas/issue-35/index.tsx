@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, type AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { Backstage, StoryGuide, Working, type Stage, type StoryStep } from '../../hospital/Story';
@@ -14,6 +14,7 @@ export const meta: IdeaMeta = {
 
 type Section = 'launch' | 'sites' | 'screening' | 'actions' | 'payoff';
 type Status = 'pending' | 'approved' | 'dismissed';
+type Theme = 'light' | 'dark';
 type SiteStatus = 'on track' | 'lagging';
 type SignalPhase = 'queried' | 'responding' | 'patients found' | 'investigator review';
 type Tone = 'neutral' | 'ok' | 'warn' | 'crit' | 'info';
@@ -59,6 +60,7 @@ type Readiness = { label: string; tone: Tone };
 const DEFAULT_SITE_ID = 'MIL';
 const FORECAST_GAIN_PER_APPROVED_MATCH = 3;
 const OUTREACH_FORECAST_BONUS = 5;
+const THEME_STORAGE_KEY = 'health-rewired-issue-35-theme';
 
 const story: StoryStep[] = [
   {
@@ -265,6 +267,7 @@ const trial = {
 
 export default function TrialEngineIdea() {
   const [section, setSection] = useState<Section>('launch');
+  const [theme, setTheme] = useState<Theme>(() => initialTheme());
   const [selectedSite, setSelectedSite] = useState(DEFAULT_SITE_ID);
   const [tab, setTab] = useState('signal');
   const [queried, setQueried] = useState(false);
@@ -287,6 +290,10 @@ export default function TrialEngineIdea() {
     trial.forecast + approvedMatches * FORECAST_GAIN_PER_APPROVED_MATCH + (outreachStatus === 'approved' ? OUTREACH_FORECAST_BONUS : 0);
   const funnel = buildFunnel(forecastAfterActions, candidateStatus, outreachStatus);
   const readiness = controlReadiness(approvedControls, cohortStatus);
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   const go = (id: string) => {
     setSection(id as Section);
@@ -316,6 +323,8 @@ export default function TrialEngineIdea() {
       onGo={go}
       selectedSite={selectedSite}
       onSelectedSite={setSelectedSite}
+      theme={theme}
+      onTheme={setTheme}
       readiness={readiness}
       approvedControls={approvedControls}
     >
@@ -389,6 +398,8 @@ function MissionShell({
   onGo,
   selectedSite,
   onSelectedSite,
+  theme,
+  onTheme,
   readiness,
   approvedControls,
   children,
@@ -397,13 +408,15 @@ function MissionShell({
   onGo: (id: string) => void;
   selectedSite: string;
   onSelectedSite: (id: string) => void;
+  theme: Theme;
+  onTheme: (theme: Theme) => void;
   readiness: Readiness;
   approvedControls: number;
   children: ReactNode;
 }) {
   const currentIndex = Math.max(0, story.findIndex((step) => step.id === section));
   return (
-    <div className="mission-control">
+    <div className="mission-control" data-theme={theme}>
       <header className="mission-hero">
         <div className="mission-kicker">TRIAL OPS COMMAND · SYNTHETIC FEDERATION</div>
         <div className="mission-title-row">
@@ -415,6 +428,15 @@ function MissionShell({
             <strong>Prototype strip</strong>
             <span>Hackathon prototype · synthetic data · not for clinical use</span>
           </div>
+        </div>
+        <div className="mission-theme-controls" aria-label="Theme controls">
+          <span>Theme</span>
+          <button type="button" className={theme === 'light' ? 'active' : undefined} aria-pressed={theme === 'light'} onClick={() => onTheme('light')}>
+            Light
+          </button>
+          <button type="button" className={theme === 'dark' ? 'active' : undefined} aria-pressed={theme === 'dark'} onClick={() => onTheme('dark')}>
+            Dark
+          </button>
         </div>
         <div className="mission-command-strip" aria-label="Trial status summary">
           <Metric label="Forecast" value={`${trial.forecast} / ${trial.target}`} />
@@ -478,6 +500,13 @@ function MissionShell({
       <main className="mission-stage">{children}</main>
     </div>
   );
+}
+
+function initialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function OperationsRoom({
