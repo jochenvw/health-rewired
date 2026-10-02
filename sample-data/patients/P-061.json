@@ -1,0 +1,98 @@
+{
+  "synthetic": true,
+  "id": "P-061",
+  "source_id": "DEMO-0058",
+  "name": "Caterina Bellini",
+  "age": 48,
+  "sex": "female",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Rectal cancer after positive FIT screening",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-04-09",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Persistent diarrhoea and abdominal cramping",
+  "current_status": "Post-operative; considering adjuvant chemotherapy",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Oncologic resection",
+      "start": "2025-04-30",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-07-09",
+      "test": "Haemoglobin",
+      "value": 11.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2025-07-09",
+      "test": "CEA",
+      "value": 7.4,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-07-09",
+      "test": "CRP",
+      "value": 5.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-07-02",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-07-07",
+      "symptom": "Persistent diarrhoea and abdominal cramping",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-03-26",
+      "event": "Presented with persistent diarrhoea and abdominal cramping"
+    },
+    {
+      "date": "2025-04-09",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-04-30",
+      "event": "Surgery: Oncologic resection"
+    },
+    {
+      "date": "2025-07-09",
+      "event": "Current status: Post-operative; considering adjuvant chemotherapy"
+    }
+  ],
+  "open_questions": [
+    "Discuss surgery versus additional systemic therapy."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

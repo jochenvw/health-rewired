@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-052",
+  "source_id": "DEMO-0049",
+  "name": "Riccardo Villa",
+  "age": 68,
+  "sex": "male",
+  "ecog": 2,
+  "diagnosis": {
+    "primary": "Metastatic colorectal cancer, peritoneal disease",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-01-18",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "KRAS G12D mutated"
+    }
+  },
+  "presentation": "Abdominal pain and weight loss",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2025-02-08",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-04-19",
+      "test": "Haemoglobin",
+      "value": 12.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-04-19",
+      "test": "CEA",
+      "value": 19.6,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-04-19",
+      "test": "CRP",
+      "value": 9.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-04-12",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-04-17",
+      "symptom": "Abdominal pain and weight loss",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-01-04",
+      "event": "Presented with abdominal pain and weight loss"
+    },
+    {
+      "date": "2025-01-18",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-02-08",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2025-04-19",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Review response on interval CT/MRI."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

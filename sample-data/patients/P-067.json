@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-067",
+  "source_id": "DEMO-0064",
+  "name": "Marta Colombo",
+  "age": 72,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Descending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-06-02",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "BRAF V600E mutated"
+    }
+  },
+  "presentation": "Abdominal pain and weight loss",
+  "current_status": "Awaiting MDT treatment plan",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Care planning",
+      "regimen": "Awaiting multidisciplinary treatment recommendation",
+      "start": "2025-06-23",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-09-01",
+      "test": "Haemoglobin",
+      "value": 13.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-09-01",
+      "test": "CEA",
+      "value": 12.8,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-09-01",
+      "test": "CRP",
+      "value": 16.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-08-25",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-08-30",
+      "symptom": "Abdominal pain and weight loss",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-05-19",
+      "event": "Presented with abdominal pain and weight loss"
+    },
+    {
+      "date": "2025-06-02",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-06-23",
+      "event": "Care planning: Awaiting multidisciplinary treatment recommendation"
+    },
+    {
+      "date": "2025-09-01",
+      "event": "Current status: Awaiting MDT treatment plan"
+    }
+  ],
+  "open_questions": [
+    "Consider hereditary cancer referral based on age/family history."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-017",
+  "source_id": "DEMO-0014",
+  "name": "Caterina Pellegrini",
+  "age": 47,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Rectal adenocarcinoma with lung metastases",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-05-03",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "KRAS G12C mutated"
+    }
+  },
+  "presentation": "Change in bowel habit",
+  "current_status": "Post-resection surveillance",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Oncologic resection",
+      "start": "2025-05-24",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-08-02",
+      "test": "Haemoglobin",
+      "value": 10.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2025-08-02",
+      "test": "CEA",
+      "value": 18.7,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-08-02",
+      "test": "CRP",
+      "value": 5.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-07-26",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-07-31",
+      "symptom": "Change in bowel habit",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-04-19",
+      "event": "Presented with change in bowel habit"
+    },
+    {
+      "date": "2025-05-03",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-05-24",
+      "event": "Surgery: Oncologic resection"
+    },
+    {
+      "date": "2025-08-02",
+      "event": "Current status: Post-resection surveillance"
+    }
+  ],
+  "open_questions": [
+    "Review pathology margins and lymph-node status."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

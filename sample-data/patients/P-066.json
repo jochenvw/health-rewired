@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-066",
+  "source_id": "DEMO-0063",
+  "name": "Enrico Sala",
+  "age": 80,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Transverse colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-05-24",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "Molecular testing pending"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Awaiting MDT treatment plan",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Care planning",
+      "regimen": "Awaiting multidisciplinary treatment recommendation",
+      "start": "2025-06-14",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-08-23",
+      "test": "Haemoglobin",
+      "value": 13.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-08-23",
+      "test": "CEA",
+      "value": 11.9,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-08-23",
+      "test": "CRP",
+      "value": 14.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-08-16",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-08-21",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-05-10",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-05-24",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-06-14",
+      "event": "Care planning: Awaiting multidisciplinary treatment recommendation"
+    },
+    {
+      "date": "2025-08-23",
+      "event": "Current status: Awaiting MDT treatment plan"
+    }
+  ],
+  "open_questions": [
+    "Review pathology margins and lymph-node status."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

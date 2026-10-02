@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-014",
+  "source_id": "DEMO-0011",
+  "name": "Nicola Rizzo",
+  "age": 64,
+  "sex": "male",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Upper rectal adenocarcinoma",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-04-06",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "HER2 amplified"
+    }
+  },
+  "presentation": "Rectal bleeding",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2025-04-27",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-07-06",
+      "test": "Haemoglobin",
+      "value": 13.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-07-06",
+      "test": "CEA",
+      "value": 11.0,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-07-06",
+      "test": "CRP",
+      "value": 20.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-06-29",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-07-04",
+      "symptom": "Rectal bleeding",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-03-23",
+      "event": "Presented with rectal bleeding"
+    },
+    {
+      "date": "2025-04-06",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-04-27",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2025-07-06",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Assess frailty, nutrition and treatment tolerance."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

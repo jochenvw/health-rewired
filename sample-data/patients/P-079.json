@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-079",
+  "source_id": "DEMO-0076",
+  "name": "Elena Santoro",
+  "age": 58,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Mucinous colorectal adenocarcinoma",
+    "site": "Colon",
+    "histology": "Mucinous adenocarcinoma",
+    "date": "2025-09-18",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "KRAS G12D mutated"
+    }
+  },
+  "presentation": "Iron-deficiency anaemia and fatigue",
+  "current_status": "Chemoradiotherapy in progress",
+  "comorbidities": [
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Chemoradiotherapy",
+      "regimen": "Concurrent fluoropyrimidine-based chemoradiotherapy",
+      "start": "2025-10-09",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-12-18",
+      "test": "Haemoglobin",
+      "value": 13.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-12-18",
+      "test": "CEA",
+      "value": 8.3,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-12-18",
+      "test": "CRP",
+      "value": 18.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-12-11",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-12-16",
+      "symptom": "Iron-deficiency anaemia and fatigue",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-09-04",
+      "event": "Presented with iron-deficiency anaemia and fatigue"
+    },
+    {
+      "date": "2025-09-18",
+      "event": "Diagnosis confirmed: mucinous adenocarcinoma"
+    },
+    {
+      "date": "2025-10-09",
+      "event": "Chemoradiotherapy: Concurrent fluoropyrimidine-based chemoradiotherapy"
+    },
+    {
+      "date": "2025-12-18",
+      "event": "Current status: Chemoradiotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Confirm molecular profile before treatment selection."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

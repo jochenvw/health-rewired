@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-015",
+  "source_id": "DEMO-0012",
+  "name": "Francesca Lombardi",
+  "age": 78,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Mid-rectal adenocarcinoma",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-04-15",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "KRAS mutated"
+    }
+  },
+  "presentation": "Change in bowel habit",
+  "current_status": "Neoadjuvant therapy in progress",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-05-06",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-07-15",
+      "test": "Haemoglobin",
+      "value": 13.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-07-15",
+      "test": "CEA",
+      "value": 11.9,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-07-15",
+      "test": "CRP",
+      "value": 2.0,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-07-08",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-07-13",
+      "symptom": "Change in bowel habit",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-04-01",
+      "event": "Presented with change in bowel habit"
+    },
+    {
+      "date": "2025-04-15",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-05-06",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-07-15",
+      "event": "Current status: Neoadjuvant therapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Review staging imaging and operability."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

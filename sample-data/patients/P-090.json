@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-090",
+  "source_id": "DEMO-0087",
+  "name": "Nicola Mariani",
+  "age": 57,
+  "sex": "male",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Colon cancer after malignant polyp",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-12-26",
+    "stage": "I",
+    "biomarkers": {
+      "Marker 1": "RAS/BRAF wild type"
+    }
+  },
+  "presentation": "Positive FIT, minimal symptoms",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2026-01-16",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-03-27",
+      "test": "Haemoglobin",
+      "value": 12.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-03-27",
+      "test": "CEA",
+      "value": 2.9,
+      "unit": "ng/mL",
+      "ref": "<5.0"
+    },
+    {
+      "date": "2026-03-27",
+      "test": "CRP",
+      "value": 18.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-03-20",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for i disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-03-25",
+      "symptom": "Positive FIT, minimal symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-12-12",
+      "event": "Presented with positive fit, minimal symptoms"
+    },
+    {
+      "date": "2025-12-26",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-01-16",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2026-03-27",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Discuss surgery versus additional systemic therapy."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

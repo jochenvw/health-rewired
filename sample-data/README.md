@@ -8,9 +8,10 @@
 
 | Path | Format | Contents |
 |---|---|---|
-| `patients/<id>.json` | JSON | One synthetic oncology patient: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
+| `patients/<id>.json` | JSON | 103 synthetic oncology patients: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
 | `notes/<id>-*.md` | Markdown | Free-text clinical notes (MDT notes, letters) for extraction/reasoning demos |
 | `trials.csv` | CSV | Synthetic clinical trials with simple eligibility criteria |
+| `hospitals.csv` | CSV | Public hospital directory context: location, oncology scope, specialisms, scale and source links |
 
 ## How the app uses it
 
@@ -25,3 +26,4 @@
 - Patients: follow the shape of `patients/P-001.json`; ids look like `P-###`.
 - Mark every new file as synthetic (a `"synthetic": true` field in JSON, or a note at the top).
 - Keep individual files small (< 200 KB) so they fit comfortably into agent context.
+- Hospital directory entries may describe real institutions, but must never contain patient data.

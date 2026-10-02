@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-050",
+  "source_id": "DEMO-0047",
+  "name": "Enrico Donati",
+  "age": 68,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Signet-ring colorectal carcinoma",
+    "site": "Colon",
+    "histology": "Signet-ring carcinoma",
+    "date": "2026-02-24",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "HER2 amplified"
+    }
+  },
+  "presentation": "Persistent diarrhoea and abdominal cramping",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2026-03-17",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-05-26",
+      "test": "Haemoglobin",
+      "value": 12.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-05-26",
+      "test": "CEA",
+      "value": 12.8,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-05-26",
+      "test": "CRP",
+      "value": 5.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-05-19",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-05-24",
+      "symptom": "Persistent diarrhoea and abdominal cramping",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-02-10",
+      "event": "Presented with persistent diarrhoea and abdominal cramping"
+    },
+    {
+      "date": "2026-02-24",
+      "event": "Diagnosis confirmed: signet-ring carcinoma"
+    },
+    {
+      "date": "2026-03-17",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2026-05-26",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Review staging imaging and operability."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

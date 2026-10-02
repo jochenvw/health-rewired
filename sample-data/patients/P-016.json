@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-016",
+  "source_id": "DEMO-0013",
+  "name": "Pietro Mariani",
+  "age": 83,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Low rectal adenocarcinoma",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-04-24",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Rectal bleeding",
+  "current_status": "Systemic chemotherapy in progress",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "FOLFOX or CAPOX-based regimen",
+      "start": "2025-05-15",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-07-24",
+      "test": "Haemoglobin",
+      "value": 13.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-07-24",
+      "test": "CEA",
+      "value": 12.8,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-07-24",
+      "test": "CRP",
+      "value": 3.8,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-07-17",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-07-22",
+      "symptom": "Rectal bleeding",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-04-10",
+      "event": "Presented with rectal bleeding"
+    },
+    {
+      "date": "2025-04-24",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-05-15",
+      "event": "Systemic therapy: FOLFOX or CAPOX-based regimen"
+    },
+    {
+      "date": "2025-07-24",
+      "event": "Current status: Systemic chemotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Review staging imaging and operability."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

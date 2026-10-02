@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-044",
+  "source_id": "DEMO-0041",
+  "name": "Giorgio Parisi",
+  "age": 39,
+  "sex": "male",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Upper rectal adenocarcinoma",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2026-01-01",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "KRAS G12D mutated"
+    }
+  },
+  "presentation": "Tenesmus and rectal discomfort",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2026-01-22",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-04-02",
+      "test": "Haemoglobin",
+      "value": 10.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2026-04-02",
+      "test": "CEA",
+      "value": 7.4,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-04-02",
+      "test": "CRP",
+      "value": 14.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-03-26",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-03-31",
+      "symptom": "Tenesmus and rectal discomfort",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-12-18",
+      "event": "Presented with tenesmus and rectal discomfort"
+    },
+    {
+      "date": "2026-01-01",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-01-22",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2026-04-02",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Assess suitability for organ-preservation strategy."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-048",
+  "source_id": "DEMO-0045",
+  "name": "Marco Mancini",
+  "age": 67,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Locally recurrent rectal cancer",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2026-02-06",
+    "stage": "Recurrent",
+    "biomarkers": {
+      "Marker 1": "NRAS mutated"
+    }
+  },
+  "presentation": "Tenesmus and rectal discomfort",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2026-02-27",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-05-08",
+      "test": "Haemoglobin",
+      "value": 11.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2026-05-08",
+      "test": "CEA",
+      "value": 16.0,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-05-08",
+      "test": "CRP",
+      "value": 2.0,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-05-01",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for recurrent disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-05-06",
+      "symptom": "Tenesmus and rectal discomfort",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-01-23",
+      "event": "Presented with tenesmus and rectal discomfort"
+    },
+    {
+      "date": "2026-02-06",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-02-27",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2026-05-08",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Review response on interval CT/MRI."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

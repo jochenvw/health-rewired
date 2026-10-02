@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-005",
+  "source_id": "DEMO-0002",
+  "name": "Serena Pellegrini",
+  "age": 58,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Ascending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-01-15",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "RAS/BRAF wild type"
+    }
+  },
+  "presentation": "Unexplained weight loss",
+  "current_status": "Palliative systemic treatment",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Palliative fluoropyrimidine-based regimen",
+      "start": "2025-02-05",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-04-16",
+      "test": "Haemoglobin",
+      "value": 10.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2025-04-16",
+      "test": "CEA",
+      "value": 2.9,
+      "unit": "ng/mL",
+      "ref": "<5.0"
+    },
+    {
+      "date": "2025-04-16",
+      "test": "CRP",
+      "value": 3.8,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-04-09",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-04-14",
+      "symptom": "Unexplained weight loss",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-01-01",
+      "event": "Presented with unexplained weight loss"
+    },
+    {
+      "date": "2025-01-15",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-02-05",
+      "event": "Systemic therapy: Palliative fluoropyrimidine-based regimen"
+    },
+    {
+      "date": "2025-04-16",
+      "event": "Current status: Palliative systemic treatment"
+    }
+  ],
+  "open_questions": [
+    "Review response on interval CT/MRI."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

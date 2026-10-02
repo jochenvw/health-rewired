@@ -27,7 +27,10 @@ class PatientParams(BaseModel):
     patient_id: str = Field(description="Synthetic patient id, e.g. 'P-001'")
 
 
-@define_tool(description="List all synthetic sample-data files (patients, notes, trials).", skip_permission=True)
+@define_tool(
+    description="List available sample-data files (synthetic patients, notes, trials, and hospital directory).",
+    skip_permission=True,
+)
 def list_sample_data(params: NoParams) -> str:
     return json.dumps(sample_data.list_files())
 

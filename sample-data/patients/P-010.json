@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-010",
+  "source_id": "DEMO-0007",
+  "name": "Gabriele Testa",
+  "age": 63,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Sigmoid colon adenocarcinoma with liver metastases",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-03-01",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "MMR deficient / MSI-high"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Systemic chemotherapy in progress",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "FOLFOX or CAPOX-based regimen",
+      "start": "2025-03-22",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-05-31",
+      "test": "Haemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-05-31",
+      "test": "CEA",
+      "value": 12.4,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-05-31",
+      "test": "CRP",
+      "value": 12.8,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-05-24",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-05-29",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-02-15",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-03-01",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-03-22",
+      "event": "Systemic therapy: FOLFOX or CAPOX-based regimen"
+    },
+    {
+      "date": "2025-05-31",
+      "event": "Current status: Systemic chemotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Review staging imaging and operability."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

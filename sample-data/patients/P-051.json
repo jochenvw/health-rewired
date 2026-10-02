@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-051",
+  "source_id": "DEMO-0048",
+  "name": "Lucia Colombo",
+  "age": 66,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Metastatic colorectal cancer, liver-dominant",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-01-09",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "KRAS mutated"
+    }
+  },
+  "presentation": "Rectal bleeding",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2025-01-30",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-04-10",
+      "test": "Haemoglobin",
+      "value": 12.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-04-10",
+      "test": "CEA",
+      "value": 18.7,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-04-10",
+      "test": "CRP",
+      "value": 7.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-04-03",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-04-08",
+      "symptom": "Rectal bleeding",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2024-12-26",
+      "event": "Presented with rectal bleeding"
+    },
+    {
+      "date": "2025-01-09",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-01-30",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2025-04-10",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Confirm molecular profile before treatment selection."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

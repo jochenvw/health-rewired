@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-075",
+  "source_id": "DEMO-0072",
+  "name": "Roberta Caruso",
+  "age": 45,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Mid-rectal adenocarcinoma",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-08-13",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "KRAS mutated"
+    }
+  },
+  "presentation": "Persistent diarrhoea and abdominal cramping",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2025-09-03",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-11-12",
+      "test": "Haemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-11-12",
+      "test": "CEA",
+      "value": 4.7,
+      "unit": "ng/mL",
+      "ref": "<5.0"
+    },
+    {
+      "date": "2025-11-12",
+      "test": "CRP",
+      "value": 11.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-11-05",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-11-10",
+      "symptom": "Persistent diarrhoea and abdominal cramping",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-07-30",
+      "event": "Presented with persistent diarrhoea and abdominal cramping"
+    },
+    {
+      "date": "2025-08-13",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-09-03",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2025-11-12",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Review response on interval CT/MRI."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

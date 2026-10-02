@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-024",
+  "source_id": "DEMO-0021",
+  "name": "Claudio Grassi",
+  "age": 38,
+  "sex": "male",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Anal squamous cell carcinoma",
+    "site": "Anal canal",
+    "histology": "Squamous cell carcinoma",
+    "date": "2025-07-05",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "Molecular testing pending"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Neoadjuvant therapy in progress",
+  "comorbidities": [
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-07-26",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-10-04",
+      "test": "Haemoglobin",
+      "value": 12.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-10-04",
+      "test": "CEA",
+      "value": 4.7,
+      "unit": "ng/mL",
+      "ref": "<5.0"
+    },
+    {
+      "date": "2025-10-04",
+      "test": "CRP",
+      "value": 18.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-09-27",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-10-02",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-21",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-07-05",
+      "event": "Diagnosis confirmed: squamous cell carcinoma"
+    },
+    {
+      "date": "2025-07-26",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-10-04",
+      "event": "Current status: Neoadjuvant therapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Consider hereditary cancer referral based on age/family history."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

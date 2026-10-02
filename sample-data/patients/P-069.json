@@ -1,0 +1,99 @@
+{
+  "synthetic": true,
+  "id": "P-069",
+  "source_id": "DEMO-0066",
+  "name": "Elisa Martini",
+  "age": 78,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Sigmoid colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-06-20",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "MMR deficient / MSI-high"
+    }
+  },
+  "presentation": "Change in bowel habit",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "Hypertension (controlled)",
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily",
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2025-07-11",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-09-19",
+      "test": "Haemoglobin",
+      "value": 10.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2025-09-19",
+      "test": "CEA",
+      "value": 14.6,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-09-19",
+      "test": "CRP",
+      "value": 20.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-09-12",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-09-17",
+      "symptom": "Change in bowel habit",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-06",
+      "event": "Presented with change in bowel habit"
+    },
+    {
+      "date": "2025-06-20",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-07-11",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2025-09-19",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Assess frailty, nutrition and treatment tolerance."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

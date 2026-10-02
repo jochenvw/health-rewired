@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-037",
+  "source_id": "DEMO-0034",
+  "name": "Giulia Colombo",
+  "age": 80,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Descending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-10-30",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "KRAS G12C mutated"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2025-11-20",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-01-29",
+      "test": "Haemoglobin",
+      "value": 12.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-01-29",
+      "test": "CEA",
+      "value": 16.4,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-01-29",
+      "test": "CRP",
+      "value": 2.0,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-01-22",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-01-27",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-10-16",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-10-30",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-11-20",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2026-01-29",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Review pathology margins and lymph-node status."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

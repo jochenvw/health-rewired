@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-101",
+  "source_id": "DEMO-0098",
+  "name": "Federica Fontana",
+  "age": 41,
+  "sex": "female",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Caecal adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-02-08",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Rectal bleeding",
+  "current_status": "Chemoradiotherapy in progress",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Chemoradiotherapy",
+      "regimen": "Concurrent fluoropyrimidine-based chemoradiotherapy",
+      "start": "2025-03-01",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-05-10",
+      "test": "Haemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-05-10",
+      "test": "CEA",
+      "value": 12.8,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-05-10",
+      "test": "CRP",
+      "value": 18.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-05-03",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-05-08",
+      "symptom": "Rectal bleeding",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-01-25",
+      "event": "Presented with rectal bleeding"
+    },
+    {
+      "date": "2025-02-08",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-03-01",
+      "event": "Chemoradiotherapy: Concurrent fluoropyrimidine-based chemoradiotherapy"
+    },
+    {
+      "date": "2025-05-10",
+      "event": "Current status: Chemoradiotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

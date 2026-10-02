@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-023",
+  "source_id": "DEMO-0020",
+  "name": "Valentina Marchetti",
+  "age": 82,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Metastatic colorectal cancer, lung-dominant",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-06-26",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "MMR deficient / MSI-high"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Palliative systemic treatment",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Palliative fluoropyrimidine-based regimen",
+      "start": "2025-07-17",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-09-25",
+      "test": "Haemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-09-25",
+      "test": "CEA",
+      "value": 8.8,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-09-25",
+      "test": "CRP",
+      "value": 16.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-09-18",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-09-23",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-12",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-06-26",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-07-17",
+      "event": "Systemic therapy: Palliative fluoropyrimidine-based regimen"
+    },
+    {
+      "date": "2025-09-25",
+      "event": "Current status: Palliative systemic treatment"
+    }
+  ],
+  "open_questions": [
+    "Discuss surgery versus additional systemic therapy."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

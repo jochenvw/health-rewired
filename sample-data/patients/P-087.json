@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-087",
+  "source_id": "DEMO-0084",
+  "name": "Federica Grassi",
+  "age": 46,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Ileal neuroendocrine tumour",
+    "site": "Ileum",
+    "histology": "Well-differentiated neuroendocrine tumour",
+    "date": "2025-11-29",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "KRAS G12D mutated"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2025-12-20",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-02-28",
+      "test": "Haemoglobin",
+      "value": 11.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2026-02-28",
+      "test": "CEA",
+      "value": 15.5,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-02-28",
+      "test": "CRP",
+      "value": 12.8,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-02-21",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-02-26",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-11-15",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-11-29",
+      "event": "Diagnosis confirmed: well-differentiated neuroendocrine tumour"
+    },
+    {
+      "date": "2025-12-20",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2026-02-28",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Consider hereditary cancer referral based on age/family history."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

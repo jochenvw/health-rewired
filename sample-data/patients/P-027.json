@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-027",
+  "source_id": "DEMO-0024",
+  "name": "Valentina Leone",
+  "age": 78,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Ileal neuroendocrine tumour",
+    "site": "Ileum",
+    "histology": "Well-differentiated neuroendocrine tumour",
+    "date": "2025-08-01",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "KRAS G12C mutated"
+    }
+  },
+  "presentation": "Persistent diarrhoea and abdominal cramping",
+  "current_status": "Post-resection surveillance",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Oncologic resection",
+      "start": "2025-08-22",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-10-31",
+      "test": "Haemoglobin",
+      "value": 13.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-10-31",
+      "test": "CEA",
+      "value": 7.4,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-10-31",
+      "test": "CRP",
+      "value": 3.8,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-10-24",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-10-29",
+      "symptom": "Persistent diarrhoea and abdominal cramping",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-07-18",
+      "event": "Presented with persistent diarrhoea and abdominal cramping"
+    },
+    {
+      "date": "2025-08-01",
+      "event": "Diagnosis confirmed: well-differentiated neuroendocrine tumour"
+    },
+    {
+      "date": "2025-08-22",
+      "event": "Surgery: Oncologic resection"
+    },
+    {
+      "date": "2025-10-31",
+      "event": "Current status: Post-resection surveillance"
+    }
+  ],
+  "open_questions": [
+    "Review pathology margins and lymph-node status."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

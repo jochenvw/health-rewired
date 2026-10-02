@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-028",
+  "source_id": "DEMO-0025",
+  "name": "Fabio Fabbri",
+  "age": 80,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Appendiceal adenocarcinoma",
+    "site": "Appendix",
+    "histology": "Adenocarcinoma",
+    "date": "2025-08-10",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Change in bowel habit",
+  "current_status": "Neoadjuvant therapy in progress",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-08-31",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-11-09",
+      "test": "Haemoglobin",
+      "value": 13.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-11-09",
+      "test": "CEA",
+      "value": 8.3,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-11-09",
+      "test": "CRP",
+      "value": 5.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-11-02",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-11-07",
+      "symptom": "Change in bowel habit",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-07-27",
+      "event": "Presented with change in bowel habit"
+    },
+    {
+      "date": "2025-08-10",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-08-31",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-11-09",
+      "event": "Current status: Neoadjuvant therapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

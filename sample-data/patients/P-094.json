@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-094",
+  "source_id": "DEMO-0091",
+  "name": "Giovanni Romano",
+  "age": 63,
+  "sex": "male",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Ascending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2026-01-31",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Chemoradiotherapy in progress",
+  "comorbidities": [
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Chemoradiotherapy",
+      "regimen": "Concurrent fluoropyrimidine-based chemoradiotherapy",
+      "start": "2026-02-21",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-05-02",
+      "test": "Haemoglobin",
+      "value": 13.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-05-02",
+      "test": "CEA",
+      "value": 6.5,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-05-02",
+      "test": "CRP",
+      "value": 5.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-04-25",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-04-30",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-01-17",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2026-01-31",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-02-21",
+      "event": "Chemoradiotherapy: Concurrent fluoropyrimidine-based chemoradiotherapy"
+    },
+    {
+      "date": "2026-05-02",
+      "event": "Current status: Chemoradiotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

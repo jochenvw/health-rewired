@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-012",
+  "source_id": "DEMO-0009",
+  "name": "Filippo Greco",
+  "age": 83,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Caecal adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-03-19",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "KRAS G12C mutated"
+    }
+  },
+  "presentation": "Iron-deficiency anaemia and fatigue",
+  "current_status": "Post-resection surveillance",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Oncologic resection",
+      "start": "2025-04-09",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-06-18",
+      "test": "Haemoglobin",
+      "value": 12.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-06-18",
+      "test": "CEA",
+      "value": 9.2,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-06-18",
+      "test": "CRP",
+      "value": 16.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-06-11",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-06-16",
+      "symptom": "Iron-deficiency anaemia and fatigue",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-03-05",
+      "event": "Presented with iron-deficiency anaemia and fatigue"
+    },
+    {
+      "date": "2025-03-19",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-04-09",
+      "event": "Surgery: Oncologic resection"
+    },
+    {
+      "date": "2025-06-18",
+      "event": "Current status: Post-resection surveillance"
+    }
+  ],
+  "open_questions": [
+    "Review response on interval CT/MRI."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

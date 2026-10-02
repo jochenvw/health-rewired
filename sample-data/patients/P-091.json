@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-091",
+  "source_id": "DEMO-0088",
+  "name": "Caterina Donati",
+  "age": 53,
+  "sex": "female",
+  "ecog": 0,
+  "diagnosis": {
+    "primary": "Rectal cancer after positive FIT screening",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2026-01-04",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "KRAS G12C mutated"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2026-01-25",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-04-05",
+      "test": "Haemoglobin",
+      "value": 12.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-04-05",
+      "test": "CEA",
+      "value": 3.8,
+      "unit": "ng/mL",
+      "ref": "<5.0"
+    },
+    {
+      "date": "2026-04-05",
+      "test": "CRP",
+      "value": 20.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-03-29",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-04-03",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-12-21",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2026-01-04",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-01-25",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2026-04-05",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Confirm molecular profile before treatment selection."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

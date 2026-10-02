@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-093",
+  "source_id": "DEMO-0090",
+  "name": "Giulia Benedetti",
+  "age": 86,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Colon adenocarcinoma with bowel obstruction",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2026-01-22",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "BRAF V600E mutated"
+    }
+  },
+  "presentation": "Change in bowel habit",
+  "current_status": "Awaiting MDT treatment plan",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Care planning",
+      "regimen": "Awaiting multidisciplinary treatment recommendation",
+      "start": "2026-02-12",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-04-23",
+      "test": "Haemoglobin",
+      "value": 13.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-04-23",
+      "test": "CEA",
+      "value": 5.6,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-04-23",
+      "test": "CRP",
+      "value": 3.8,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-04-16",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-04-21",
+      "symptom": "Change in bowel habit",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-01-08",
+      "event": "Presented with change in bowel habit"
+    },
+    {
+      "date": "2026-01-22",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-02-12",
+      "event": "Care planning: Awaiting multidisciplinary treatment recommendation"
+    },
+    {
+      "date": "2026-04-23",
+      "event": "Current status: Awaiting MDT treatment plan"
+    }
+  ],
+  "open_questions": [
+    "Review pathology margins and lymph-node status."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

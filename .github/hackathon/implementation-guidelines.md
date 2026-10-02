@@ -87,7 +87,9 @@ click through, react to, and iterate on with you. Speed to something visible bea
      structural edges, evidence views, maps or boards – while keeping the shared typography,
      controls, semantic colors, spacing and interaction rules.
    - **Lots of fake data.** Fill worklists, results, notes and histories so the screen feels like a
-     real working day. Use `/sample-data` and add inline synthetic rows (names, times, wards,
+     real working day. Inspect `/sample-data` during UI generation: it includes a richer synthetic
+     patient set and a hospital directory that can add credible site context when useful. Use only
+     what fits the storyline; it is not required. Add inline synthetic rows (names, times, wards,
      sites, cohorts or trial signals) freely.
    - **Real-feeling interactions.** Clickable rows that open a chart, tabs, filters, acknowledge /
      approve / file-to-chart buttons that change state. They do not need a backend – local state is

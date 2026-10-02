@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-040",
+  "source_id": "DEMO-0037",
+  "name": "Stefano Bernardi",
+  "age": 79,
+  "sex": "male",
+  "ecog": 2,
+  "diagnosis": {
+    "primary": "Sigmoid colon adenocarcinoma with liver metastases",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-11-26",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Restaging after neoadjuvant treatment",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-12-17",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-02-25",
+      "test": "Haemoglobin",
+      "value": 13.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-02-25",
+      "test": "CEA",
+      "value": 8.8,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-02-25",
+      "test": "CRP",
+      "value": 7.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-02-18",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-02-23",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-11-12",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-11-26",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-12-17",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2026-02-25",
+      "event": "Current status: Restaging after neoadjuvant treatment"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

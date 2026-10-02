@@ -1,0 +1,98 @@
+{
+  "synthetic": true,
+  "id": "P-064",
+  "source_id": "DEMO-0061",
+  "name": "Daniele Pellegrini",
+  "age": 78,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Ascending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-05-06",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "MMR deficient / MSI-high"
+    }
+  },
+  "presentation": "Positive FIT, minimal symptoms",
+  "current_status": "Neoadjuvant therapy in progress",
+  "comorbidities": [
+    "Hypertension (controlled)",
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily",
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-05-27",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-08-05",
+      "test": "Haemoglobin",
+      "value": 12.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-08-05",
+      "test": "CEA",
+      "value": 10.1,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-08-05",
+      "test": "CRP",
+      "value": 11.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-07-29",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-08-03",
+      "symptom": "Positive FIT, minimal symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-04-22",
+      "event": "Presented with positive fit, minimal symptoms"
+    },
+    {
+      "date": "2025-05-06",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-05-27",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-08-05",
+      "event": "Current status: Neoadjuvant therapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

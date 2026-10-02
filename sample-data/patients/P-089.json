@@ -1,0 +1,99 @@
+{
+  "synthetic": true,
+  "id": "P-089",
+  "source_id": "DEMO-0086",
+  "name": "Camilla Fiore",
+  "age": 69,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Appendiceal mucinous neoplasm with peritoneal spread",
+    "site": "Appendix",
+    "histology": "Mucinous neoplasm",
+    "date": "2025-12-17",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Iron-deficiency anaemia and fatigue",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "Hypertension (controlled)",
+    "Type 2 diabetes (diet or metformin controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily",
+    "Metformin 500 mg twice daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2026-01-07",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-03-18",
+      "test": "Haemoglobin",
+      "value": 12.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-03-18",
+      "test": "CEA",
+      "value": 7.0,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-03-18",
+      "test": "CRP",
+      "value": 16.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-03-11",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-03-16",
+      "symptom": "Iron-deficiency anaemia and fatigue",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-12-03",
+      "event": "Presented with iron-deficiency anaemia and fatigue"
+    },
+    {
+      "date": "2025-12-17",
+      "event": "Diagnosis confirmed: mucinous neoplasm"
+    },
+    {
+      "date": "2026-01-07",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2026-03-18",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Consider hereditary cancer referral based on age/family history."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-036",
+  "source_id": "DEMO-0033",
+  "name": "Gabriele Leone",
+  "age": 72,
+  "sex": "male",
+  "ecog": 2,
+  "diagnosis": {
+    "primary": "Transverse colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-10-21",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "RAS/BRAF wild type"
+    }
+  },
+  "presentation": "Iron-deficiency anaemia and fatigue",
+  "current_status": "Palliative systemic treatment",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Palliative fluoropyrimidine-based regimen",
+      "start": "2025-11-11",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-01-20",
+      "test": "Haemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2026-01-20",
+      "test": "CEA",
+      "value": 15.5,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-01-20",
+      "test": "CRP",
+      "value": 20.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-01-13",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-01-18",
+      "symptom": "Iron-deficiency anaemia and fatigue",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-10-07",
+      "event": "Presented with iron-deficiency anaemia and fatigue"
+    },
+    {
+      "date": "2025-10-21",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-11-11",
+      "event": "Systemic therapy: Palliative fluoropyrimidine-based regimen"
+    },
+    {
+      "date": "2026-01-20",
+      "event": "Current status: Palliative systemic treatment"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

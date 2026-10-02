@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-013",
+  "source_id": "DEMO-0010",
+  "name": "Marina Mariani",
+  "age": 50,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Rectosigmoid adenocarcinoma",
+    "site": "Rectosigmoid",
+    "histology": "Adenocarcinoma",
+    "date": "2025-03-28",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "MMR proficient / MSS",
+      "Marker 2": "RAS wild type"
+    }
+  },
+  "presentation": "Abdominal pain and weight loss",
+  "current_status": "Chemoradiotherapy in progress",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Chemoradiotherapy",
+      "regimen": "Concurrent fluoropyrimidine-based chemoradiotherapy",
+      "start": "2025-04-18",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-06-27",
+      "test": "Haemoglobin",
+      "value": 12.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-06-27",
+      "test": "CEA",
+      "value": 10.1,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-06-27",
+      "test": "CRP",
+      "value": 18.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-06-20",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-06-25",
+      "symptom": "Abdominal pain and weight loss",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-03-14",
+      "event": "Presented with abdominal pain and weight loss"
+    },
+    {
+      "date": "2025-03-28",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-04-18",
+      "event": "Chemoradiotherapy: Concurrent fluoropyrimidine-based chemoradiotherapy"
+    },
+    {
+      "date": "2025-06-27",
+      "event": "Current status: Chemoradiotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

@@ -1,0 +1,95 @@
+{
+  "synthetic": true,
+  "id": "P-026",
+  "source_id": "DEMO-0023",
+  "name": "Vincenzo Ricci",
+  "age": 63,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Small bowel adenocarcinoma",
+    "site": "Small bowel",
+    "histology": "Adenocarcinoma",
+    "date": "2025-07-23",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "RAS/BRAF wild type"
+    }
+  },
+  "presentation": "Rectal bleeding",
+  "current_status": "Metastatic disease; systemic therapy planned",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Molecularly guided systemic regimen",
+      "start": "2025-08-13",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-10-22",
+      "test": "Haemoglobin",
+      "value": 12.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-10-22",
+      "test": "CEA",
+      "value": 6.5,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-10-22",
+      "test": "CRP",
+      "value": 2.0,
+      "unit": "mg/L",
+      "ref": "<5.0"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-10-15",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-10-20",
+      "symptom": "Rectal bleeding",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-07-09",
+      "event": "Presented with rectal bleeding"
+    },
+    {
+      "date": "2025-07-23",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-08-13",
+      "event": "Systemic therapy: Molecularly guided systemic regimen"
+    },
+    {
+      "date": "2025-10-22",
+      "event": "Current status: Metastatic disease; systemic therapy planned"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

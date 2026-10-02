@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-065",
+  "source_id": "DEMO-0062",
+  "name": "Valentina Galli",
+  "age": 61,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Ascending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-05-15",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "Molecular testing pending"
+    }
+  },
+  "presentation": "Persistent diarrhoea and abdominal cramping",
+  "current_status": "Palliative systemic treatment",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "Palliative fluoropyrimidine-based regimen",
+      "start": "2025-06-05",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-08-14",
+      "test": "Haemoglobin",
+      "value": 12.8,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-08-14",
+      "test": "CEA",
+      "value": 11.0,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-08-14",
+      "test": "CRP",
+      "value": 12.8,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-08-07",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-08-12",
+      "symptom": "Persistent diarrhoea and abdominal cramping",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-05-01",
+      "event": "Presented with persistent diarrhoea and abdominal cramping"
+    },
+    {
+      "date": "2025-05-15",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-06-05",
+      "event": "Systemic therapy: Palliative fluoropyrimidine-based regimen"
+    },
+    {
+      "date": "2025-08-14",
+      "event": "Current status: Palliative systemic treatment"
+    }
+  ],
+  "open_questions": [
+    "Review response on interval CT/MRI."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

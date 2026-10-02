@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-062",
+  "source_id": "DEMO-0059",
+  "name": "Giovanni Fabbri",
+  "age": 58,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Synchronous right- and left-sided colon cancers",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-04-18",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "Molecular testing pending"
+    }
+  },
+  "presentation": "Iron-deficiency anaemia and fatigue",
+  "current_status": "Restaging after neoadjuvant treatment",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-05-09",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-07-18",
+      "test": "Haemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-07-18",
+      "test": "CEA",
+      "value": 8.3,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-07-18",
+      "test": "CRP",
+      "value": 7.4,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-07-11",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-07-16",
+      "symptom": "Iron-deficiency anaemia and fatigue",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-04-04",
+      "event": "Presented with iron-deficiency anaemia and fatigue"
+    },
+    {
+      "date": "2025-04-18",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-05-09",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-07-18",
+      "event": "Current status: Restaging after neoadjuvant treatment"
+    }
+  ],
+  "open_questions": [
+    "Assess frailty, nutrition and treatment tolerance."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

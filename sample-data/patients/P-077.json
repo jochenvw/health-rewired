@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-077",
+  "source_id": "DEMO-0074",
+  "name": "Martina Fontana",
+  "age": 84,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Rectal adenocarcinoma with lung metastases",
+    "site": "Rectum",
+    "histology": "Adenocarcinoma",
+    "date": "2025-08-31",
+    "stage": "IV",
+    "biomarkers": {
+      "Marker 1": "NRAS mutated"
+    }
+  },
+  "presentation": "Incidental lesion on imaging",
+  "current_status": "Surgery planned",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Surgery",
+      "regimen": "Planned oncologic resection",
+      "start": "2025-09-21",
+      "status": "planned"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-11-30",
+      "test": "Haemoglobin",
+      "value": 12.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-11-30",
+      "test": "CEA",
+      "value": 11.5,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-11-30",
+      "test": "CRP",
+      "value": 14.6,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-11-23",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iv disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-11-28",
+      "symptom": "Incidental lesion on imaging",
+      "grade": 2
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-08-17",
+      "event": "Presented with incidental lesion on imaging"
+    },
+    {
+      "date": "2025-08-31",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-09-21",
+      "event": "Surgery: Planned oncologic resection"
+    },
+    {
+      "date": "2025-11-30",
+      "event": "Current status: Surgery planned"
+    }
+  ],
+  "open_questions": [
+    "Discuss surgery versus additional systemic therapy."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

@@ -1,0 +1,96 @@
+{
+  "synthetic": true,
+  "id": "P-068",
+  "source_id": "DEMO-0065",
+  "name": "Pietro Giordano",
+  "age": 87,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Sigmoid colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2025-06-11",
+    "stage": "II",
+    "biomarkers": {
+      "Marker 1": "Molecular testing pending"
+    }
+  },
+  "presentation": "Tenesmus and rectal discomfort",
+  "current_status": "Neoadjuvant therapy in progress",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-07-02",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-09-10",
+      "test": "Haemoglobin",
+      "value": 13.6,
+      "unit": "g/dL",
+      "ref": "12.0-16.0"
+    },
+    {
+      "date": "2025-09-10",
+      "test": "CEA",
+      "value": 13.7,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-09-10",
+      "test": "CRP",
+      "value": 18.2,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-09-03",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for ii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-09-08",
+      "symptom": "Tenesmus and rectal discomfort",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-05-28",
+      "event": "Presented with tenesmus and rectal discomfort"
+    },
+    {
+      "date": "2025-06-11",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2025-07-02",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-09-10",
+      "event": "Current status: Neoadjuvant therapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Review liver lesions with hepatobiliary team."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

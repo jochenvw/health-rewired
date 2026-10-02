@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-020",
+  "source_id": "DEMO-0017",
+  "name": "Giovanni Grassi",
+  "age": 84,
+  "sex": "male",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Signet-ring colorectal carcinoma",
+    "site": "Colon",
+    "histology": "Signet-ring carcinoma",
+    "date": "2025-05-30",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "HER2 amplified"
+    }
+  },
+  "presentation": "Intermittent obstruction symptoms",
+  "current_status": "Restaging after neoadjuvant treatment",
+  "comorbidities": [
+    "Hypertension (controlled)"
+  ],
+  "medications": [
+    "Ramipril 5 mg once daily"
+  ],
+  "treatments": [
+    {
+      "type": "Neoadjuvant therapy",
+      "regimen": "Tumour-specific neoadjuvant regimen",
+      "start": "2025-06-20",
+      "status": "completed"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2025-08-29",
+      "test": "Haemoglobin",
+      "value": 11.3,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2025-08-29",
+      "test": "CEA",
+      "value": 16.4,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2025-08-29",
+      "test": "CRP",
+      "value": 11.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2025-08-22",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2025-08-27",
+      "symptom": "Intermittent obstruction symptoms",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-05-16",
+      "event": "Presented with intermittent obstruction symptoms"
+    },
+    {
+      "date": "2025-05-30",
+      "event": "Diagnosis confirmed: signet-ring carcinoma"
+    },
+    {
+      "date": "2025-06-20",
+      "event": "Neoadjuvant therapy: Tumour-specific neoadjuvant regimen"
+    },
+    {
+      "date": "2025-08-29",
+      "event": "Current status: Restaging after neoadjuvant treatment"
+    }
+  ],
+  "open_questions": [
+    "Discuss radiotherapy field and surgical timing."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}

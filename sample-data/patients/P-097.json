@@ -1,0 +1,97 @@
+{
+  "synthetic": true,
+  "id": "P-097",
+  "source_id": "DEMO-0094",
+  "name": "Cristina Bellini",
+  "age": 59,
+  "sex": "female",
+  "ecog": 1,
+  "diagnosis": {
+    "primary": "Descending colon adenocarcinoma",
+    "site": "Colon",
+    "histology": "Adenocarcinoma",
+    "date": "2026-02-27",
+    "stage": "III",
+    "biomarkers": {
+      "Marker 1": "NRAS mutated"
+    }
+  },
+  "presentation": "Iron-deficiency anaemia and fatigue",
+  "current_status": "Systemic chemotherapy in progress",
+  "comorbidities": [
+    "No major comorbidity recorded"
+  ],
+  "medications": [
+    "No regular medication recorded"
+  ],
+  "treatments": [
+    {
+      "type": "Systemic therapy",
+      "regimen": "FOLFOX or CAPOX-based regimen",
+      "start": "2026-03-20",
+      "status": "ongoing"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2026-05-29",
+      "test": "Haemoglobin",
+      "value": 11.1,
+      "unit": "g/dL",
+      "ref": "12.0-16.0",
+      "flag": "low"
+    },
+    {
+      "date": "2026-05-29",
+      "test": "CEA",
+      "value": 9.2,
+      "unit": "ng/mL",
+      "ref": "<5.0",
+      "flag": "high"
+    },
+    {
+      "date": "2026-05-29",
+      "test": "CRP",
+      "value": 11.0,
+      "unit": "mg/L",
+      "ref": "<5.0",
+      "flag": "high"
+    }
+  ],
+  "imaging": [
+    {
+      "date": "2026-05-22",
+      "modality": "CT chest/abdomen/pelvis",
+      "result": "Synthetic staging review for iii disease; correlate with MDT plan."
+    }
+  ],
+  "patient_reported": [
+    {
+      "date": "2026-05-27",
+      "symptom": "Iron-deficiency anaemia and fatigue",
+      "grade": 1
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-02-13",
+      "event": "Presented with iron-deficiency anaemia and fatigue"
+    },
+    {
+      "date": "2026-02-27",
+      "event": "Diagnosis confirmed: adenocarcinoma"
+    },
+    {
+      "date": "2026-03-20",
+      "event": "Systemic therapy: FOLFOX or CAPOX-based regimen"
+    },
+    {
+      "date": "2026-05-29",
+      "event": "Current status: Systemic chemotherapy in progress"
+    }
+  ],
+  "open_questions": [
+    "Consider hereditary cancer referral based on age/family history."
+  ],
+  "data_classification": "SYNTHETIC / FICTIONAL"
+}
