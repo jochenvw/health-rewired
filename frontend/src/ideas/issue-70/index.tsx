@@ -74,9 +74,6 @@ export default function TumourBoard() {
     if (busy) return;
     if (id === 'check') { void runCheck(); return; }
     if (id === 'review' && !current.check) { void runCheck(); return; }
-    if (id === 'followup' && missing.length && !Object.keys(current.sent).length) {
-      setNotice('Review and approve at least one request before following up.'); setStep('review'); return;
-    }
     setNotice(''); setStep(id);
   };
   const editDraft = (id: string, body: string) => {
@@ -134,8 +131,12 @@ export default function TumourBoard() {
               {current.check && <>
                 <Pill tone={current.check.agent.mode === 'copilot' ? 'info' : 'neutral'}>{current.check.agent.mode === 'copilot' ? 'Copilot SDK' : 'Demo mode · no live AI'}</Pill>
                 {current.check.agent.note && <p>{current.check.agent.note}</p>}
-                {current.check.agent.blocks.filter((b) => b.type !== 'actions').map((b, i) => <RenderBlock key={i} block={b} />)}
-                {step !== 'followup' && current.check.drafts.map((draft) => <div className="board-draft" key={draft.id}>
+                <details open={!current.received.length}>
+                  <summary>Assistant source snapshot · before simulated replies</summary>
+                  <p>This assessment uses the original synthetic records. Received reports and current outstanding results are shown in the checklist.</p>
+                  {current.check.agent.blocks.filter((b) => b.type !== 'actions').map((b, i) => <RenderBlock key={i} block={b} />)}
+                </details>
+                {step !== 'followup' && current.check.drafts.filter((d) => !current.received.includes(d.id)).map((draft) => <div className="board-draft" key={draft.id}>
                   <h3>{draft.label} → {draft.contact}</h3><p>{draft.reason}</p>
                   <label htmlFor={`draft-${draft.id}`}>Request for human review</label>
                   <textarea id={`draft-${draft.id}`} rows={5} value={draft.body} disabled={busy || !!current.sent[draft.id]} onChange={(e) => editDraft(draft.id, e.target.value)} />
