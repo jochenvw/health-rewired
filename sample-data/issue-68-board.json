@@ -1,0 +1,59 @@
+{
+  "synthetic": true,
+  "board_date": "2026-10-08",
+  "snapshot_date": "2026-10-04",
+  "label": "Next week's colorectal board · Thursday, 08 October · 14:00",
+  "requirements": [
+    {"id": "pathology", "label": "Pathology", "source": "Pathology reporting system", "recipient": "Pathology lab", "why": "Confirm the recorded diagnosis before discussion."},
+    {"id": "staging", "label": "Staging CT/MRI", "source": "Radiology reporting system", "recipient": "Radiology team", "why": "Provide current extent of disease for this board question.", "max_age_days": 42},
+    {"id": "cea", "label": "CEA", "source": "Laboratory results system", "recipient": "Colorectal outpatient team", "why": "Provide a recent baseline tumour marker for discussion.", "max_age_days": 28},
+    {"id": "mmr", "label": "MSI/MMR", "source": "Molecular pathology system", "recipient": "Molecular pathology lab", "why": "Document mismatch repair status for this synthetic board checklist."}
+  ],
+  "patients": [
+    {
+      "id": "CRC-068-01", "name": "Eva Sommer", "age": 64, "sex": "female", "diagnosis": "Rectal adenocarcinoma · cT3N1", "question": "Review staging before initial treatment discussion", "time": "14:00",
+      "results": {
+        "pathology": {"date": "2026-09-24", "detail": "Biopsy: adenocarcinoma · report PATH-681"},
+        "staging": {"date": null, "detail": "Pelvic MRI booked 06 October; no signed staging report available."},
+        "cea": {"date": "2026-10-01", "detail": "CEA 6.8 µg/L · LAB-681"},
+        "mmr": {"date": null, "detail": "MMR immunohistochemistry pending · specimen PATH-681."}
+      }
+    },
+    {
+      "id": "CRC-068-02", "name": "Paul Winter", "age": 71, "sex": "male", "diagnosis": "Sigmoid adenocarcinoma · pT3N0", "question": "Postoperative review", "time": "14:15",
+      "results": {
+        "pathology": {"date": "2026-09-28", "detail": "Resection report signed · PATH-682"},
+        "staging": {"date": "2026-09-21", "detail": "CT chest/abdomen report signed · RAD-682"},
+        "cea": {"date": "2026-10-01", "detail": "CEA 2.4 µg/L · LAB-682"},
+        "mmr": {"date": "2026-09-29", "detail": "pMMR recorded · MOL-682"}
+      }
+    },
+    {
+      "id": "CRC-068-03", "name": "Mira Falk", "age": 58, "sex": "female", "diagnosis": "Ascending colon adenocarcinoma · cT4N2", "question": "Review updated staging", "time": "14:30",
+      "results": {
+        "pathology": {"date": "2026-08-12", "detail": "Biopsy report signed · PATH-683"},
+        "staging": {"date": "2026-08-03", "detail": "Previous CT report only; updated scan requested · RAD-683"},
+        "cea": {"date": "2026-10-02", "detail": "CEA 12.1 µg/L · LAB-683"},
+        "mmr": {"date": "2026-08-14", "detail": "dMMR recorded · MOL-683"}
+      }
+    },
+    {
+      "id": "CRC-068-04", "name": "Leon Adler", "age": 66, "sex": "male", "diagnosis": "Rectosigmoid lesion · histology pending", "question": "Review diagnostic work-up", "time": "14:45",
+      "results": {
+        "pathology": {"date": null, "detail": "Biopsy received 02 October; final report not signed · PATH-684"},
+        "staging": {"date": "2026-09-30", "detail": "CT report signed · RAD-684"},
+        "cea": {"date": "2026-08-20", "detail": "CEA 3.9 µg/L; no newer sample recorded · LAB-684"},
+        "mmr": {"date": null, "detail": "No result recorded; awaiting diagnostic specimen review."}
+      }
+    },
+    {
+      "id": "CRC-068-05", "name": "Ruth Linden", "age": 75, "sex": "female", "diagnosis": "Descending colon adenocarcinoma · pT2N0", "question": "Postoperative review", "time": "15:00",
+      "results": {
+        "pathology": {"date": "2026-09-25", "detail": "Resection report signed · PATH-685"},
+        "staging": {"date": "2026-09-18", "detail": "CT report signed · RAD-685"},
+        "cea": {"date": "2026-09-29", "detail": "CEA 1.7 µg/L · LAB-685"},
+        "mmr": {"date": "2026-09-26", "detail": "pMMR recorded · MOL-685"}
+      }
+    }
+  ]
+}

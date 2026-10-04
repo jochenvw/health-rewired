@@ -61,6 +61,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  ideaRequest: <T,>(id: string, path: string, body?: unknown) =>
+    request<T>(`/api/ideas/${id}/${path}`, body === undefined ? undefined : { method: 'POST', body: JSON.stringify(body) }),
   status: () => request<Status>('/api/status'),
   patients: () => request<PatientSummary[]>('/api/patients'),
   patient: (id: string) => request<PatientRecord>(`/api/sample-data/patients/${id}.json`),
