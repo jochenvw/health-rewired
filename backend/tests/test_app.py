@@ -84,3 +84,43 @@ def test_idea_routers_are_discovered_and_mounted(client):
     mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
+
+
+def test_issue_70_board_check_without_token(client):
+    board = client.get("/api/sample-data/issue-70-board.json").json()
+    assert board["synthetic"] is True
+    assert len(board["patients"]) == 8
+    response = client.post("/api/ideas/70/check", json={"patient_id": "CRC-070-01"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["agent"]["mode"] == "fallback"
+    assert {draft["id"] for draft in body["drafts"]} == {"mmr", "staging"}
+    assert body["drafts"][0]["contact"] == "Reporting pathologist"
+    assert all("Elisabeth Winter" in draft["body"] for draft in body["drafts"])
+    assert body["agent"]["blocks"][0]["items"][0]["source"] == "Molecular pathology"
+    # Checking and drafting must never mark an outstanding result as received.
+    assert client.get("/api/sample-data/issue-70-board.json").json() == board
+    complete = client.post("/api/ideas/70/check", json={"patient_id": "CRC-070-02"}).json()
+    assert complete["drafts"] == []
+    assert client.post("/api/ideas/70/check", json={"patient_id": "unknown"}).status_code == 404
+
+
+def test_issue_70_uses_sdk_draft_and_source_tool(client, monkeypatch):
+    from app.agent.models import AgentResult
+    from app.agent.ui import UIBlock
+    from app.ideas import issue_70
+
+    async def fake_agent(request, **kwargs):
+        assert kwargs["extra_tools"][0].name == "check_board_sources"
+        assert "CRC-070-01" in kwargs["prompt"]
+        return AgentResult(
+            mode="copilot",
+            headline="Reports outstanding",
+            blocks=[UIBlock(type="actions", title="mmr", body="Please provide the signed MMR report.")],
+        )
+
+    monkeypatch.setattr(issue_70, "run_agent", fake_agent)
+    body = client.post("/api/ideas/70/check", json={"patient_id": "CRC-070-01"}).json()
+    assert body["agent"]["mode"] == "copilot"
+    assert body["drafts"][0]["body"] == "Please provide the signed MMR report."
+    assert body["drafts"][1]["contact"] == "Radiology secretary"

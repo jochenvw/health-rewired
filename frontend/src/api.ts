@@ -65,6 +65,8 @@ export const api = {
   patients: () => request<PatientSummary[]>('/api/patients'),
   patient: (id: string) => request<PatientRecord>(`/api/sample-data/patients/${id}.json`),
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
+  checkBoard: <T,>(patientId: string) =>
+    request<T>('/api/ideas/70/check', { method: 'POST', body: JSON.stringify({ patient_id: patientId }) }),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
 };

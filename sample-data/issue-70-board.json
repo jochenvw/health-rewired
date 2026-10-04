@@ -1,0 +1,103 @@
+{
+  "synthetic": true,
+  "board": "Colorectal tumour board",
+  "scheduled": "2026-10-15T14:00:00",
+  "requirements_note": "Illustrative local checklist, not a clinical guideline. Staging means CT chest/abdomen; rectal cases also require pelvic MRI.",
+  "requirements": [
+    {"id": "pathology", "label": "Pathology", "source": "Pathology system", "contact": "Pathology secretary"},
+    {"id": "mmr", "label": "MMR/MSI", "source": "Molecular pathology", "contact": "Reporting pathologist"},
+    {"id": "staging", "label": "Staging CT/MRI", "source": "Radiology PACS", "contact": "Radiology secretary"},
+    {"id": "cea", "label": "CEA", "source": "Laboratory system", "contact": "Colorectal clinic nurse"},
+    {"id": "colonoscopy", "label": "Colonoscopy", "source": "Endoscopy reporting", "contact": "Endoscopy secretary"}
+  ],
+  "patients": [
+    {
+      "id": "CRC-070-01", "name": "Elisabeth Winter", "age": 64, "sex": "female",
+      "diagnosis": "Rectal adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed biopsy report · moderately differentiated adenocarcinoma · 30 Sep"},
+        "mmr": {"available": false, "detail": "MMR immunohistochemistry requested 1 Oct; report not yet signed"},
+        "staging": {"available": false, "detail": "CT signed 2 Oct; pelvic MRI performed 3 Oct, report awaiting signature"},
+        "cea": {"available": true, "detail": "CEA 7.2 µg/L · 2 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed report: rectal lesion 8 cm from anal verge · 28 Sep"}
+      }
+    },
+    {
+      "id": "CRC-070-02", "name": "Thomas Adler", "age": 71, "sex": "male",
+      "diagnosis": "Sigmoid adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed adenocarcinoma biopsy · 29 Sep"},
+        "mmr": {"available": true, "detail": "MMR proficient · signed 1 Oct"},
+        "staging": {"available": true, "detail": "CT chest/abdomen signed · 2 Oct; pelvic MRI not required in this demo"},
+        "cea": {"available": true, "detail": "CEA 3.1 µg/L · 2 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed sigmoid lesion report · 27 Sep"}
+      }
+    },
+    {
+      "id": "CRC-070-03", "name": "Nora Seidel", "age": 58, "sex": "female",
+      "diagnosis": "Ascending colon adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed adenocarcinoma biopsy · 1 Oct"},
+        "mmr": {"available": true, "detail": "Loss of MLH1/PMS2 recorded · signed 2 Oct"},
+        "staging": {"available": true, "detail": "CT chest/abdomen signed · 3 Oct"},
+        "cea": {"available": false, "detail": "No CEA result found; blood draw booked for 7 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed ascending colon lesion report · 29 Sep"}
+      }
+    },
+    {
+      "id": "CRC-070-04", "name": "Martin Keller", "age": 62, "sex": "male",
+      "diagnosis": "Rectal adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed adenocarcinoma biopsy · 28 Sep"},
+        "mmr": {"available": true, "detail": "MMR proficient · signed 30 Sep"},
+        "staging": {"available": true, "detail": "CT chest/abdomen and pelvic MRI signed · 2 Oct"},
+        "cea": {"available": true, "detail": "CEA 4.8 µg/L · 1 Oct"},
+        "colonoscopy": {"available": false, "detail": "Referral mentions colonoscopy, but signed external report is not attached"}
+      }
+    },
+    {
+      "id": "CRC-070-05", "name": "Greta Baumann", "age": 76, "sex": "female",
+      "diagnosis": "Descending colon adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed adenocarcinoma biopsy · 30 Sep"},
+        "mmr": {"available": true, "detail": "MMR proficient · signed 2 Oct"},
+        "staging": {"available": true, "detail": "CT chest/abdomen signed · 3 Oct"},
+        "cea": {"available": true, "detail": "CEA 5.6 µg/L · 2 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed descending colon lesion report · 28 Sep"}
+      }
+    },
+    {
+      "id": "CRC-070-06", "name": "Paul Neumann", "age": 69, "sex": "male",
+      "diagnosis": "Suspected sigmoid cancer · diagnostic review",
+      "results": {
+        "pathology": {"available": false, "detail": "Biopsy received 2 Oct; histology report pending"},
+        "mmr": {"available": false, "detail": "No MMR/MSI report; awaits pathology tissue assessment"},
+        "staging": {"available": true, "detail": "CT chest/abdomen signed · 3 Oct"},
+        "cea": {"available": true, "detail": "CEA 6.4 µg/L · 2 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed suspicious sigmoid lesion report · 1 Oct"}
+      }
+    },
+    {
+      "id": "CRC-070-07", "name": "Sofia Brandt", "age": 53, "sex": "female",
+      "diagnosis": "Rectal adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed adenocarcinoma biopsy · 29 Sep"},
+        "mmr": {"available": true, "detail": "MMR proficient · signed 1 Oct"},
+        "staging": {"available": false, "detail": "CT signed; pelvic MRI booked for 9 Oct, no report yet"},
+        "cea": {"available": true, "detail": "CEA 2.8 µg/L · 2 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed rectal lesion report · 28 Sep"}
+      }
+    },
+    {
+      "id": "CRC-070-08", "name": "Anton Fischer", "age": 80, "sex": "male",
+      "diagnosis": "Caecal adenocarcinoma · initial planning",
+      "results": {
+        "pathology": {"available": true, "detail": "Signed adenocarcinoma biopsy · 27 Sep"},
+        "mmr": {"available": true, "detail": "MMR proficient · signed 30 Sep"},
+        "staging": {"available": true, "detail": "CT chest/abdomen signed · 1 Oct"},
+        "cea": {"available": true, "detail": "CEA 9.1 µg/L · 1 Oct"},
+        "colonoscopy": {"available": true, "detail": "Signed caecal lesion report · 26 Sep"}
+      }
+    }
+  ]
+}
