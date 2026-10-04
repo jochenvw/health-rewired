@@ -128,7 +128,9 @@ export default function TumourBoard() {
         active={step}
         onNav={go}
         guide={<StoryGuide steps={story} current={step} onGo={go} nextLabel={step === 'inspect' ? (busy ? 'Checking sources…' : 'Check sources & draft requests') : step === 'draft' ? 'Review agenda' : undefined} />}
-        toolbar={<><strong>{board?.label ?? 'Loading next week’s board…'}</strong><span className="hx-spacer" /><span>Snapshot: {board?.snapshot_date ?? '—'} · fixed demo week</span></>}
+        toolbar={<><strong>{board?.label ?? 'Loading next week’s board…'}</strong><span className="hx-spacer" /><span>Snapshot: {board?.snapshot_date ?? '—'} · fixed demo week</span>
+          {patient && <button className="hx-btn primary" type="button" disabled={busy} onClick={() => void run()}>{busy ? <><span className="hx-spinner" aria-hidden /> Checking sources…</> : `Review ${patient.name}`}</button>}
+        </>}
       >
         {notice && <div className="tb68-attention" role="status">{notice}</div>}
         {!board && (loadError ? <Panel title="Board unavailable">Could not load the synthetic list. Reload this page to try again.</Panel> : <Working label="Loading synthetic board" />)}
@@ -139,7 +141,7 @@ export default function TumourBoard() {
               <div className="tb68-counts"><strong>{ready} / {board.patients.length}</strong> checklists complete <span>· {board.patients.length - ready} need results</span></div>
             </div>
             <div className="tb68-attention">✓ Available · ✗ Missing or outdated · “Requested – awaiting” never counts as available. Requirements and time windows are illustrative, not clinical guidance.</div>
-            <Panel title="Patients for discussion" actions={
+            {(step === 'list' || step === 'done') && <Panel title="Patients for discussion" actions={
               <label>Show <select value={filter} onChange={(e) => setFilter(e.target.value)}>
                 <option value="all">All patients</option><option value="gaps">Needs results</option><option value="ready">Checklist complete</option>
               </select></label>
@@ -159,7 +161,7 @@ export default function TumourBoard() {
                     </tr>)}</tbody>
                 </table>
               </div>
-            </Panel>
+            </Panel>}
           </section>
           <div className="tb68-detail">
             <Panel title={`${patient.name} · ${patient.id}`} actions={<Pill tone={patient.missing_count ? 'warn' : 'ok'}>{patient.missing_count ? `${patient.missing_count} results need attention` : 'Checklist complete'}</Pill>}>

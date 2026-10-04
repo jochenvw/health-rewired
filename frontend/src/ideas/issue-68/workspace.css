@@ -67,6 +67,7 @@
 .tb68 .hx-nav button:hover, .tb68 .hx-nav button.active { background: var(--cp-surface); }
 .tb68 .hx-toolbar, .tb68 .hx-panel > header, .tb68 .hx-statusbar { background: var(--cp-bg-elevated); color: var(--cp-text); }
 .tb68 .hx-content { padding: 20px 24px; gap: 16px; }
+.tb68 .hx-content > * { min-width: 0; }
 .tb68 .hx-panel > header { padding: 10px 12px; flex-wrap: wrap; }
 .tb68 .hx-panel h3 { font-size: 16px; }
 .tb68 .hx-panel-body { padding: 12px; }
