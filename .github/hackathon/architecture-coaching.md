@@ -45,6 +45,11 @@ Start question comments with:
 
 ### Propose
 
+**Two horizons.** Structure the proposal in two steps that match the prototype switch (see
+[`six-month-horizon.md`](six-month-horizon.md)): first the **six-month** step, built on existing
+systems and the minimal MDT dataset, with what each hospital must provide; then the **future**
+target. List requirements per horizon, per topic and per hospital.
+
 Produce one coherent future architecture, not a catalogue of Azure services. Prefer managed
 services and the simplest design that satisfies the stated constraints. Be explicit about what
 stays at each hospital/site, what crosses organizational boundaries, and where people approve or
