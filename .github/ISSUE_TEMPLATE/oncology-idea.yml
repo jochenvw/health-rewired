@@ -38,12 +38,6 @@ body:
     validations:
       required: true
   - type: textarea
-    id: six_months
-    attributes:
-      label: What could already work in six months?
-      description: With what exists today, for example the minimum dataset for colorectal cancer that UMC Utrecht already defined. Which hospitals would need to provide what?
-      placeholder: "e.g. A readiness check against the minimum dataset before each MDT: which items are present, which hospital still has to deliver them."
-  - type: textarea
     id: ai
     attributes:
       label: Where could AI make this fundamentally better?
@@ -54,6 +48,12 @@ body:
     attributes:
       label: What should remain a human judgment?
       placeholder: "e.g. The treatment recommendation always stays with the MDT."
+  - type: textarea
+    id: six_months
+    attributes:
+      label: What could already work in six months?
+      description: Imagine each hospital only shares the minimal tumour-board dataset (diagnosis, stage, pathology, molecular results, treatments, labs, MDT recommendation, follow-up). Which part of your idea would already help?
+      placeholder: "e.g. The coordinator already sees which items are missing before the meeting, for every colorectal patient, even if the hospitals cannot yet be queried live."
   - type: textarea
     id: other
     attributes:

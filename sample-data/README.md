@@ -11,7 +11,7 @@
 | `patients/<id>.json` | JSON | 103 synthetic oncology patients: demographics, diagnosis, staging, biomarkers, treatments, labs, timeline events |
 | `notes/<id>-*.md` | Markdown | Free-text clinical notes (MDT notes, letters) for extraction/reasoning demos |
 | `trials.csv` | CSV | Synthetic clinical trials with simple eligibility criteria |
-| `minimum-dataset-crc.md` | Markdown | Data definition (no patient data): UMC Utrecht minimum dataset for colorectal cancer, used for the "In six months" horizon |
+| `minimal-mdt-dataset.json` | JSON | Minimal dataset for colorectal tumour boards (UMC Utrecht working list): elements, when they are recorded and where they usually live; used for the six-month horizon |
 | `hospitals.csv` | CSV | Public hospital directory context: location, oncology scope, specialisms, scale and source links |
 
 ## How the app uses it

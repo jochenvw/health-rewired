@@ -5,10 +5,11 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | Agent | When it runs | What it reads here |
 |---|---|---|
 | Idea coach (`.github/workflows/idea-coach.md`) | Issue opened / edited / commented | All files in this folder |
-| Copilot coding agent (`.github/copilot-instructions.md`) | Issue assigned to Copilot | `purpose-and-learnings.md`, `guardrails.md`, `implementation-guidelines.md`, `design-language.md`, `capability-cards.md` |
-| Post-build critic (`.github/workflows/idea-critic.md`) | Copilot finishes a pull request | `purpose-and-learnings.md`, `critic.md`, `guardrails.md`, `clinical-thinking.md` |
+| Copilot coding agent (`.github/copilot-instructions.md`) | Issue assigned to Copilot | `purpose-and-learnings.md`, `guardrails.md`, `implementation-guidelines.md`, `design-language.md`, `capability-cards.md`, `six-month-horizon.md` |
+| Post-build critic (`.github/workflows/idea-critic.md`) | Copilot finishes a pull request | `purpose-and-learnings.md`, `critic.md`, `guardrails.md`, `clinical-thinking.md`, `six-month-horizon.md` |
 | Architecture coach (`.github/workflows/architecture-coach.md`) | Participant marks a live prototype finished | `architecture-coaching.md`, `purpose-and-learnings.md`, `clinical-thinking.md`, `capability-cards.md` |
 | Presentation editor (`.github/workflows/presentation-editor.md`) | Participant replies `/presentation revise` after seeing a deck | `showcase-presentation.md` and the complete issue history |
+| Backpropagation coach (`.github/workflows/backpropagation-coach.md`) | Tech lead replies `/backpropagate` (or `/backpropagate refine` after the demonstration) on a live idea | `backpropagation.md`, `six-month-horizon.md`, `purpose-and-learnings.md`, `clinical-thinking.md`, `guardrails.md` and the transcript comments |
 
 > **Want to change what the hackathon agent considers a good idea? Edit these Markdown files.**
 > No YAML, Python or workflow change is needed. Changes apply on the next agent run after they
@@ -19,7 +20,6 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | File | Purpose |
 |---|---|
 | [`purpose-and-learnings.md`](purpose-and-learnings.md) | **Read first.** Why the hackathon exists, what a good prototype is, lessons learned |
-| [`two-horizons.md`](two-horizons.md) | Every idea in two versions: in six months (minimum dataset, per-hospital readiness) and the moonshot |
 | [`guardrails.md`](guardrails.md) | The gate: override token, oncology scope, ambition, clinical insight, responsibility |
 | [`progressive-ai.md`](progressive-ai.md) | How to push ideas beyond "LLM = chatbot / summarizer" |
 | [`clinical-thinking.md`](clinical-thinking.md) | Questions that pull clinical expertise out of participants |
@@ -30,6 +30,8 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | [`critic.md`](critic.md) | What the post-build critic checks |
 | [`architecture-coaching.md`](architecture-coaching.md) | How a finished prototype becomes a future Azure architecture proposal |
 | [`showcase-presentation.md`](showcase-presentation.md) | How the final issue history becomes an audience-ready PowerPoint |
+| [`six-month-horizon.md`](six-month-horizon.md) | Two horizons in every prototype: what works in six months with only the minimal tumour-board dataset, and the full future |
+| [`backpropagation.md`](backpropagation.md) | How a live prototype plus the work-session transcripts become requirements and work packages |
 
 ## Extending
 

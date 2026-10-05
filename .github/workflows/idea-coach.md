@@ -66,6 +66,8 @@ safe-outputs:
       cross-hospital work, use a distinct issue-local workspace when it better expresses the
       proposal. Keep either approach dense, credible, full of synthetic data and clickable
       interactions; do not change shared shell components or other ideas.
+      Show two horizons with one header switch (In six months / The future), following
+      six-month-horizon.md and sample-data/minimal-mdt-dataset.json.
       Tell the story of the vision: one concrete scenario, guided with StoryGuide, simulated
       behind-the-scenes work with Backstage, ending on the payoff. Every AI wait shows a
       spinner and label immediately (Working / Backstage) – never a frozen screen.

@@ -45,6 +45,13 @@ scenario, step by step, so they understand *how this could actually work*.
    `Backstage` stage spinning until the answer arrives (`holdLast`) and say it can take up to a
    minute.
 
+### Two horizons
+
+The vision alone is not enough to start. Every prototype also shows what is realistic **in six
+months**, when hospitals only deliver the minimal tumour-board dataset: what already works, what is
+greyed out, and what it asks of each hospital. One switch moves between the two. See
+[`six-month-horizon.md`](six-month-horizon.md).
+
 ## 2. The flow (each step must be visible to the participant)
 
 | # | Step | What the participant sees |

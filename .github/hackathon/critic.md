@@ -14,9 +14,6 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 
 ## Failure modes to look for
 
-- The **six-month horizon is missing** or is just a smaller copy of the moonshot: no switch, no
-  minimum-dataset items, no per-hospital readiness, or no honest view of what is still missing
-  (see `two-horizons.md`). Material – ask for a fix.
 - An ambitious idea became a **generic chatbot** or text box.
 - A proposed **tool use** or agent step was omitted or faked with static text.
 - **Generative UI** became plain text output.
@@ -43,6 +40,9 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
   cannot reach the payoff just by following the steps.
 - A wait on the AI or a simulated process shows **no visible activity** (no spinner / `Working`
   / running `Backstage`), so a viewer could think it has hung.
+- The **six-month horizon** is missing or empty (see [`six-month-horizon.md`](six-month-horizon.md)):
+  no `In six months` / `The future` switch, the six-month view does not show which steps are not
+  possible yet, or it claims more than the minimal dataset supports.
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
 
