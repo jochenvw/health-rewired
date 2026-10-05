@@ -34,6 +34,9 @@ would work – then iterate.
 10. Never add complexity merely to appear "agentic".
 11. Bias to action: build fast, clickable prototypes that non-technical clinicians can iterate on.
     Security hardening, instrumentation and other non-functional requirements are not a priority.
+12. Build **two horizons** on one screen, "In six months" and "Moonshot", as described in
+    [`two-horizons.md`](hackathon/two-horizons.md). The six-month view starts from
+    `/sample-data/minimum-dataset-crc.md`.
 
 Detailed build rules: [`.github/hackathon/implementation-guidelines.md`](hackathon/implementation-guidelines.md).
 Visual and interaction rules: [`.github/hackathon/design-language.md`](hackathon/design-language.md).

@@ -14,6 +14,9 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 
 ## Failure modes to look for
 
+- The **six-month horizon is missing** or is just a smaller copy of the moonshot: no switch, no
+  minimum-dataset items, no per-hospital readiness, or no honest view of what is still missing
+  (see `two-horizons.md`). Material – ask for a fix.
 - An ambitious idea became a **generic chatbot** or text box.
 - A proposed **tool use** or agent step was omitted or faked with static text.
 - **Generative UI** became plain text output.

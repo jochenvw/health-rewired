@@ -59,6 +59,13 @@ One or two sentences: who uses it, when in their day, and what gets easier.
    network or operations workspace when that better expresses the idea. Include realistic
    synthetic data and a guided "Next" through the steps.
 
+**Two horizons**
+- *In six months:* the realistic first step with what exists today, starting from the minimum
+  dataset in `/sample-data/minimum-dataset-crc.md`: which items it uses, what each hospital must
+  provide, and how much of the problem that already solves.
+- *Moonshot:* the same storyline when the federated foundation and agents exist.
+  Both are on one screen behind an "In six months" / "Moonshot" switch (see `two-horizons.md`).
+
 **What the assistant does for you**
 - Two to four bullets: what it looks up, what it notices, what it prepares.
 

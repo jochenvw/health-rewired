@@ -53,6 +53,11 @@ click through, react to, and iterate on with you. Speed to something visible bea
    synthetic patient or example and make the main action one obvious button. The `title` and
    `tagline` are read by clinicians – use their words, not internal terms (say "Patients like
    mine who were left out of trials", not "Cohort explorer").
+0a. **Two horizons on one screen.** Read [`two-horizons.md`](two-horizons.md). Put a clearly labelled
+   "In six months" / "Moonshot" switch in the header. The six-month view uses items from
+   `/sample-data/minimum-dataset-crc.md`, shows per hospital what must be provided
+   (available · partly · not yet) and how much of the problem is covered. The moonshot view is the
+   full vision. Same storyline in both; make the difference visible.
 1. **Copilot SDK stays central.** Agent behaviour goes through `backend/app/agent/`, using the
    GitHub Copilot SDK. Add tools in `backend/app/agent/tools.py`; do not call model APIs directly.
 2. **Agentic, not chat.** Prefer an agent that uses tools and renders UI blocks over a chat box.

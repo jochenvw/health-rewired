@@ -19,6 +19,7 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | File | Purpose |
 |---|---|
 | [`purpose-and-learnings.md`](purpose-and-learnings.md) | **Read first.** Why the hackathon exists, what a good prototype is, lessons learned |
+| [`two-horizons.md`](two-horizons.md) | Every idea in two versions: in six months (minimum dataset, per-hospital readiness) and the moonshot |
 | [`guardrails.md`](guardrails.md) | The gate: override token, oncology scope, ambition, clinical insight, responsibility |
 | [`progressive-ai.md`](progressive-ai.md) | How to push ideas beyond "LLM = chatbot / summarizer" |
 | [`clinical-thinking.md`](clinical-thinking.md) | Questions that pull clinical expertise out of participants |

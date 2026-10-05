@@ -38,6 +38,12 @@ body:
     validations:
       required: true
   - type: textarea
+    id: six_months
+    attributes:
+      label: What could already work in six months?
+      description: With what exists today, for example the minimum dataset for colorectal cancer that UMC Utrecht already defined. Which hospitals would need to provide what?
+      placeholder: "e.g. A readiness check against the minimum dataset before each MDT: which items are present, which hospital still has to deliver them."
+  - type: textarea
     id: ai
     attributes:
       label: Where could AI make this fundamentally better?
