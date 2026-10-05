@@ -9,6 +9,7 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | Post-build critic (`.github/workflows/idea-critic.md`) | Copilot finishes a pull request | `purpose-and-learnings.md`, `critic.md`, `guardrails.md`, `clinical-thinking.md` |
 | Architecture coach (`.github/workflows/architecture-coach.md`) | Participant marks a live prototype finished | `architecture-coaching.md`, `purpose-and-learnings.md`, `clinical-thinking.md`, `capability-cards.md` |
 | Presentation editor (`.github/workflows/presentation-editor.md`) | Participant replies `/presentation revise` after seeing a deck | `showcase-presentation.md` and the complete issue history |
+| Backpropagation coach (`.github/workflows/backpropagation-coach.md`) | Tech lead replies `/backpropagate` (or `/backpropagate refine` after the demonstration) on a live idea | `backpropagation.md`, `purpose-and-learnings.md`, `clinical-thinking.md`, `guardrails.md` and the transcript comments |
 
 > **Want to change what the hackathon agent considers a good idea? Edit these Markdown files.**
 > No YAML, Python or workflow change is needed. Changes apply on the next agent run after they
@@ -29,6 +30,7 @@ This folder is the **brain of the hackathon agents**. Every agent in this reposi
 | [`critic.md`](critic.md) | What the post-build critic checks |
 | [`architecture-coaching.md`](architecture-coaching.md) | How a finished prototype becomes a future Azure architecture proposal |
 | [`showcase-presentation.md`](showcase-presentation.md) | How the final issue history becomes an audience-ready PowerPoint |
+| [`backpropagation.md`](backpropagation.md) | How a live prototype plus the work-session transcripts become requirements and work packages |
 
 ## Extending
 

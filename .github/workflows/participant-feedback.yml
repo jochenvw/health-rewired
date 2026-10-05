@@ -22,6 +22,9 @@ jobs:
       !contains(github.event.comment.body, '/architecture') &&
       !contains(github.event.comment.body, 'ready for architecture') &&
       !contains(github.event.comment.body, 'prototype is done') &&
+      !contains(github.event.comment.body, '/backpropagate') &&
+      !contains(github.event.comment.body, '<!-- health-rewired-transcript') &&
+      !contains(github.event.issue.labels.*.name, 'backpropagation-coaching') &&
       !contains(github.event.issue.labels.*.name, 'architecture-coaching') &&
       !contains(github.event.issue.labels.*.name, 'architecture-ready')
     runs-on: ubuntu-latest
