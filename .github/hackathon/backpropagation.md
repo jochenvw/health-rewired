@@ -12,9 +12,9 @@ requirements become candidate work packages.
 ## When it runs
 
 After a live prototype exists (label `preview-ready`) and the participant replies on the idea issue
-with `/backpropagate`. In Munich this happens on Wednesday during the 15:40 break, after
+with `/backpropagate`. In Munich this happens on Wednesday at about 14:05 in the mixed teams, after
 `/architecture` and `/presentation`, so the coach can use the architecture package and every
-recording of the day.
+recording of the day. After the demonstrations, `/backpropagate refine` updates the packages.
 
 It does **not** change the prototype or the architecture. It produces an evidence-backed plan.
 
@@ -93,6 +93,11 @@ proceed.
 Group related requirements into **at most four** candidate work packages. A package must end in
 something another person can inspect, run or review. "Data", "governance" and "technology" are
 themes, not deliverables.
+
+**WP1 is always the six-month version** (see [`six-month-horizon.md`](six-month-horizon.md)):
+deliver and use the minimal tumour-board dataset for this idea. Name the elements it needs, which of
+them are usually free text today, and what each hospital must do. The other packages close the gap
+between six months and the future.
 
 Prefer packages that are shared across applications. When a requirement only applies to this idea,
 say so.

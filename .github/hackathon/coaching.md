@@ -65,6 +65,11 @@ One or two sentences: who uses it, when in their day, and what gets easier.
 **What stays with you**
 - One to three bullets: the decisions and approvals that stay with people.
 
+**In six months**
+Two or three sentences: what this idea can already do when each hospital only delivers the
+minimal tumour-board dataset (see six-month-horizon.md), which steps are not possible yet, and the
+main thing it asks of each hospital. The prototype shows both versions with a switch.
+
 **Kept for later**
 - One or two bullets on what this first version deliberately leaves out, so it can be ready fast.
 

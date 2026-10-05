@@ -60,6 +60,8 @@ consortium, for it to work for real?
 Read these files from the checked-out repository:
 
 - `.github/hackathon/backpropagation.md` – your complete coaching and output policy
+- `.github/hackathon/six-month-horizon.md` – the six-month version, which is always WP1
+- `sample-data/minimal-mdt-dataset.json` – the minimal tumour-board dataset
 - `.github/hackathon/purpose-and-learnings.md` – the participant journey and prototype intent
 - `.github/hackathon/clinical-thinking.md` – clinical questions and responsibility boundaries
 - `.github/hackathon/guardrails.md` – responsibility, synthetic data and human decision boundaries

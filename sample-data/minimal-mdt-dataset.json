@@ -1,0 +1,568 @@
+{
+ "synthetic": true,
+ "title": "Minimal dataset for colorectal cancer tumour boards (UMC Utrecht working list)",
+ "source": "Working list shared by the UMC Utrecht team (via Patrick) for the Munich hackathon, translated from Dutch. Not yet an agreed consortium standard.",
+ "scope": "Colorectal cancer, including metastatic CRC (mCRC). Generic elements (patient characteristics, labs, MDT, treatment, follow-up) carry over to other tumour types; tumour-specific pathology and molecular elements do not.",
+ "how_to_read": {
+  "recorded": "'once' = relevant once per patient; 'repeatedly' = relevant at each moment listed",
+  "likely_source": "Hackathon assumption about where the element usually lives today, to be checked per hospital. 'structured' = coded field in EHR, lab or prescribing system; 'report text' = inside a pathology, radiology or endoscopy report; 'MDT form' = recorded at the tumour board, often free text; 'patient / clinic note' = in clinic notes or from the patient; 'derived' = calculated from other elements."
+ },
+ "groups": [
+  {
+   "group": "Patient and tumour characteristics",
+   "recorded": "once",
+   "elements": [
+    {
+     "name": "Age",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Sex",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Date of tumour diagnosis",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Height",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Medical history",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Charlson Comorbidity Index (CCI) score",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Education level (proxy for socio-economic status)",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Postcode area (proxy for socio-economic status; the Netherlands Cancer Registry uses income per postcode area)",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Ethnicity",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Treating hospital",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Family history",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Smoking and alcohol use",
+     "likely_source": "patient / clinic note"
+    }
+   ]
+  },
+  {
+   "group": "Tumour",
+   "recorded": "once",
+   "elements": [
+    {
+     "name": "How the tumour was diagnosed",
+     "likely_source": "report text"
+    },
+    {
+     "name": "How metastases were diagnosed",
+     "likely_source": "report text"
+    },
+    {
+     "name": "cTNM",
+     "likely_source": "report text"
+    },
+    {
+     "name": "pTNM",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Time between primary diagnosis and first metastasis",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Endoscopy report",
+     "likely_source": "report text"
+    }
+   ]
+  },
+  {
+   "group": "Pathology",
+   "recorded": "once",
+   "elements": [
+    {
+     "name": "Topography",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Morphology",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Grade of differentiation",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Extramural invasion",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Lymphatic invasion",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Venous invasion",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Tumour budding",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Distance to mesorectal fascia",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Second primary tumour present",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Perforation present",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Full pathology report (PALGA in the Netherlands)",
+     "likely_source": "report text"
+    }
+   ]
+  },
+  {
+   "group": "Molecular",
+   "recorded": "once",
+   "elements": [
+    {
+     "name": "Non-metastatic CRC: MSI",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: BRAF",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: RAS",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: MSI",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: HER2",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: NGS panel",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: UGT1A1 variant",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: DPYD genotyping",
+     "likely_source": "structured"
+    },
+    {
+     "name": "mCRC: NTRK fusion",
+     "likely_source": "report text"
+    },
+    {
+     "name": "mCRC: whole-genome sequencing",
+     "likely_source": "report text"
+    }
+   ]
+  },
+  {
+   "group": "Treatment",
+   "recorded": "once",
+   "elements": [
+    {
+     "name": "Reason no tumour-directed treatment was given",
+     "likely_source": "MDT form"
+    },
+    {
+     "name": "Pre- or postoperative systemic therapy",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Time from primary diagnosis to start of systemic therapy",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Surgery yes/no",
+     "likely_source": "structured"
+    },
+    {
+     "name": "HIPEC yes/no",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Time from primary diagnosis to surgery",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Type and schedule of radiotherapy",
+     "likely_source": "structured"
+    }
+   ]
+  },
+  {
+   "group": "Quality indicators",
+   "recorded": "once",
+   "elements": [
+    {
+     "name": "Radicality of resection (R0/R1/R2)",
+     "likely_source": "report text"
+    }
+   ]
+  },
+  {
+   "group": "Patient characteristics",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "WHO performance status",
+     "likely_source": "patient / clinic note",
+     "moments": "at diagnosis; before each treatment regimen"
+    },
+    {
+     "name": "Weight",
+     "likely_source": "structured",
+     "moments": "at diagnosis; before each treatment regimen"
+    },
+    {
+     "name": "Current medication",
+     "likely_source": "structured",
+     "moments": "at diagnosis; before each treatment regimen"
+    }
+   ]
+  },
+  {
+   "group": "Tumour over time",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Location of metastases",
+     "likely_source": "report text",
+     "moments": "each time"
+    },
+    {
+     "name": "Imaging result (e.g. CT thorax-abdomen)",
+     "likely_source": "report text",
+     "moments": "staging; baseline before systemic therapy; at progression; before local treatment; every response evaluation"
+    },
+    {
+     "name": "MRI pelvis result (rectal cancer)",
+     "likely_source": "report text",
+     "moments": "initial local staging; after neoadjuvant therapy (restaging / preoperative); suspected local recurrence"
+    },
+    {
+     "name": "MRI liver result (resectable liver metastases)",
+     "likely_source": "report text",
+     "moments": "staging of CRC with liver metastases; before local treatment of liver metastases"
+    },
+    {
+     "name": "Pathological response after neoadjuvant therapy",
+     "likely_source": "report text",
+     "moments": "after neoadjuvant therapy"
+    },
+    {
+     "name": "Local recurrence yes/no",
+     "likely_source": "report text",
+     "moments": "each time"
+    }
+   ]
+  },
+  {
+   "group": "Lab",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Full blood count",
+     "likely_source": "structured",
+     "moments": "at diagnosis; with grade 3-4 toxicity"
+    },
+    {
+     "name": "Renal function",
+     "likely_source": "structured",
+     "moments": "at diagnosis"
+    },
+    {
+     "name": "Liver function",
+     "likely_source": "structured",
+     "moments": "at diagnosis; with grade 3-4 toxicity"
+    },
+    {
+     "name": "Albumin",
+     "likely_source": "structured",
+     "moments": "at diagnosis"
+    },
+    {
+     "name": "CEA",
+     "likely_source": "structured",
+     "moments": "curative setting: at diagnosis; mCRC: every measurement"
+    },
+    {
+     "name": "LDH",
+     "likely_source": "structured",
+     "moments": "at diagnosis"
+    }
+   ]
+  },
+  {
+   "group": "Tumour board (MDT)",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "MDT conclusion",
+     "likely_source": "MDT form",
+     "moments": "every MDT"
+    },
+    {
+     "name": "MDT treatment recommendation",
+     "likely_source": "MDT form",
+     "moments": "every MDT"
+    },
+    {
+     "name": "Is the recommendation in line with the guideline?",
+     "likely_source": "MDT form",
+     "moments": "every MDT"
+    },
+    {
+     "name": "Was the recommendation followed in the treatment actually given?",
+     "likely_source": "derived",
+     "moments": "every MDT"
+    },
+    {
+     "name": "Reason for deviating from guideline or MDT recommendation",
+     "likely_source": "MDT form",
+     "moments": "when it happens"
+    },
+    {
+     "name": "Goal of treatment",
+     "likely_source": "MDT form",
+     "moments": "every MDT"
+    }
+   ]
+  },
+  {
+   "group": "Treatment in general",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Tumour-directed treatment given yes/no",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Systemic therapy regimen",
+     "likely_source": "structured",
+     "moments": "every regimen; de-escalations; escalations; restart after a treatment break"
+    },
+    {
+     "name": "Duration of systemic therapy per individual drug",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Local liver treatment (RFA / MWA / metastasectomy / wedge excision)",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Radiotherapy yes/no",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Patient's treatment preference",
+     "likely_source": "patient / clinic note",
+     "moments": "when it changes during the treatment pathway"
+    },
+    {
+     "name": "Treatment goal per treatment",
+     "likely_source": "MDT form",
+     "moments": "at primary diagnosis"
+    },
+    {
+     "name": "Clinical trials discussed",
+     "likely_source": "MDT form"
+    }
+   ]
+  },
+  {
+   "group": "Systemic therapy",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Reason for starting systemic therapy",
+     "likely_source": "MDT form"
+    },
+    {
+     "name": "Planned number of cycles",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Starting dose: full or reduced",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Dose reduction during treatment",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Reason for dose reduction (toxicity, progression, other)",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Toxicity grade 3 or higher during treatment",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Reason for stopping (progression, toxicity, drug holiday)",
+     "likely_source": "patient / clinic note"
+    }
+   ]
+  },
+  {
+   "group": "Radiotherapy",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Reason for starting radiotherapy",
+     "likely_source": "MDT form"
+    },
+    {
+     "name": "Radiotherapy stopped early",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Reason radiotherapy stopped early",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Toxicity during radiotherapy",
+     "likely_source": "patient / clinic note"
+    },
+    {
+     "name": "Duration of radiotherapy",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Planned number of fractions",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Reason for stopping (progression, toxicity, drug holiday)",
+     "likely_source": "patient / clinic note"
+    }
+   ]
+  },
+  {
+   "group": "Follow-up",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Overall survival",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Time to treatment failure",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Progression-free survival",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Recurrence yes/no",
+     "likely_source": "report text"
+    }
+   ]
+  },
+  {
+   "group": "Quality indicators over time",
+   "recorded": "repeatedly",
+   "elements": [
+    {
+     "name": "Treatment according to guideline yes/no",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Hospital admission due to toxicity",
+     "likely_source": "structured"
+    },
+    {
+     "name": "Waiting time from referral to first outpatient visit",
+     "likely_source": "derived"
+    },
+    {
+     "name": "Complicated course if admitted",
+     "likely_source": "report text"
+    },
+    {
+     "name": "Reason for deviating from guideline",
+     "likely_source": "MDT form"
+    }
+   ]
+  }
+ ],
+ "medical_summary": {
+  "description": "The medical summary a clinician expects to see for each patient, built from the elements above.",
+  "items": [
+   "Medical history",
+   "Comorbidities",
+   "Hospital admissions during treatment",
+   "Tumour stage",
+   "Date of diagnosis",
+   "Date of resection",
+   "Stage at primary diagnosis",
+   "Primary tumour in situ",
+   "MSI",
+   "BRAF",
+   "RAS",
+   "Points of attention",
+   "Current treatment modality with start date",
+   "Start and stop of each systemic therapy",
+   "Start and stop of each radiotherapy",
+   "Dates of local treatments (primary resection, metastasectomies, ablations, radiotherapy)",
+   "Response to systemic therapy",
+   "Response to radiotherapy",
+   "Surgical radicality (R0, R1, R2)",
+   "Dose reduction of systemic therapy",
+   "Reason for dose reduction",
+   "Reason for switching or stopping systemic therapy",
+   "Reason for switching or stopping radiotherapy",
+   "Toxicity of systemic therapy",
+   "Toxicity of radiotherapy",
+   "Dates of disease progression",
+   "Dates of disease recurrence",
+   "Current medication",
+   "CEA at start",
+   "DPYD deficiency",
+   "UGT1A1 variant",
+   "Radiotherapy stopped early"
+  ]
+ },
+ "not_in_minimal_dataset": [
+  "The images themselves (CT, MRI, whole-slide pathology) - only the report results are in scope",
+  "Live queries across hospitals during a consultation",
+  "Cross-hospital trial matching with detailed eligibility",
+  "Training or validating AI models across hospitals",
+  "Continuous patient-reported outcomes and wearable data",
+  "Writing back into a hospital's EHR or MDT system",
+  "Tumour types other than colorectal (generic elements carry over; tumour-specific ones are not defined yet)"
+ ]
+}

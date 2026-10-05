@@ -106,14 +106,19 @@ click through, react to, and iterate on with you. Speed to something visible bea
    - **No doubt while waiting.** Every AI call or simulated process shows a spinner and a label
      at once – in the clicked button and in the result area (`Working` with elapsed seconds, or a
      running `Backstage` with `holdLast` until the AI answers). Never a frozen or empty screen.
-8. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
+8. **Two horizons with one switch.** Follow [`six-month-horizon.md`](six-month-horizon.md): a
+   labelled `In six months` / `The future` control in the header, the same storyline in both,
+   steps outside the minimal dataset greyed out with a reason, a coverage panel based on
+   `/sample-data/minimal-mdt-dataset.json`, and what each hospital must do. Open on `The future`.
+   Keep it in the idea's own page; local state is enough.
+9. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
    abstraction layers.
-9. **No new infrastructure.** No databases, queues, extra services or containers. One container.
+10. **No new infrastructure.** No databases, queues, extra services or containers. One container.
    File-based sample data is enough.
-10. **Keep the existing stack**: FastAPI + uv, React + TypeScript + Vite.
-11. **Must work without a Copilot token.** When the SDK is not configured, show a clear message and
+11. **Keep the existing stack**: FastAPI + uv, React + TypeScript + Vite.
+12. **Must work without a Copilot token.** When the SDK is not configured, show a clear message and
     a meaningful demo path (for example the deterministic fallback), not a crash.
-12. **Tests.** Add one small backend smoke test for new API or tool behaviour. Run
+13. **Tests.** Add one small backend smoke test for new API or tool behaviour. Run
     `npm run lint` and `npm test` from the repository root before finishing.
 
 ## Capability manifest (required)

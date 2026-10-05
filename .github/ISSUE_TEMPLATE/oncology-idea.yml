@@ -49,6 +49,12 @@ body:
       label: What should remain a human judgment?
       placeholder: "e.g. The treatment recommendation always stays with the MDT."
   - type: textarea
+    id: six_months
+    attributes:
+      label: What could already work in six months?
+      description: Imagine each hospital only shares the minimal tumour-board dataset (diagnosis, stage, pathology, molecular results, treatments, labs, MDT recommendation, follow-up). Which part of your idea would already help?
+      placeholder: "e.g. The coordinator already sees which items are missing before the meeting, for every colorectal patient, even if the hospitals cannot yet be queried live."
+  - type: textarea
     id: other
     attributes:
       label: Anything else we should know?

@@ -40,6 +40,9 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
   cannot reach the payoff just by following the steps.
 - A wait on the AI or a simulated process shows **no visible activity** (no spinner / `Working`
   / running `Backstage`), so a viewer could think it has hung.
+- The **six-month horizon** is missing or empty (see [`six-month-horizon.md`](six-month-horizon.md)):
+  no `In six months` / `The future` switch, the six-month view does not show which steps are not
+  possible yet, or it claims more than the minimal dataset supports.
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
 
