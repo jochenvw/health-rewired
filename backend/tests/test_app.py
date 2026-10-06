@@ -57,6 +57,51 @@ def test_runner_uses_fallback_when_not_configured(monkeypatch):
     assert result.mode == "fallback"
 
 
+@pytest.mark.parametrize("restricted", [False, True])
+def test_runner_can_exclude_original_data_tools(monkeypatch, restricted):
+    import asyncio
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(settings, "copilot_token", None)
+    monkeypatch.setattr(settings, "copilot_use_logged_in_user", True)
+    captured = {}
+
+    async def send_and_wait(*args, **kwargs):
+        pass
+
+    @asynccontextmanager
+    async def session():
+        yield SimpleNamespace(on=lambda callback: None, send_and_wait=send_and_wait)
+
+    async def create_session(**kwargs):
+        captured.update(kwargs)
+        return session()
+
+    async def get_client():
+        return SimpleNamespace(create_session=create_session)
+
+    monkeypatch.setattr(runner, "_get_client", get_client)
+    extra = SimpleNamespace(name="reviewed_only")
+    kwargs = {"include_data_tools": False} if restricted else {}
+    result = asyncio.run(
+        runner.run_agent(
+            runner.AgentRequest(task="Review synthetic facts"),
+            extra_tools=[extra],
+            **kwargs,
+        )
+    )
+    assert result.mode == "copilot"
+    available = set(captured["available_tools"])
+    assert {"render_ui", "reviewed_only"} <= available
+    assert available == {tool.name for tool in captured["tools"]}
+    original_data = {tool.name for tool in runner.DATA_TOOLS}
+    if restricted:
+        assert not available & original_data
+    else:
+        assert original_data <= available
+
+
 def test_unescape_restores_double_escaped_unicode():
     from app.agent.runner import _unescape
 

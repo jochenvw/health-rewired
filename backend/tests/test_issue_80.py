@@ -105,6 +105,9 @@ def test_corrections_select_pathways_and_resolve_conflicts(client):
     assert "On hold" in unfit["recommendations"][0]["status"]
     other_histology = prepare(client, fields={**corrections, "histology": "Lymphoma"})
     assert "On hold" in other_histology["recommendations"][0]["status"]
+    for histology in ("Not adenocarcinoma; lymphoma", "Adenocarcinoma unconfirmed", "No evidence of adenocarcinoma"):
+        unconfirmed = prepare(client, fields={**corrections, "histology": histology})
+        assert all("On hold" in r["status"] for r in unconfirmed["recommendations"])
     contradictory = prepare(client, fields={**corrections, "stage": "cT3N0M1"})
     assert any(c["option"] == "Staging pathway" for c in contradictory["conflicts"])
     ambiguous = prepare(client, fields={**corrections, "ct": "Report unavailable", "mmr": "MMR negative"})
@@ -146,6 +149,7 @@ def test_six_month_masking_also_masks_documents_and_submitted_overrides(client, 
     assert "SECRET-" not in text
     assert "piano" not in text and "hypersensitivity during" not in text
     assert "SECRET-" not in captured["prompt"]
+    assert captured["include_data_tools"] is False
     assert len(captured["extra_tools"]) == 3
     assert len(body["conflicts"]) == 1  # neuropathy remains; do not reconstruct excluded facts
     assert any("Outside minimal" in m["status"] for m in body["missing"])
@@ -167,6 +171,7 @@ def test_six_month_masking_also_masks_documents_and_submitted_overrides(client, 
 
 def test_sdk_result_and_read_only_tools_used(client, monkeypatch):
     async def fake_agent(request, **kwargs):
+        assert kwargs["include_data_tools"] is False
         tools = kwargs["extra_tools"]
         assert {t.name for t in tools} == {
             "issue80_reviewed_facts",

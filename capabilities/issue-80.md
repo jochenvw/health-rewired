@@ -29,6 +29,10 @@ Before review, extraction only: no SDK and empty matching arrays. After review t
 uses three read-only issue-local tools for effective facts, fictional excerpt retrieval and deterministic
 conditional matching, then `render_ui`. A case-specific deterministic demo replaces generic fallback.
 Top-level matching remains deterministic even when the SDK is configured.
+The runner's backwards-compatible `include_data_tools=False` option excludes shared original-record
+tools for this idea: the session can only read the effective facts, excerpts and matching results.
+Histology applicability conservatively requires an affirmative adenocarcinoma phrase; negated or
+unconfirmed corrections hold the toy pathways for clinician review.
 
 ## Inputs
 Synthetic cT3N0Mx adenocarcinoma, CT/MMR pending, ECOG 1, neuropathy, historical oxaliplatin

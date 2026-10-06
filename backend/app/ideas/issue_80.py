@@ -185,7 +185,13 @@ def match_reviewed(record: dict, horizon: str) -> dict:
             }
         )
     recommendations = []
-    histology_ok = "adenocarcinoma" in facts["histology"] and not unresolved(facts["histology"])
+    histology_ok = bool(
+        re.fullmatch(
+            r"(?:colorectal |colon |sigmoid |well differentiated |moderately differentiated |poorly differentiated )*"
+            r"adenocarcinoma",
+            facts["histology"],
+        )
+    )
     performance = re.search(r"\b([0-4])\b", facts["ecog"])
     performance_review = performance is None or int(performance[1]) >= 3
     for excerpt in sample_data.read("issue-80/guidelines.json")["excerpts"]:
@@ -318,6 +324,7 @@ async def prepare(request: PrepareRequest) -> dict:
     result = match_reviewed(record, request.horizon)
     agent = await run_agent(
         AgentRequest(task="Prepare conditional fictional MDT discussion after clinician review"),
+        include_data_tools=False,
         system_prompt=(
             "You prepare issue 80's synthetic case for human MDT discussion, not treatment advice. "
             "Use only issue80_reviewed_facts, issue80_retrieve_excerpt and issue80_match_reviewed; "
