@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, type AgentResult } from '../../api';
+import { Backstage, type Stage } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './trust.css';
 
@@ -43,10 +44,10 @@ const sources = [
 ];
 
 const story = [
-  { id: 'question' as const, title: 'Compare two hospitals', description: 'A researcher asks whether procedure volume relates to patient outcome.' },
-  { id: 'evidence' as const, title: 'Inspect the count', description: 'Six records show 30, but several copies come from the same source.' },
-  { id: 'rule' as const, title: 'Review the local rule', description: 'A simulated data manager explains why two procedures were included.' },
-  { id: 'analysis' as const, title: 'Carry uncertainty through', description: 'Compare the result from raw values with 500 plausible datasets.' },
+  { id: 'question' as const, title: 'Compare two hospitals', description: 'A researcher asks whether procedure volume relates to patient outcome.', nextPrompt: 'Open Hospital A’s evidence to see why 30 needs a closer look.' },
+  { id: 'evidence' as const, title: 'Inspect the count', description: 'Six records show 30, but several copies come from the same source.', nextPrompt: 'Ask the simulated data manager why Hospital A includes those cases.' },
+  { id: 'rule' as const, title: 'Review the local rule', description: 'A simulated data manager explains why two procedures were included.', nextPrompt: 'Review and approve or dismiss the candidate rule before comparing results.' },
+  { id: 'analysis' as const, title: 'Carry uncertainty through', description: 'Compare the result from raw values with 500 plausible datasets.', nextPrompt: 'Run both analyses below: compare the apparent 18% reduction with the uncertainty-aware estimate and interval.' },
 ];
 
 function randomGenerator(seed: number) {
@@ -106,6 +107,8 @@ export default function DataTrust() {
   const [ruleText, setRuleText] = useState('Procedure Y + additional bowel resection → counted locally as X');
   const [naiveResult, setNaiveResult] = useState(false);
   const [uncertaintyResult, setUncertaintyResult] = useState<ReturnType<typeof simulateAnalysis> | null>(null);
+  const [analysisStarted, setAnalysisStarted] = useState(false);
+  const [analysisRuns, setAnalysisRuns] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [minimalDataset, setMinimalDataset] = useState<MinimalDataset | null>(null);
   const analysisCountsA = ruleStatus === 'approved' ? approvedHospitalACounts : reportedHospitalACounts;
@@ -145,14 +148,66 @@ export default function DataTrust() {
   };
 
   const runUncertaintyAnalysis = () => {
+    setAnalysisStarted(true);
+    setAnalysisRuns((runs) => runs + 1);
     setAnalysisLoading(true);
     window.setTimeout(() => {
       setUncertaintyResult(simulateAnalysis(ruleStatus === 'approved'));
       setAnalysisLoading(false);
-    }, 350);
+    }, 2600);
   };
 
   const managerNarrative = managerResult?.mode === 'copilot' ? agentText(managerResult) : '';
+  const managerToolCalled = managerResult?.trace.some((item) => item.tool === 'ask_local_data_manager') ?? false;
+  const managerResponseAvailable = Boolean(managerResult || managerError);
+  const managerStages: Stage[] = [
+    {
+      label: 'Call ask_local_data_manager',
+      detail: managerResponseAvailable
+        ? managerToolCalled
+          ? 'Copilot SDK trace confirms the simulated manager tool call.'
+          : managerResult?.mode === 'copilot'
+            ? 'The SDK response did not include this tool in its trace; the fixed synthetic manager answer is shown.'
+            : 'No SDK tool call was available; the fixed synthetic demo response is shown.'
+        : 'Waiting for the SDK response or deterministic demo fallback.',
+      ms: 650,
+    },
+    {
+      label: 'Read the manager’s reply',
+      detail: managerResponseAvailable
+        ? '“We count procedure Y as X when an additional bowel resection is performed.”'
+        : 'Waiting for the synthetic manager’s answer.',
+      ms: 650,
+    },
+    {
+      label: 'Extract a candidate local rule',
+      detail: managerResponseAvailable ? `${ruleText} · two reported cases affected · awaiting your approval` : 'The candidate is not applied until you approve it.',
+    },
+  ];
+  const scoreRules = dimensions.map((item) => `${item.label} ${item.weight * 100}% × ${item.rating}`).join(' · ');
+  const analysisStages: Stage[] = [
+    {
+      label: 'Apply the fixed, deterministic trust-score rules',
+      detail: `${scoreRules} → ${trustScore}/100. The score does not change during analysis.`,
+      ms: 650,
+    },
+    {
+      label: 'Keep assessment confidence separate',
+      detail: 'Confidence 92/100 describes assessment completeness; it is not included in the trust score.',
+      ms: 650,
+    },
+    {
+      label: 'Sample discrete procedure counts',
+      detail: `Draw from Hospital A and B count distributions for 500 synthetic iterations. ${ruleStatus === 'approved' ? 'Hospital A’s approved shared definition is applied.' : 'No candidate rule is applied.'}`,
+      ms: 650,
+    },
+    {
+      label: 'Re-run the comparison and calculate the interval',
+      detail: uncertaintyResult
+        ? `${uncertaintyResult.estimate}% estimated reduction · 95% interval ${uncertaintyResult.lower}% to ${uncertaintyResult.upper}%.`
+        : 'Recalculate the outcome estimate across all 500 plausible datasets.',
+    },
+  ];
 
   return (
     <div className="dt-workspace" data-theme={theme}>
@@ -198,6 +253,7 @@ export default function DataTrust() {
           <div className="dt-story-current">
             <span className="dt-eyebrow">GUIDED REVIEW · STEP {currentIndex + 1} OF {story.length}</span>
             <p>{story[currentIndex].description}</p>
+            <div className="dt-next-prompt"><span className="dt-eyebrow">WHAT TO DO NEXT</span><span>{story[currentIndex].nextPrompt}</span></div>
             <div className="dt-story-actions">
               {currentIndex > 0 && <button type="button" className="dt-button" onClick={() => setStep(story[currentIndex - 1].id)}>← Back</button>}
               {currentIndex < story.length - 1 && <button type="button" className="dt-button dt-primary" onClick={() => setStep(story[currentIndex + 1].id)}>Next: {story[currentIndex + 1].title} →</button>}
@@ -319,7 +375,18 @@ export default function DataTrust() {
             ) : (
               <>
                 {!managerAsked && <div className="dt-manager-prompt"><p>Ask the simulated Hospital A data manager why procedure Y is included in the qualifying count.</p><button type="button" className="dt-button dt-primary" disabled={managerLoading} onClick={askManager}>{managerLoading ? <><span className="dt-spinner" /> Asking the simulated manager…</> : 'Ask the local data manager'}</button></div>}
-                {managerLoading && <div className="dt-working" role="status"><span className="dt-spinner" /> Asking the synthetic data manager and preparing a candidate rule. Copilot answers can take up to a minute.</div>}
+                {managerAsked && <Backstage
+                  title="Behind the scenes · manager interview"
+                  stages={managerStages}
+                  running
+                  holdLast
+                  release={!managerLoading}
+                  note={managerError
+                    ? 'The assistant did not return a usable answer. The fixed synthetic manager reply is shown; nothing is applied without your approval.'
+                    : managerResult?.mode === 'fallback'
+                    ? 'Demo mode: the Copilot SDK is not configured. This uses the fixed synthetic manager reply; nothing is applied without your approval.'
+                    : 'The Copilot SDK retrieves and extracts evidence; it cannot approve the proposed rule.'}
+                />}
                 {managerAsked && !managerLoading && (
                   <div className="dt-manager-result">
                     <div className="dt-manager-quote"><span className="dt-eyebrow">SIMULATED DATA MANAGER · HOSPITAL A</span><blockquote>“We count procedure Y as X when an additional bowel resection is performed.”</blockquote><small>Interview record · synthetic · 06 Oct 2026</small></div>
@@ -362,7 +429,15 @@ export default function DataTrust() {
               <div><p className="dt-eyebrow">HOSPITAL B · DISCRETE COUNT</p>{hospitalBCounts.map(([count, probability]) => <div className="dt-probability" key={count}><span>{count} procedures</span><div><i style={{ width: `${probability * 100}%` }} /></div><strong>{probability * 100}%</strong></div>)}</div>
               <p>Discrete synthetic counts, not a normal distribution. A's proposed definition changes the count distribution only after you approve it.</p>
             </div>
-            {analysisLoading && <div className="dt-working" role="status"><span className="dt-spinner" /> Sampling plausible procedure counts and rerunning the comparison across 500 synthetic datasets.</div>}
+            {analysisStarted && <Backstage
+              key={analysisRuns}
+              title="Behind the scenes · uncertainty-aware analysis"
+              stages={analysisStages}
+              running
+              holdLast
+              release={!analysisLoading}
+              note="The trust score uses fixed code and visible weights. The analysis samples data uncertainty; the assistant does not change either."
+            />}
             {(naiveResult || uncertaintyResult) ? <div className="dt-results-grid">
               {naiveResult && <article className="dt-result-card">
                 <p className="dt-eyebrow">NAIVE · RECORDED VALUES TREATED AS EXACT</p><strong>18% lower mortality</strong>
