@@ -29,7 +29,8 @@ const dimensions = [
   { label: 'Evidence completeness', weight: 0.08, rating: 15, note: 'The OR log and pathology record disagree with the reported count.' },
 ];
 const trustScore = Math.round(dimensions.reduce((total, item) => total + item.weight * item.rating, 0));
-const hospitalACounts: [number, number][] = [[27, 0.1], [28, 0.35], [29, 0.35], [30, 0.2]];
+const reportedHospitalACounts: [number, number][] = [[28, 0.1], [29, 0.15], [30, 0.55], [31, 0.2]];
+const approvedHospitalACounts: [number, number][] = [[27, 0.1], [28, 0.35], [29, 0.35], [30, 0.2]];
 const hospitalBCounts: [number, number][] = [[28, 0.12], [29, 0.64], [30, 0.24]];
 
 const sources = [
@@ -66,13 +67,15 @@ function sampleCount(random: () => number, options: [number, number][]) {
   return options[options.length - 1][0];
 }
 
-function simulateAnalysis(): { estimate: number; lower: number; upper: number } {
+function simulateAnalysis(applySharedDefinition: boolean): { estimate: number; lower: number; upper: number } {
   const random = randomGenerator(20261006);
+  const hospitalACounts = applySharedDefinition ? approvedHospitalACounts : reportedHospitalACounts;
+  const hospitalAMean = applySharedDefinition ? 28.65 : 29.85;
   const estimates = Array.from({ length: 500 }, () => {
     const countA = sampleCount(random, hospitalACounts);
     const countB = sampleCount(random, hospitalBCounts);
     const normal = Math.sqrt(-2 * Math.log(Math.max(random(), 0.0001))) * Math.cos(2 * Math.PI * random());
-    return 10 + (countA - 28.65) * 3 + (countB - 29.12) * -2 + normal * 5.8;
+    return 10 + (countA - hospitalAMean) * 3 + (countB - 29.12) * -2 + normal * 5.8;
   }).sort((a, b) => a - b);
   const average = estimates.reduce((sum, estimate) => sum + estimate, 0) / estimates.length;
   return {
@@ -105,6 +108,7 @@ export default function DataTrust() {
   const [uncertaintyResult, setUncertaintyResult] = useState<ReturnType<typeof simulateAnalysis> | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [minimalDataset, setMinimalDataset] = useState<MinimalDataset | null>(null);
+  const analysisCountsA = ruleStatus === 'approved' ? approvedHospitalACounts : reportedHospitalACounts;
 
   const currentIndex = story.findIndex((item) => item.id === step);
   useEffect(() => {
@@ -143,7 +147,7 @@ export default function DataTrust() {
   const runUncertaintyAnalysis = () => {
     setAnalysisLoading(true);
     window.setTimeout(() => {
-      setUncertaintyResult(simulateAnalysis());
+      setUncertaintyResult(simulateAnalysis(ruleStatus === 'approved'));
       setAnalysisLoading(false);
     }, 350);
   };
@@ -354,9 +358,9 @@ export default function DataTrust() {
               <button type="button" className="dt-button dt-primary" disabled={analysisLoading} onClick={runUncertaintyAnalysis}>{analysisLoading ? <><span className="dt-spinner" /> Running 500 plausible datasets…</> : 'Run uncertainty-aware analysis'}</button>
             </div>
             <div className="dt-distributions">
-              <div><p className="dt-eyebrow">HOSPITAL A · DISCRETE COUNT</p>{hospitalACounts.map(([count, probability]) => <div className="dt-probability" key={count}><span>{count} procedures</span><div><i style={{ width: `${probability * 100}%` }} /></div><strong>{probability * 100}%</strong></div>)}</div>
+              <div><p className="dt-eyebrow">HOSPITAL A · {ruleStatus === 'approved' ? 'SHARED RULE APPROVED' : 'RULE NOT APPLIED'}</p>{analysisCountsA.map(([count, probability]) => <div className="dt-probability" key={count}><span>{count} procedures</span><div><i style={{ width: `${probability * 100}%` }} /></div><strong>{probability * 100}%</strong></div>)}</div>
               <div><p className="dt-eyebrow">HOSPITAL B · DISCRETE COUNT</p>{hospitalBCounts.map(([count, probability]) => <div className="dt-probability" key={count}><span>{count} procedures</span><div><i style={{ width: `${probability * 100}%` }} /></div><strong>{probability * 100}%</strong></div>)}</div>
-              <p>These plausible counts are sampled as discrete values, not assumed to follow a normal distribution. They are synthetic demonstration weights.</p>
+              <p>Discrete synthetic counts, not a normal distribution. A's proposed definition changes the count distribution only after you approve it.</p>
             </div>
             {analysisLoading && <div className="dt-working" role="status"><span className="dt-spinner" /> Sampling plausible procedure counts and rerunning the comparison across 500 synthetic datasets.</div>}
             {(naiveResult || uncertaintyResult) ? <div className="dt-results-grid">
@@ -366,7 +370,7 @@ export default function DataTrust() {
               </article>}
               {uncertaintyResult && <article className="dt-result-card dt-result-aware">
                 <p className="dt-eyebrow">UNCERTAINTY-AWARE · 500 MONTE CARLO RUNS</p><strong>{uncertaintyResult.estimate}% lower mortality</strong>
-                <p>95% uncertainty interval: {uncertaintyResult.lower}% to {uncertaintyResult.upper}%. The interval includes no effect.</p><span className="dt-status dt-success">Uncertainty carried into result</span>
+                <p>95% uncertainty interval: {uncertaintyResult.lower}% to {uncertaintyResult.upper}%. The interval includes no effect. {ruleStatus === 'approved' ? 'Your approved definition is applied.' : 'No local rule was applied; semantic uncertainty remains.'}</p><span className="dt-status dt-success">Uncertainty carried into result</span>
               </article>}
             </div> : <div className="dt-empty-result">Run both analyses to see how a data-quality assumption changes the research conclusion.</div>}
             <div className="dt-payoff"><strong>What this changes:</strong> a result that looked decisive becomes uncertain once the source and definition behind the counts are included.</div>
