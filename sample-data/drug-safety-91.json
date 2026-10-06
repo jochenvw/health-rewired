@@ -1,0 +1,30 @@
+{
+  "synthetic": true,
+  "period": "1 July – 30 September 2026",
+  "disclaimer": "All therapies, approval dates, trial rates, patients and signals are fictional. This is not clinical evidence.",
+  "drugs": [
+    {"id": "immune-a", "name": "Immunotherapy A", "type": "Fictional checkpoint inhibitor · MSI-high colorectal cancer", "approved": "2026-06-01", "trial": {"ALT increased": 8, "Neutrophil count decreased": 4, "Diarrhoea": 10, "Pneumonitis": 4}},
+    {"id": "target-b", "name": "Targeted therapy B", "type": "Fictional targeted therapy · colorectal cancer", "approved": "2026-05-15", "trial": {"ALT increased": 10, "Neutrophil count decreased": 5, "Diarrhoea": 15, "Pneumonitis": 2}},
+    {"id": "combo-c", "name": "Combination C", "type": "Fictional combination · colorectal cancer", "approved": "2026-04-20", "trial": {"ALT increased": 5, "Neutrophil count decreased": 20, "Diarrhoea": 15, "Pneumonitis": 2}}
+  ],
+  "patients": [
+    {"id": "S91-01", "age": 79, "drug": "immune-a", "start": "2026-07-02", "lab_date": "2026-08-13", "baseline_alt": 25, "alt": 260, "alt_uln": 40, "anc": 2.4, "note": "ALT rising after cycle 3; possible immune-related liver inflammation. Viral studies pending. No causality assessment completed.", "admission": null},
+    {"id": "S91-02", "age": 81, "drug": "immune-a", "start": "2026-07-04", "lab_date": "2026-08-15", "baseline_alt": 22, "alt": 180, "alt_uln": 40, "anc": 2.1, "note": "Liver enzymes increased. Also taking another potentially hepatotoxic medicine. Attribution uncertain.", "admission": null},
+    {"id": "S91-03", "age": 77, "drug": "immune-a", "start": "2026-07-06", "lab_date": "2026-08-17", "baseline_alt": 28, "alt": 140, "alt_uln": 40, "anc": 2.3, "note": "Possible immune-related liver inflammation; metastases remain an alternative explanation.", "admission": null},
+    {"id": "S91-04", "age": 76, "drug": "immune-a", "start": "2026-07-09", "lab_date": "2026-08-20", "baseline_alt": 26, "alt": 32, "alt_uln": 40, "anc": 2.7, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-05", "age": 64, "drug": "immune-a", "start": "2026-07-11", "lab_date": "2026-08-22", "baseline_alt": 24, "alt": 220, "alt_uln": 40, "anc": 2.2, "note": "Asymptomatic ALT increase; medication review requested.", "admission": null},
+    {"id": "S91-06", "age": 58, "drug": "immune-a", "start": "2026-07-13", "lab_date": "2026-08-24", "baseline_alt": 20, "alt": 28, "alt_uln": 40, "anc": 2.5, "note": "Diarrhoea, 5 stools/day over baseline; limiting shopping and cooking. Not entered in structured adverse-event fields.", "note_event": {"term": "Diarrhoea", "grade": 2, "quote": "Diarrhoea, 5 stools/day over baseline; limiting shopping and cooking."}, "admission": null},
+    {"id": "S91-07", "age": 69, "drug": "immune-a", "start": "2026-07-16", "lab_date": "2026-08-27", "baseline_alt": 28, "alt": 30, "alt_uln": 40, "anc": 2.6, "note": "Diarrhoea, 4 stools/day over baseline, limiting instrumental daily activities. Structured toxicity field is blank.", "note_event": {"term": "Diarrhoea", "grade": 2, "quote": "Diarrhoea, 4 stools/day over baseline, limiting instrumental daily activities."}, "admission": null},
+    {"id": "S91-08", "age": 72, "drug": "immune-a", "start": "2026-07-18", "lab_date": "2026-08-29", "baseline_alt": 21, "alt": 25, "alt_uln": 40, "anc": 2.2, "note": "Suspected pneumonitis; severe symptoms, oxygen indicated. Infection has not been excluded.", "note_event": {"term": "Pneumonitis", "grade": 3, "quote": "Suspected pneumonitis; severe symptoms, oxygen indicated."}, "admission": "2026-08-29 · respiratory ward · oxygen required"},
+    {"id": "S91-09", "age": 62, "drug": "immune-a", "start": "2026-07-20", "lab_date": "2026-08-31", "baseline_alt": 26, "alt": 29, "alt_uln": 40, "anc": 0.8, "note": "Low neutrophil count; no fever.", "admission": null},
+    {"id": "S91-10", "age": 55, "drug": "immune-a", "start": "2026-07-23", "lab_date": "2026-09-03", "baseline_alt": 22, "alt": 27, "alt_uln": 40, "anc": 1.2, "note": "Low neutrophil count; follow-up blood count planned.", "admission": null},
+    {"id": "S91-11", "age": 67, "drug": "immune-a", "start": "2026-07-25", "lab_date": "2026-09-05", "baseline_alt": 27, "alt": 31, "alt_uln": 40, "anc": 2.4, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-12", "age": 60, "drug": "immune-a", "start": "2026-07-28", "lab_date": "2026-09-08", "baseline_alt": 24, "alt": 26, "alt_uln": 40, "anc": 2.8, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-13", "age": 70, "drug": "target-b", "start": "2026-07-03", "lab_date": "2026-08-14", "baseline_alt": 26, "alt": 30, "alt_uln": 40, "anc": 2.3, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-14", "age": 63, "drug": "target-b", "start": "2026-07-10", "lab_date": "2026-08-21", "baseline_alt": 25, "alt": 28, "alt_uln": 40, "anc": 2.8, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-15", "age": 78, "drug": "target-b", "start": "2026-07-17", "lab_date": "2026-08-28", "baseline_alt": 22, "alt": 26, "alt_uln": 40, "anc": 2.1, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-16", "age": 74, "drug": "combo-c", "start": "2026-07-05", "lab_date": "2026-08-16", "baseline_alt": 24, "alt": 29, "alt_uln": 40, "anc": 1.1, "note": "Neutrophil count decreased; no fever.", "admission": null},
+    {"id": "S91-17", "age": 65, "drug": "combo-c", "start": "2026-07-12", "lab_date": "2026-08-23", "baseline_alt": 23, "alt": 27, "alt_uln": 40, "anc": 2.4, "note": "No new symptoms reported.", "admission": null},
+    {"id": "S91-18", "age": 59, "drug": "combo-c", "start": "2026-07-19", "lab_date": "2026-08-30", "baseline_alt": 20, "alt": 25, "alt_uln": 40, "anc": 2.6, "note": "No new symptoms reported.", "admission": null}
+  ]
+}
