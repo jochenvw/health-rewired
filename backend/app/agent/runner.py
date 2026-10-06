@@ -66,6 +66,7 @@ async def run_agent(
     fallback_builder: Callable[[AgentRequest, str], AgentResult] | None = None,
 ) -> AgentResult:
     """Run one agent turn. Ideas pass their own ``system_prompt``, ``prompt`` and ``extra_tools``."""
+
     def fallback(note: str) -> AgentResult:
         return fallback_builder(request, note) if fallback_builder else build_fallback(request, note)
 

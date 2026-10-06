@@ -29,10 +29,23 @@
       "source": "Case preparation agent",
       "actor": "Oncology preparation agent",
       "kind": "agent",
-      "summary": "Flagged renal-dose review before ordering",
+      "summary": "Recommended renal-dose review before ordering",
       "detail": "The draft cited the eGFR result and the demo protocol rule. Model: Rewired-Clinical-0.9 · Guideline: Demo renal-dose protocol v3.2.",
       "availableAt": "07:49",
       "record": "Agent action · synthetic audit record",
+      "minimalDataset": false
+    },
+    {
+      "id": "clinician-view",
+      "time": "08:21",
+      "date": "14 Apr 2026",
+      "source": "Patient record",
+      "actor": "Dr M. Weber · board chair",
+      "kind": "human",
+      "summary": "Opened episode summary with eGFR result visible",
+      "detail": "The synthetic access record shows the renal result was displayed before the board decision. It does not establish how it was interpreted.",
+      "availableAt": "08:21",
+      "record": "Record access event · synthetic audit log",
       "minimalDataset": false
     },
     {
@@ -43,7 +56,7 @@
       "actor": "Dr M. Weber · board chair",
       "kind": "human",
       "summary": "Board recorded CAPOX; asked pharmacy to verify dose",
-      "detail": "The chair accepted the treatment plan with a pharmacy dose check. No conclusion about responsibility is drawn from this record.",
+      "detail": "The chair accepted the agent's renal-dose flag and recorded CAPOX with a pharmacy dose check. No conclusion about responsibility is drawn from this record.",
       "availableAt": "08:30",
       "record": "MDT treatment recommendation · synthetic MDT form",
       "minimalDataset": true
@@ -91,7 +104,7 @@
   "decision": {
     "event_id": "mdt-recommendation",
     "title": "Tumour board recommendation · 08:30",
-    "decision": "CAPOX plan recorded; pharmacy asked to verify dose",
+    "decision": "CAPOX plan recorded; board chair accepted the agent's request for a pharmacy dose check",
     "available_then": [
       {
         "label": "Renal function",

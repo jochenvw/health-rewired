@@ -38,24 +38,44 @@ def _demo_review(note: str | None = None) -> AgentResult:
                 type="alert",
                 title="Potential protocol deviation",
                 severity="warning",
-                body="The eGFR result was available before the board recommendation. The pharmacy order has no linked renal-dose review in this synthetic episode.",
+                body=(
+                    "The eGFR result was available before the board recommendation. The pharmacy order "
+                    "has no linked renal-dose review in this synthetic episode."
+                ),
                 items=[
-                    UIItem(label="Available at 08:30", detail="eGFR 38 · recorded 07:42", source="Synthetic lab result"),
-                    UIItem(label="Arrived later", detail="MMR pathology addendum · recorded 11:15", source="Synthetic pathology report"),
+                    UIItem(
+                        label="Available at 08:30",
+                        detail="eGFR 38 · recorded 07:42",
+                        source="Synthetic lab result",
+                    ),
+                    UIItem(
+                        label="Arrived later",
+                        detail="MMR pathology addendum · recorded 11:15",
+                        source="Synthetic pathology report",
+                    ),
                 ],
             ),
             UIBlock(
                 type="evidence",
                 title="Similar synthetic patterns",
                 items=[
-                    UIItem(label="AE-2026-019 · Medical oncology", detail="Pharmacy check documented after order entry."),
-                    UIItem(label="AE-2026-027 · Day unit", detail="Dose-verification handoff not linked to infusion record."),
+                    UIItem(
+                        label="AE-2026-019 · Medical oncology",
+                        detail="Pharmacy check documented after order entry.",
+                    ),
+                    UIItem(
+                        label="AE-2026-027 · Day unit",
+                        detail="Dose-verification handoff not linked to infusion record.",
+                    ),
                 ],
             ),
             UIBlock(
                 type="summary",
                 title="For the inspector to assess",
-                body="The records show a possible handoff gap; they do not establish why it happened or who is responsible.",
+                body=(
+                    "The records show a possible handoff gap; they do not establish why it happened "
+                    "or who is responsible."
+                ),
             ),
         ],
         trace=[],
