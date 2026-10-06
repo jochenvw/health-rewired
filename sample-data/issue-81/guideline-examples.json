@@ -1,0 +1,27 @@
+{
+  "synthetic": true,
+  "limitation": "Small author-created illustrative summaries, unverified and not for clinical use. No guideline quotations, current coverage verification, or measured differences between sources. Clinicians must check original versions and applicability.",
+  "examples": [
+    {
+      "id": "dutch",
+      "source": "Dutch colorectal guideline",
+      "title": "Illustrative Dutch MDT discussion",
+      "summary": "Review staging, pathology and the patient's priorities together before discussing a conditional treatment route.",
+      "reference": "https://richtlijnendatabase.nl/richtlijn/colorectaal_carcinoom_crc/"
+    },
+    {
+      "id": "italian",
+      "source": "Italian AIOM colon guideline",
+      "title": "Illustrative Italian MDT discussion",
+      "summary": "Present an MDT draft with unresolved staging and molecular findings visibly separated from reviewed facts.",
+      "reference": "https://github.com/user-attachments/files/33112866/LG.146_Colon_agg2024-13-17.pdf"
+    },
+    {
+      "id": "nccn",
+      "source": "NCCN",
+      "title": "Illustrative NCCN MDT discussion",
+      "summary": "Discuss conditional routes with specialist review, performance status and patient preferences; do not select a regimen from this example.",
+      "reference": "https://www.nccn.org/"
+    }
+  ]
+}

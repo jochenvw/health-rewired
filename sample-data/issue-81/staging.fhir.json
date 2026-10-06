@@ -1,0 +1,30 @@
+{
+  "synthetic": true,
+  "resourceType": "Bundle",
+  "type": "collection",
+  "description": "FHIR-style illustrative export, not a validated interoperable FHIR payload.",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "C-081-stage",
+        "subject": {"reference": "Patient/C-081"},
+        "status": "registered",
+        "code": {"text": "Clinical staging"},
+        "valueString": "pending",
+        "expectedDate": "2026-10-08"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "C-081-mmr",
+        "subject": {"reference": "Patient/C-081"},
+        "status": "registered",
+        "code": {"text": "MMR immunohistochemistry"},
+        "valueString": "pending",
+        "expectedDate": "2026-10-09"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+SYNTHETIC CASE — Hackathon prototype — not for clinical use.
+Word-letter plain-text export; this prototype does not parse binary DOCX files.
+
+[Patient]
+id: C-081
+name: Elena Fischer
+age: 64
+sex: F
+diagnosis: Newly diagnosed primary sigmoid colon adenocarcinoma
+
+[Clinic assessment]
+ecog: 1
+allergy: Penicillin rash
+wishes: Avoid lasting neuropathy; values independent living
+
+[Diagnostics]
+Colonoscopy biopsy confirms adenocarcinoma. CT staging is pending.
+CT expected: 2026-10-08
+MMR immunohistochemistry expected: 2026-10-09
+No surgical pathology or DPD/DPYD result is available.

@@ -1,0 +1,4 @@
+patient_id,test,value,unit,collected,synthetic
+C-081,CEA,6.2,ng/mL,2026-10-05,true
+C-081,Haemoglobin,11.4,g/dL,2026-10-05,true
+C-081,Creatinine,0.8,mg/dL,2026-10-05,true
