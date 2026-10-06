@@ -13,12 +13,13 @@ export const meta: IdeaMeta = {
 };
 
 type CaseStatus = 'scheduled' | 'preparing' | 'prepared' | 'accepted' | 'challenged' | 'returned';
-type View = 'worklist' | 'identity' | 'case' | 'timeline' | 'evidence';
+type View = 'worklist' | 'identity' | 'case' | 'timeline' | 'evidence' | 'completeness';
 type Specialty = 'Oncology' | 'Radiology' | 'Pathology';
 type Horizon = 'future' | 'sixMonths';
 type IdentityState = 'verified' | 'probable' | 'review' | 'mismatch';
 type IdentityDecision = 'confirmed' | 'separate' | 'investigating';
 type EvidenceState = 'corroborated' | 'source-confirmed' | 'single-source' | 'unverified' | 'contradictory' | 'missing';
+type RecoveryState = 'idle' | 'searching' | 'complete';
 
 type EvidenceSource = {
   title: string;
@@ -58,6 +59,7 @@ const story: StoryStep[] = [
   { id: 'list', title: 'MDT list', explain: 'Four synthetic colorectal cases are scheduled. Their records are still held in different places.' },
   { id: 'acquire', title: 'Gather evidence', explain: 'Prepare all four cases in parallel; the assistant reads each record and keeps missing details open.' },
   { id: 'review', title: 'Review a case', explain: 'Start with a short patient-at-a-glance summary, then open the timeline and source evidence.' },
+  { id: 'completeness', title: 'Check what is missing', explain: 'Check whether the record can answer the MDT question, search for existing evidence, then see what similar synthetic cases suggest asking next.' },
   { id: 'decision', title: 'Ready for MDT', explain: 'Accept the preparation, challenge it or send it back. The clinical team owns the decision.' },
 ];
 
@@ -299,6 +301,8 @@ export default function TeamDomitian() {
   const [notice, setNotice] = useState('');
   const [challenge, setChallenge] = useState('');
   const [identityDecisions, setIdentityDecisions] = useState<Record<string, IdentityDecision>>({});
+  const [recoveryStates, setRecoveryStates] = useState<Record<string, RecoveryState>>({});
+  const [cohortQuestions, setCohortQuestions] = useState<Record<string, string>>({});
   const [evidenceDrawer, setEvidenceDrawer] = useState<EvidenceAssertion | null>(null);
   const [datasetGroups, setDatasetGroups] = useState<{ group: string; elements: { name: string; likely_source: string }[] }[]>([]);
 
@@ -331,11 +335,15 @@ export default function TeamDomitian() {
   const timeline = useMemo(() => [...(record?.timeline ?? [])].sort((a, b) => a.date.localeCompare(b.date)), [record]);
   const storyStep = preparing
     ? 'acquire'
+    : view === 'completeness'
+      ? 'completeness'
     : statuses[selectedId] === 'accepted'
       ? 'decision'
-      : hasPreparation
-        ? 'review'
-        : 'list';
+        : view === 'evidence'
+          ? 'decision'
+        : hasPreparation
+          ? 'review'
+          : 'list';
 
   const prepareAll = async () => {
     if (preparing || Object.keys(records).length < scheduled.length) return;
@@ -370,7 +378,16 @@ export default function TeamDomitian() {
     if (id === 'list') setView('worklist');
     if (id === 'acquire') void prepareAll();
     if (id === 'review') setView('case');
+    if (id === 'completeness') setView('completeness');
     if (id === 'decision') setView('evidence');
+  };
+
+  const searchPatientEvidence = async () => {
+    if (!record || recoveryStates[record.id] === 'searching') return;
+    const patientId = record.id;
+    setRecoveryStates((current) => ({ ...current, [patientId]: 'searching' }));
+    await new Promise((resolve) => window.setTimeout(resolve, 2300));
+    setRecoveryStates((current) => ({ ...current, [patientId]: 'complete' }));
   };
 
   const choosePatient = (id: string) => {
@@ -418,13 +435,14 @@ export default function TeamDomitian() {
 
       <HospitalShell
         module="MDT preparation"
-        guide={<StoryGuide steps={story} current={storyStep} onGo={goToStoryStep} nextLabel="Prepare all" />}
+        guide={<StoryGuide steps={story} current={storyStep} onGo={goToStoryStep} />}
         nav={[
           { id: 'worklist', label: 'Upcoming MDT', badge: scheduled.length },
           { id: 'identity', label: 'Patient identity' },
           { id: 'case', label: 'Patient at a glance' },
           { id: 'timeline', label: 'Timeline' },
           { id: 'evidence', label: 'Evidence & gaps' },
+          { id: 'completeness', label: 'Completeness & next question' },
         ]}
         active={view}
         onNav={(id) => setView(id as View)}
@@ -547,6 +565,20 @@ export default function TeamDomitian() {
               {view === 'case' && <AtAGlance record={record} agentResult={agentResults[selectedId]} specialty={specialty} horizon={horizon} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
               {view === 'timeline' && <TimelinePanel record={record} timeline={timeline} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
               {view === 'evidence' && <EvidencePanel record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              {view === 'completeness' && (
+                <CompletenessPanel
+                  record={record}
+                  horizon={horizon}
+                  recoveryState={recoveryStates[selectedId] ?? 'idle'}
+                  selectedQuestion={cohortQuestions[selectedId]}
+                  onSearch={() => void searchPatientEvidence()}
+                  onSelectQuestion={(question) => {
+                    setCohortQuestions((current) => ({ ...current, [selectedId]: question }));
+                    setNotice('Discussion question added to this synthetic preparation. No test was ordered and no patient fact was changed.');
+                  }}
+                  onInspect={(assertion) => setEvidenceDrawer(assertion)}
+                />
+              )}
               {horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
               <Panel title="Your review">
                 <p className="issue74-intro">Preparation is a draft. The team keeps every clinical judgment and decision.</p>
@@ -1043,6 +1075,306 @@ function EvidencePanel({ record, agentResult, horizon, onInspect }: { record: Pa
           <AssistantEvidence record={record} result={agentResult} onInspect={onInspect} />
         </Panel>
       )}
+    </>
+  );
+}
+
+type CompletenessItem = {
+  label: string;
+  detail: string;
+  state: 'present' | 'missing' | 'conflicting';
+  relevance: string;
+  assertion: EvidenceAssertion;
+};
+
+function completenessItems(record: PatientRecord, horizon: Horizon): CompletenessItem[] {
+  const metastatic = /metast|stage iv/i.test(`${record.diagnosis.primary} ${record.diagnosis.stage}`);
+  const markerNames = Object.keys(record.diagnosis.biomarkers);
+  const molecularResult = Object.entries(record.diagnosis.biomarkers).map(([name, value]) => `${name}: ${value}`).join(' · ');
+  const hasRasBraf = markerNames.some((name) => /ras|braf/i.test(name)) || /ras|braf/i.test(molecularResult);
+  const items: CompletenessItem[] = [
+    {
+      label: 'Diagnosis and stage',
+      detail: `${record.diagnosis.primary} · ${record.diagnosis.stage}`,
+      state: 'present',
+      relevance: 'Starting point for the recorded MDT question.',
+      assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.primary} · ${record.diagnosis.stage}`),
+    },
+    {
+      label: 'Treatment history',
+      detail: record.treatments.map((item) => `${item.regimen} (${item.status})`).join(' · ') || 'No treatment entry in this record.',
+      state: record.treatments.length ? 'present' : 'missing',
+      relevance: 'Available context for the team; check dates and status against the source.',
+      assertion: evidenceFor(record, 'Treatments so far', record.treatments.map((item) => item.regimen).join('; ') || 'No treatment recorded'),
+    },
+    {
+      label: 'Latest imaging report',
+      detail: record.imaging?.at(-1)?.result ?? (record.id === 'P-003' ? 'A surveillance CT is mentioned in the timeline, but its report is not in this record.' : 'No imaging report is present in this record.'),
+      state: record.imaging?.length ? 'present' : 'missing',
+      relevance: record.id === 'P-003' ? 'Could affect the open question about imaging timing.' : 'Review the report and images with the relevant specialist.',
+      assertion: record.imaging?.length
+        ? evidenceFor(record, 'Latest imaging report', record.imaging.at(-1)?.result ?? '')
+        : missingAssertion(record, 'Latest imaging report'),
+    },
+  ];
+
+  if (metastatic) {
+    items.push({
+      label: 'RAS / BRAF result',
+      detail: hasRasBraf ? molecularResult : 'Not found in the patient record.',
+      state: hasRasBraf ? 'present' : 'missing',
+      relevance: 'May affect the pathway discussion; do not infer a result.',
+      assertion: hasRasBraf
+        ? evidenceFor(record, 'Biomarker', molecularResult)
+        : missingAssertion(record, 'RAS / BRAF result'),
+    });
+  } else if (molecularResult) {
+    const disagreement = record.id === 'P-003' && horizon === 'future';
+    items.push({
+      label: 'Molecular results',
+      detail: disagreement ? 'Pathology addendum and outside referral list different KRAS results.' : molecularResult,
+      state: disagreement ? 'conflicting' : 'present',
+      relevance: disagreement ? 'Resolve the source disagreement before relying on either value.' : 'Recorded result is available for review.',
+      assertion: disagreement ? conflictFor(record) : evidenceFor(record, 'Biomarker', molecularResult),
+    });
+  } else {
+    items.push({
+      label: 'Molecular results',
+      detail: 'No result recorded in the patient file.',
+      state: 'missing',
+      relevance: 'Check whether a result is relevant to the MDT question.',
+      assertion: missingAssertion(record, 'Molecular results'),
+    });
+  }
+
+  if (record.id === 'P-010') {
+    const reportSource: EvidenceSource = {
+      title: 'MRI liver report · simulated Italian PDF',
+      hospital: 'Ospedale Esempio, Italy · outside the shared data layer',
+      date: record.imaging?.at(-1)?.date ?? record.diagnosis.date,
+      type: 'Synthetic outside-hospital report · Italian',
+      excerpt: '“Le lesioni epatiche note sono descritte; la resecabilità non è specificata nel referto.”',
+    };
+    items.push({
+      label: 'Resectability',
+      detail: horizon === 'future'
+        ? 'Not stated in the located MRI report.'
+        : 'Outside MRI report is unavailable in this horizon; no resectability value is in the minimal record.',
+      state: 'missing',
+      relevance: 'Directly relates to the recorded question about operability.',
+      assertion: horizon === 'future'
+        ? {
+            statement: 'Resectability is not stated',
+            state: 'missing',
+            explanation: 'The simulated Italian MRI report was located, but it does not state whether the lesions are resectable. The answer remains open for clinical review.',
+            sources: [reportSource],
+          }
+        : {
+            statement: 'Resectability is not present in the minimal record',
+            state: 'missing',
+            explanation: 'The outside MRI PDF is unavailable in the six-month horizon. The minimal record does not provide a resectability value.',
+            sources: [{
+              title: 'Minimal dataset coverage check',
+              hospital: 'Connected six-month working record',
+              date: 'Current MDT preparation',
+              type: 'Synthetic coverage assessment',
+              excerpt: 'No resectability value is present in the minimal record. The outside MRI report is not available in this horizon.',
+            }],
+          },
+    });
+  }
+
+  return items;
+}
+
+function cohortGuidance(record: PatientRecord) {
+  if (record.id === 'P-003') {
+    const pattern = 'In 12 of 16 illustrative synthetic post-resection colorectal cases with rising CEA, an interval imaging report was included in the timing discussion.';
+    return {
+      cohort: '16 synthetic post-resection cases with a rising CEA · simulated',
+      pattern,
+      question: 'Should the current surveillance imaging be reviewed or brought forward?',
+      source: { title: 'Synthetic cohort pattern · surveillance', hospital: 'Illustrative European cohort workspace', date: 'Future horizon · simulated', type: 'Synthetic population-level summary · not patient evidence', excerpt: pattern },
+    };
+  }
+  if (record.id === 'P-004') {
+    const pattern = 'In 10 of 14 illustrative synthetic stage II case discussions, pathology risk details were explicitly reviewed alongside the MDT question.';
+    return {
+      cohort: '14 synthetic stage II colorectal case discussions · simulated',
+      pattern,
+      question: 'Are the pathology details relevant to this discussion available for the team to review?',
+      source: { title: 'Synthetic cohort pattern · pathology context', hospital: 'Illustrative European cohort workspace', date: 'Future horizon · simulated', type: 'Synthetic population-level summary · not patient evidence', excerpt: pattern },
+    };
+  }
+  if (record.id === 'P-005') {
+    const pattern = 'In 15 of 20 illustrative synthetic colorectal cases on systemic treatment, a dated interval imaging report was linked to the response-review question.';
+    return {
+      cohort: '20 synthetic colorectal cases on systemic treatment · simulated',
+      pattern,
+      question: 'Which dated scan should the team use as the reference for this response review?',
+      source: { title: 'Synthetic cohort pattern · response review', hospital: 'Illustrative European cohort workspace', date: 'Future horizon · simulated', type: 'Synthetic population-level summary · not patient evidence', excerpt: pattern },
+    };
+  }
+  const pattern = 'In 11 of 18 illustrative synthetic metastatic colorectal cases, a RAS/BRAF result was documented before the pathway discussion; records without a result kept the testing question open.';
+  return {
+    cohort: '18 synthetic metastatic colorectal cases · simulated',
+    pattern,
+    question: 'Would obtaining a RAS/BRAF result help the team discuss this pathway?',
+    source: { title: 'Synthetic cohort pattern · molecular evidence', hospital: 'Illustrative European cohort workspace', date: 'Future horizon · simulated', type: 'Synthetic population-level summary · not patient evidence', excerpt: pattern },
+  };
+}
+
+function CompletenessPanel({
+  record,
+  horizon,
+  recoveryState,
+  selectedQuestion,
+  onSearch,
+  onSelectQuestion,
+  onInspect,
+}: {
+  record: PatientRecord;
+  horizon: Horizon;
+  recoveryState: RecoveryState;
+  selectedQuestion?: string;
+  onSearch: () => void;
+  onSelectQuestion: (question: string) => void;
+  onInspect: (assertion: EvidenceAssertion) => void;
+}) {
+  const items = completenessItems(record, horizon);
+  const unresolved = items.filter((item) => item.state !== 'present');
+  const materialGaps = unresolved.filter((item) => item.relevance.startsWith('Could') || item.relevance.startsWith('May') || item.relevance.startsWith('Directly'));
+  const cohort = cohortGuidance(record);
+  const recoveryAssertion = record.id === 'P-003' && horizon === 'future'
+    ? conflictFor(record)
+    : record.id === 'P-010' && horizon === 'future'
+      ? {
+          statement: 'RAS / BRAF result and resectability remain unresolved',
+          state: 'missing' as const,
+          explanation: 'The simulated Italian MRI report was found but does not state resectability. No available source returned a RAS/BRAF result; neither missing patient value has been inferred.',
+          sources: [
+            ...(items.find((item) => item.label === 'Resectability')?.assertion.sources ?? []),
+            {
+              title: 'Search result · RAS / BRAF report not located',
+              hospital: 'Available synthetic patient sources searched',
+              date: 'Current MDT preparation',
+              type: 'Simulated retrieval result',
+              excerpt: 'No RAS/BRAF result was found in the available synthetic patient records. No patient result has been inferred.',
+            },
+          ],
+        }
+      : {
+          statement: `Search for ${unresolved[0]?.label ?? 'additional evidence'}`,
+          state: 'missing' as const,
+          explanation: horizon === 'sixMonths'
+            ? 'Only fields in the minimal tumour-board dataset were checked in this simulation; no additional patient value was found.'
+            : 'The available synthetic patient record was checked; no additional source with this fact was returned.',
+          sources: [{
+            title: 'Synthetic record search · no additional result',
+            hospital: sourceFor(record.id).label,
+            date: 'Current MDT preparation',
+            type: 'Simulated retrieval result',
+            excerpt: `No additional source explicitly documents ${unresolved[0]?.label ?? 'the requested information'}. No patient value has been inferred.`,
+          }],
+        };
+  const cohortAssertion: EvidenceAssertion = {
+    statement: 'Illustrative population-level pattern · not a fact about this patient',
+    state: 'source-confirmed',
+    explanation: 'This is a fabricated cohort signal for the demonstration, not patient evidence, a clinical recommendation or a treatment decision.',
+    sources: [cohort.source],
+  };
+
+  return (
+    <>
+      <Panel title="Patient completeness · evidence needed for this MDT question" actions={<Pill tone={unresolved.length ? 'warn' : 'ok'}>{unresolved.length ? `${unresolved.length} need review` : 'Recorded items present'}</Pill>}>
+        <p className="issue74-intro">Current question: <strong>{clinicalQuestion(record)}</strong></p>
+        <div className="issue74-completeness-summary">
+          <strong>{materialGaps.length ? `${materialGaps.length} item${materialGaps.length === 1 ? '' : 's'} could materially affect this question` : 'No material gap flagged by this synthetic check'}</strong>
+          <span>This is a checklist, not an overall confidence score. The MDT decides whether it has enough evidence to proceed.</span>
+        </div>
+        <ul className="issue74-completeness-list">
+          {items.map((item) => (
+            <li key={item.label} className={`completeness-${item.state}`}>
+              <div className="issue74-completeness-item">
+                <span className="issue74-completeness-status">{item.state === 'present' ? '✓ PRESENT' : item.state === 'conflicting' ? '! CONFLICTING' : '– MISSING'}</span>
+                <strong>{item.label}</strong>
+                <span>{item.detail}</span>
+                <small>{item.relevance}</small>
+              </div>
+              <EvidenceLink assertion={item.assertion} onInspect={onInspect} />
+            </li>
+          ))}
+        </ul>
+      </Panel>
+
+      <Panel title="Recover · search available patient records" actions={<Pill tone={horizon === 'future' ? 'info' : 'neutral'}>{horizon === 'future' ? 'Simulated distributed-source search' : 'Minimal dataset only'}</Pill>}>
+        <p className="issue74-intro">{horizon === 'future'
+          ? 'Check the connected synthetic record and, where available, the simulated outside-hospital report before treating a gap as unavailable.'
+          : 'Check only the fields already present in this patient’s minimal tumour-board record. Live cross-hospital queries and outside PDFs are not in this horizon.'}</p>
+        <button className="hx-btn primary" type="button" disabled={recoveryState === 'searching'} onClick={onSearch}>
+          {recoveryState === 'searching' ? <><span className="hx-spinner" aria-hidden /> Searching records…</> : recoveryState === 'complete' ? 'Search again' : 'Search for missing evidence'}
+        </button>
+        {recoveryState === 'searching' && (
+          <Backstage
+            title="Searching this synthetic patient’s available records"
+            stages={[
+              { label: 'Checking the patient record', detail: 'Matching the open requirement to recorded fields', ms: 600 },
+              { label: 'Checking available reports', detail: horizon === 'future' ? 'Connected source and eligible outside report' : 'Minimal tumour-board fields only', ms: 800 },
+              { label: 'Keeping any unresolved value open', detail: 'No population pattern is used to fill a patient fact', ms: 700 },
+            ]}
+            running
+            note="Simulated retrieval only · no hospital was contacted."
+          />
+        )}
+        {recoveryState === 'complete' && (
+          <div className={`issue74-recovery-result${recoveryAssertion.state === 'contradictory' ? ' recovery-conflict' : ''}`}>
+            <span className="issue74-eyebrow">SEARCH RESULT · {horizon === 'future' ? 'SYNTHETIC AVAILABLE SOURCES' : 'MINIMAL DATASET'}</span>
+            {record.id === 'P-003' && horizon === 'future' ? (
+              <>
+                <strong>Two molecular sources found; they disagree.</strong>
+                <p>The pathology addendum and referral letter contain different KRAS results. Neither is selected; a clinician must reconcile them.</p>
+              </>
+            ) : record.id === 'P-010' && horizon === 'future' ? (
+              <>
+                <strong>Italian MRI report located; RAS/BRAF and resectability remain unresolved.</strong>
+                <p>The report does not answer the operability question, and no molecular result was found. Neither patient value has been inferred.</p>
+              </>
+            ) : (
+              <>
+                <strong>{unresolved.length ? 'No additional source with the missing fact was found.' : 'The available record fields were checked.'}</strong>
+                <p>{horizon === 'sixMonths' ? 'This simulation searched only the minimal tumour-board fields; distributed sources are not queried in six months.' : 'No new patient-specific evidence was returned. The open item stays open for the MDT.'}</p>
+              </>
+            )}
+            <EvidenceLink assertion={recoveryAssertion} onInspect={onInspect} label={recoveryAssertion.state === 'contradictory' ? 'Compare retrieved sources ↗' : 'Inspect search evidence ↗'} />
+          </div>
+        )}
+      </Panel>
+
+      <Panel title="Learn · what similar synthetic cases suggest asking next" actions={<Pill tone={horizon === 'future' ? 'info' : 'neutral'}>{horizon === 'future' ? 'Illustrative European cohort signal' : 'Future capability'}</Pill>}>
+        {horizon === 'sixMonths' ? (
+          <div className="issue74-future-only"><strong>Not available in six months</strong><span>Cross-hospital cohort learning is outside the minimal tumour-board dataset. No population-derived signal is shown as patient evidence.</span></div>
+        ) : recoveryState !== 'complete' ? (
+          <div className="issue74-future-only"><strong>Search patient records before comparing with similar cases</strong><span>First check whether the missing evidence is already available. Population patterns will only suggest a next question; they cannot replace a patient result.</span></div>
+        ) : (
+          <>
+            <p className="issue74-intro">This separate, simulated population view suggests what might help distinguish the next question. It never fills in this patient’s missing data.</p>
+            <div className="issue74-cohort-signal">
+              <span className="issue74-eyebrow">SYNTHETIC POPULATION PATTERN · NOT PATIENT EVIDENCE</span>
+              <strong>{cohort.cohort}</strong>
+              <p>{cohort.pattern}</p>
+              <EvidenceLink assertion={cohortAssertion} onInspect={onInspect} label="Inspect cohort signal and source ↗" />
+            </div>
+            <div className="issue74-next-question">
+              <div><span className="issue74-eyebrow">POSSIBLE NEXT QUESTION FOR THE MDT</span><strong>{cohort.question}</strong></div>
+              <button className="hx-btn" type="button" onClick={() => onSelectQuestion(cohort.question)}>
+                {selectedQuestion === cohort.question ? 'Added to discussion questions' : 'Add as a discussion question'}
+              </button>
+            </div>
+            <p className="issue74-muted">The cohort pattern is fabricated for this prototype, not a clinical recommendation. The MDT decides whether to investigate, order a test or take any other action.</p>
+            {selectedQuestion && <div className="issue74-notice" role="status">Discussion question noted: {selectedQuestion} No test was ordered and no patient fact was changed.</div>}
+          </>
+        )}
+      </Panel>
     </>
   );
 }
