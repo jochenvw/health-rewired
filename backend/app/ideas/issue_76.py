@@ -295,7 +295,13 @@ def _assessment(facts: list[Fact]) -> tuple[list[Recommendation], list[MissingIt
         fact = by_key[key]
         if not recorded(key):
             conflicts.append(f"{fact.label} cannot be assessed: {fact.status}; do not infer no conflict.")
-        elif not re.search(r"^(none|no known allergies|no allergies|no treatment constraints)\b", fact.value, re.I):
+        elif not re.fullmatch(
+            r"\s*(none|no known allergies|no allergies)[.!]?\s*"
+            if key == "allergy"
+            else r"\s*(none|no treatment constraints)[.!]?\s*",
+            fact.value,
+            re.I,
+        ):
             conflicts.append(f"{explanation}: {fact.value} [{fact.source}].")
     if not recorded("performance"):
         conflicts.append("Fitness is unavailable; treatment suitability remains unassessed.")
@@ -317,6 +323,15 @@ def _assessment(facts: list[Fact]) -> tuple[list[Recommendation], list[MissingIt
     if not recorded("site") or "colon" not in by_key["site"].value.lower():
         title = "Confirm the primary colon pathway"
         options = ["Confirm tumour localisation; do not apply this colon prototype to another primary site."]
+    elif recorded("diagnosis") and (
+        not re.fullmatch(r"\s*(?:colon(?:ic)?\s+)?adenocarcinoma[.!]?\s*", by_key["diagnosis"].value, re.I)
+    ):
+        title = "Confirm diagnosis · outside the adenocarcinoma pathway"
+        options = [
+            "Confirm the reviewed histological diagnosis with pathology.",
+            "Use the appropriate specialist MDT pathway for this diagnosis; outside this adenocarcinoma demo.",
+            "Do not apply routine colon adenocarcinoma surgery or adjuvant options to a different histology.",
+        ]
     elif not localised or not recorded("diagnosis") or not recorded("phase"):
         title = "Complete staging and diagnosis before narrowing treatment"
         options = [

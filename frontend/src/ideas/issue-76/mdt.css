@@ -71,7 +71,8 @@
 .mdt-toggle { display: flex; gap: 4px; }
 .mdt-toggle button { color: var(--cp-chrome-fg); background: transparent; border: 1px solid #8ea6ba; border-radius: 6px; padding: 8px 12px; min-height: 36px; cursor: pointer; }
 .mdt-toggle button[aria-pressed="true"] { background: var(--cp-chrome-fg); color: var(--cp-chrome); font-weight: 600; }
-.mdt76 .hx-content { padding: 24px; }
+.mdt76 .hx-content { padding: 24px; grid-template-columns: minmax(0, 1fr); }
+#mdt76-workspace, .mdt76 .hx-panel { min-width: 0; }
 .mdt-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; }
 .mdt-primary, .mdt-rail { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .mdt-heading h1 { font-size: 28px; margin: 6px 0 8px; line-height: 1.2; }

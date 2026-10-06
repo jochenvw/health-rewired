@@ -135,3 +135,30 @@ def test_corrected_metastatic_stage_does_not_use_localised_pathway(client):
     result = _recommend(client, extracted).json()
     assert "Complete staging" in result["recommendations"][0]["title"]
     assert "outside this demo" in result["recommendations"][0]["options"][1]
+
+
+def test_corrected_other_histology_leaves_adenocarcinoma_pathway(client):
+    extracted = _extract(client)
+    next(f for f in extracted["facts"] if f["key"] == "diagnosis")["value"] = "Colonic lymphoma"
+    result = _recommend(client, extracted).json()
+    assert "outside the adenocarcinoma pathway" in result["recommendations"][0]["title"]
+    assert "appropriate specialist MDT" in result["recommendations"][0]["options"][1]
+    assert not any(
+        "Discuss oncological colon resection" in option for option in result["recommendations"][0]["options"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("key", "value", "warning_expected"),
+    [
+        ("allergy", "No allergies except cefazolin anaphylaxis", True),
+        ("wishes", "No treatment constraints except refuses a permanent stoma", True),
+        ("allergy", "No known allergies", False),
+        ("wishes", "No treatment constraints.", False),
+    ],
+)
+def test_qualified_negative_statements_do_not_hide_constraints(client, key, value, warning_expected):
+    extracted = _extract(client)
+    next(f for f in extracted["facts"] if f["key"] == key)["value"] = value
+    result = _recommend(client, extracted).json()
+    assert any(value in conflict for conflict in result["conflicts"]) is warning_expected
