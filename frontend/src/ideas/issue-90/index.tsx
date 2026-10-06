@@ -188,7 +188,12 @@ export default function DataAccessDesk() {
   const needsDecision = step === 3 && horizon === 'future' && assessment?.status === 'review' && !humanDecision;
   return (
     <div className="d90" data-theme={theme}>
-      <a className="d90-skip" href="#d90-main">Skip to access desk</a>
+      <a className="d90-skip" href="#d90-main" onClick={(event) => {
+        event.preventDefault();
+        const main = document.getElementById('d90-main');
+        main?.focus();
+        main?.scrollIntoView();
+      }}>Skip to access desk</a>
       <div className="d90-disclaimer">Hackathon prototype – synthetic data – not for clinical use</div>
       <header className="d90-header">
         <div className="d90-identity"><span className="d90-mark" aria-hidden>+</span><div><strong>Data access desk</strong><small>Health Rewired · Oncology data stewardship · Munich</small></div></div>
