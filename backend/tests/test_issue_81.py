@@ -51,6 +51,19 @@ def test_issue_81_review_and_conditional_routes(monkeypatch):
         assert "Reviewed MMR: dMMR" in corrected["recommendations"][0]["detail"]
         assert "do not infer metastatic disease" in corrected["recommendations"][0]["detail"]
         assert any("mmr: dMMR" in used for used in corrected["recommendations"][0]["used"])
+        allergy_fact = next(fact for fact in facts if fact["key"] == "allergy")
+        for allergy_value, expected_warning in [
+            ("No known allergies", False),
+            ("No penicillin allergy", False),
+            ("Penicillin rash; no other known allergies", True),
+            ("No penicillin allergy; penicillin rash documented elsewhere", True),
+        ]:
+            allergy_fact["value"] = allergy_value
+            reviewed = client.post("/api/ideas/81/prepare", json={"horizon": "future", "facts": facts}).json()
+            assert (
+                any(item["label"] == "Allergy and perioperative planning" for item in reviewed["conflicts"])
+                is expected_warning
+            )
         six = client.post("/api/ideas/81/prepare", json={"horizon": "six-months"}).json()
         assert all(fact["status"] == "missing" for fact in six["facts"] if fact["key"] in {"allergy", "wishes", "ecog"})
         assert any(item["label"] == "Patient wishes" for item in six["missing"])

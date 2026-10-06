@@ -38,6 +38,7 @@
 .colon81 .hx-nav button.active, .colon81 .hx-nav button:hover { background: var(--cp-surface); }
 .colon81 .hx-story-steps li.current button, .colon81 .hx-story-steps li.done button { color: var(--cp-text); }
 .colon81 .hx-content { padding: 20px; }
+#c81-task { min-width: 0; }
 .colon81 .hx-panel { margin-bottom: 16px; border-radius: 12px; overflow: hidden; }
 .colon81 .hx-panel > header { background: var(--cp-surface-soft); padding: 12px 16px; }
 .colon81 .hx-panel-body { padding: 16px; }

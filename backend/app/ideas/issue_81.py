@@ -241,7 +241,9 @@ def _evaluate(facts: list[Fact]):
     )
     conflicts = []
     allergy = available.get("allergy", "")
-    if "penicillin" in allergy.lower() and not re.search(r"\b(no|none|denies)\b", allergy.lower()):
+    # Negation applies only to its penicillin mention, not to other allergies in the note.
+    allergy_mentions = re.sub(r"\b(?:no|denies)\s+(?:known\s+)?penicillin\b", "", allergy.lower())
+    if re.search(r"\bpenicillin\b", allergy_mentions):
         conflicts.append(
             Finding(
                 label="Allergy and perioperative planning",
