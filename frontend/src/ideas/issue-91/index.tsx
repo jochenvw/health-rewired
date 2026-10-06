@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, type AgentResult } from '../../api';
+import { api, type AgentResult, type UIBlock } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { Backstage, StoryGuide, Working, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
@@ -54,6 +54,9 @@ export default function DrugSafetyMonitor() {
   const affected = drug?.patients.filter(p => p.events.some(e => e.term === term)) ?? [];
   const older = drug?.patients.filter(p => p.age > 75) ?? [];
   const younger = drug?.patients.filter(p => p.age <= 75) ?? [];
+  const noteCandidates = drug?.patients.flatMap(p =>
+    p.events.filter(e => e.source === 'Clinical note').map(e => ({ patient: p.id, ...e })),
+  ) ?? [];
   const countLiver = (rows: Patient[]) => rows.filter(p => p.events.some(e => e.term === 'ALT increased')).length;
   const steps: StoryStep[] = [
     { id: 'drugs', title: 'New treatments', explain: 'Monday morning: a scheduled synthetic scan has found one liver signal needing review.' },
@@ -95,7 +98,11 @@ export default function DrugSafetyMonitor() {
       setResult(value);
       const report = value.blocks.find(b => b.type === 'summary' && /report|summary/i.test(b.title))
         ?? value.blocks.find(b => b.type === 'summary');
-      setDraft(report?.body ?? value.blocks.map(b => `${b.title}\n${b.body ?? ''}`).join('\n\n'));
+      const content = (block: UIBlock) => [
+        block.body,
+        ...block.items.map(item => [item.label, item.detail, item.date, item.source].filter(Boolean).join(' · ')),
+      ].filter(Boolean).join('\n\n');
+      setDraft(report ? content(report) : value.blocks.map(b => `${b.title}\n${content(b)}`).join('\n\n'));
     } catch {
       setError('The assistant could not finish. Your evidence is still available; retry the review.');
     } finally {
@@ -210,7 +217,13 @@ export default function DrugSafetyMonitor() {
             </section>}
             {step === 'extract' && <section className="s91-panel">
               <h3>{future ? 'Side effects missing from structured fields' : 'Lab-only assistant review'}</h3>
-              {future ? <p>Prepared synthetic note candidate: “diarrhoea, 5 stools/day over baseline” → diarrhoea, candidate grade 2 (4–6 stools/day over baseline). Confirm the context and grade; this is not a diagnosis of immune colitis.</p> : <p className="s91-unavailable">Note extraction is greyed out: full free-text notes are not reliably available. Detailed admissions and trial comparison remain future-only.</p>}
+              {future ? <>
+                <p>Prepared synthetic note candidates for {drug.name}; confirm each context and grade. A symptom does not establish drug causality.</p>
+                {noteCandidates.length ? noteCandidates.map((e, i) => <blockquote key={i}>
+                  <strong>{e.patient} · {e.term} · candidate grade {e.grade}</strong><br />“{e.evidence}”
+                </blockquote>) : <p>No note-only event candidates recorded for this therapy.</p>}
+                {noteCandidates.some(e => e.term === 'Diarrhoea') && <p className="s91-muted">Diarrhoea grade 2: 4–6 stools/day over baseline. This is not a diagnosis of immune colitis.</p>}
+              </> : <p className="s91-unavailable">Note extraction is greyed out: full free-text notes are not reliably available. Detailed admissions and trial comparison remain future-only.</p>}
               <button className="s91-primary" disabled={busy} onClick={() => void runReview()}>{busy ? <Working label="Reviewing evidence" /> : result ? 'Run assistant review again' : 'Run assistant review'}</button>
               {result && <><p className="s91-mode">{result.mode === 'copilot' ? 'Copilot SDK review' : 'Prepared synthetic demo · Copilot unavailable'}</p><p>{result.note}</p><div className="s91-blocks">{result.blocks.filter(b => b.type !== 'summary').map((b, i) => <RenderBlock key={i} block={b} />)}</div></>}
             </section>}
