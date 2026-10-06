@@ -1,0 +1,101 @@
+{
+  "synthetic": true,
+  "requests": [
+    {
+      "id": "MDT-041",
+      "title": "Prepare tomorrow's colorectal tumour board",
+      "agent": "Tumour board preparation agent",
+      "purpose": "tumour board preparation",
+      "data": ["Age", "cTNM", "mCRC: MSI", "Systemic therapy regimen", "MDT treatment recommendation"],
+      "scope": "local colorectal cohort; read-only; no export",
+      "consent": "recorded",
+      "permit": "valid",
+      "free_text": "Prepare tomorrow's colorectal tumour board using age, cTNM, MSI, systemic therapy regimen and MDT treatment recommendation. Read the local colorectal cohort only, with no export. Consent is recorded and the internal permit is valid."
+    },
+    {
+      "id": "RES-018",
+      "title": "Analyse survival by treatment for a research paper",
+      "agent": "Outcomes research agent",
+      "purpose": "research",
+      "data": ["Systemic therapy regimen", "Overall survival"],
+      "scope": "local colorectal cohort; read-only; no export",
+      "consent": "recorded",
+      "permit": "valid",
+      "free_text": "Analyse overall survival by systemic therapy regimen for a research paper. Read the local colorectal cohort only, without export. Research consent and study permit CRC-R17 are recorded and valid. This is research, not internal quality monitoring."
+    },
+    {
+      "id": "QUA-022",
+      "title": "Review colorectal treatment outcomes",
+      "agent": "Internal quality monitoring agent",
+      "purpose": "quality monitoring",
+      "data": ["Systemic therapy regimen", "Overall survival"],
+      "scope": "local colorectal cohort; read-only; no export",
+      "consent": "recorded",
+      "permit": "valid",
+      "free_text": "Review overall survival by systemic therapy regimen for internal quality monitoring. Read the local colorectal cohort only, no export. Consent is recorded and the internal permit is valid."
+    },
+    {
+      "id": "FED-009",
+      "title": "Prepare a tumour board across partner hospitals",
+      "agent": "Federated tumour board agent",
+      "purpose": "tumour board preparation",
+      "data": ["Age", "cTNM", "MDT treatment recommendation"],
+      "scope": "live cross-hospital patient-level query",
+      "consent": "recorded",
+      "permit": "valid",
+      "free_text": "Prepare a colorectal tumour board using live patient-level queries across partner hospitals. Consent is recorded and the permit is valid, but scope extends beyond the local hospital."
+    },
+    {
+      "id": "CON-007",
+      "title": "Prepare a case with consent in a scanned form",
+      "agent": "Tumour board preparation agent",
+      "purpose": "tumour board preparation",
+      "data": ["Age", "cTNM"],
+      "scope": "local colorectal cohort; read-only; no export",
+      "consent": "unstructured",
+      "permit": "valid",
+      "free_text": "Prepare a local colorectal tumour board case using age and cTNM. Read-only, no export. The permit is valid; consent is mentioned in a scanned form and has not been recorded in a fixed form."
+    }
+  ],
+  "rules": [
+    {
+      "id": "MDT-01",
+      "title": "Internal tumour board preparation",
+      "purpose": "tumour board preparation",
+      "scope": "local colorectal cohort; read-only; no export",
+      "data": ["Age", "cTNM", "mCRC: MSI", "Systemic therapy regimen", "MDT treatment recommendation"],
+      "consent": "recorded",
+      "permit": "valid",
+      "text": "Allow tumour board preparation only for the local colorectal cohort, read-only and without export, using these five fields, with recorded consent and a valid purpose-specific permit."
+    },
+    {
+      "id": "QUA-01",
+      "title": "Internal quality monitoring",
+      "purpose": "quality monitoring",
+      "scope": "local colorectal cohort; read-only; no export",
+      "data": ["Systemic therapy regimen", "Overall survival"],
+      "consent": "recorded",
+      "permit": "valid",
+      "text": "Allow internal quality monitoring of treatment and survival in the local colorectal cohort, read-only and without export, with recorded consent and a valid purpose-specific permit."
+    }
+  ],
+  "log": [
+    {"id": "LOG-01", "time": "05 Oct · 07:42", "request_id": "MDT-037", "title": "Prepare colorectal tumour board", "decision": "approved", "rule_id": "MDT-01", "actor": "Policy engine", "reason": "All consent, permit and policy conditions matched."},
+    {"id": "LOG-02", "time": "05 Oct · 08:05", "request_id": "QUA-019", "title": "Review colorectal treatment outcomes", "decision": "approved", "rule_id": "QUA-01", "actor": "Policy engine", "reason": "Internal quality monitoring; recorded consent; valid permit; local read-only scope."},
+    {"id": "LOG-03", "time": "02 Oct · 11:20", "request_id": "RES-011", "title": "Analyse survival by treatment for a research paper", "decision": "approved", "rule_id": "EXCEPTION", "actor": "Steward", "reason": "Study CRC-R17; recorded research consent; valid study permit; local read-only, no export."},
+    {"id": "LOG-04", "time": "01 Oct · 14:10", "request_id": "RES-012", "title": "Analyse survival by treatment for a research paper", "decision": "approved", "rule_id": "EXCEPTION", "actor": "Steward", "reason": "Same CRC-R17 study, fields and scope; consent and study permit checked."},
+    {"id": "LOG-05", "time": "30 Sep · 09:35", "request_id": "RES-013", "title": "Analyse survival by treatment for a research paper", "decision": "approved", "rule_id": "EXCEPTION", "actor": "Steward", "reason": "Same CRC-R17 study, fields and scope; consent and study permit checked."},
+    {"id": "LOG-06", "time": "30 Sep · 07:50", "request_id": "MDT-035", "title": "Prepare colorectal tumour board", "decision": "approved", "rule_id": "MDT-01", "actor": "Policy engine", "reason": "All consent, permit and policy conditions matched."}
+  ],
+  "suggestion": {
+    "id": "RES-DRAFT-01",
+    "title": "Draft: CRC-R17 research outcomes",
+    "purpose": "research",
+    "scope": "local colorectal cohort; read-only; no export",
+    "data": ["Systemic therapy regimen", "Overall survival"],
+    "consent": "recorded research consent for CRC-R17",
+    "permit": "valid study permit CRC-R17",
+    "text": "For study CRC-R17 only: allow research on systemic therapy regimen and overall survival in the local colorectal cohort, read-only, no export, only with recorded study-specific research consent and a valid CRC-R17 permit. Steward approval required before activation.",
+    "evidence_ids": ["LOG-03", "LOG-04", "LOG-05"]
+  }
+}
