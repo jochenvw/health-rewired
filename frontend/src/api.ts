@@ -67,4 +67,8 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  safetyMonitor: <T,>(horizon: 'future' | 'six-months') =>
+    request<T>(`/api/ideas/91/monitor?horizon=${horizon}`),
+  reviewSafety: (body: { drug_id: string; horizon: 'future' | 'six-months' }) =>
+    request<AgentResult>('/api/ideas/91/agent', { method: 'POST', body: JSON.stringify(body) }),
 };
