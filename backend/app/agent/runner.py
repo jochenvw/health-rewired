@@ -61,15 +61,20 @@ async def run_agent(
     system_prompt: str | None = None,
     prompt: str | None = None,
     extra_tools: list[Tool] | None = None,
+    include_data_tools: bool = True,
 ) -> AgentResult:
-    """Run one agent turn. Ideas pass their own ``system_prompt``, ``prompt`` and ``extra_tools``."""
+    """Run one turn; disable shared data tools when an idea requires review-scoped facts only."""
     if settings.copilot_auth_mode == "not-configured":
         return build_fallback(request, "Copilot SDK not configured: set COPILOT_GITHUB_TOKEN.")
 
     rendered: list[RenderUIParams] = []
     trace: list[TraceStep] = []
     messages: list[str] = []
-    tools = [*DATA_TOOLS, *(extra_tools or []), build_render_ui_tool(rendered.append)]
+    tools = [
+        *(DATA_TOOLS if include_data_tools else []),
+        *(extra_tools or []),
+        build_render_ui_tool(rendered.append),
+    ]
 
     def on_event(event) -> None:
         match event.data:
