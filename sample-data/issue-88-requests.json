@@ -1,0 +1,66 @@
+{
+  "synthetic": true,
+  "catalogue": {
+    "@context": {"dcat": "http://www.w3.org/ns/dcat#", "dct": "http://purl.org/dc/terms/", "title": "dct:title", "description": "dct:description", "identifier": "dct:identifier", "publisher": "dct:publisher", "modified": "dct:modified", "theme": "dcat:theme", "accessRights": "dct:accessRights", "dataset": "dcat:dataset", "distribution": "dcat:distribution", "format": "dct:format", "accessURL": "dcat:accessURL"},
+    "@type": "dcat:Catalog",
+    "title": "Munich demonstration hospital — oncology data catalogue",
+    "publisher": "Synthetic hospital data stewardship office",
+    "modified": "2026-10-06",
+    "dataset": [
+      {
+        "@type": "dcat:Dataset",
+        "identifier": "crc-mdt",
+        "title": "Colorectal tumour-board dataset",
+        "description": "Synthetic catalogue description based on the minimal MDT working list. Counts are simulated, not measured patient records.",
+        "modified": "2026-10-06",
+        "theme": "Colorectal oncology",
+        "accessRights": "Restricted; human legal assessment and access decision required",
+        "patient_count": 640,
+        "variables": ["cancer", "stage", "age", "sex", "diagnosis_date", "regimen", "survival", "msi", "cea", "performance"],
+        "distribution": [{"title": "Dataset description only — no patient export", "format": "application/ld+json", "accessURL": "/api/ideas/88/catalogue"}]
+      },
+      {
+        "@type": "dcat:Dataset",
+        "identifier": "federated-oncology",
+        "title": "Federated oncology extensions — future simulation",
+        "description": "Future linked imaging and molecular sources; not connected in this prototype.",
+        "modified": "2026-10-06",
+        "theme": "Oncology research",
+        "accessRights": "Not available; future capability",
+        "patient_count": 2100,
+        "variables": ["images", "genomics"],
+        "distribution": []
+      }
+    ]
+  },
+  "variables": [
+    {"id": "cancer", "label": "Cancer site", "minimal_name": "Topography", "aliases": ["colorectal", "colon", "rectal", "cancer site"]},
+    {"id": "stage", "label": "Tumour stage", "minimal_name": "pTNM", "aliases": ["stage", "ptnm", "ctnm"]},
+    {"id": "age", "label": "Age", "minimal_name": "Age", "aliases": ["age", "adult"]},
+    {"id": "sex", "label": "Sex", "minimal_name": "Sex", "aliases": ["sex", "gender"]},
+    {"id": "diagnosis_date", "label": "Diagnosis date", "minimal_name": "Date of tumour diagnosis", "aliases": ["diagnosis date", "date of diagnosis"]},
+    {"id": "regimen", "label": "Systemic therapy regimen", "minimal_name": "Systemic therapy regimen", "aliases": ["regimen", "chemotherapy", "adjuvant", "treatment"]},
+    {"id": "survival", "label": "Overall survival", "minimal_name": "Overall survival", "aliases": ["survival", "outcomes"]},
+    {"id": "msi", "label": "Microsatellite instability", "minimal_name": "Non-metastatic CRC: MSI", "aliases": ["msi", "microsatellite"]},
+    {"id": "cea", "label": "CEA", "minimal_name": "CEA", "aliases": ["cea"]},
+    {"id": "performance", "label": "Performance status", "minimal_name": "WHO performance status", "aliases": ["performance", "ecog", "who status"]},
+    {"id": "images", "label": "Whole-slide pathology images", "minimal_name": null, "aliases": ["whole-slide", "slide images", "digital pathology", "images"]},
+    {"id": "genomics", "label": "Whole-genome sequencing", "minimal_name": "mCRC: whole-genome sequencing", "aliases": ["genomic", "whole-genome", "sequencing"]}
+  ],
+  "cohorts": [
+    {"cancer": "colorectal", "stage": "I", "count": 92},
+    {"cancer": "colorectal", "stage": "II", "count": 180},
+    {"cancer": "colorectal", "stage": "III", "count": 128},
+    {"cancer": "colorectal", "stage": "IV", "count": 240}
+  ],
+  "extractions": [
+    {"id": "EXT-024", "title": "Stage III colorectal adjuvant outcomes", "pipeline": "CRC core → common data model v1", "variables": ["cancer", "stage", "age", "regimen", "survival"], "cancer": "colorectal", "stage": "III"},
+    {"id": "EXT-019", "title": "Colorectal registry core", "pipeline": "CRC core → common data model v1", "variables": ["cancer", "stage", "age", "sex", "diagnosis_date"], "cancer": "colorectal", "stage": ""}
+  ],
+  "requests": [
+    {"id": "REQ-041", "requester": "Regional cancer registry", "purpose": "Annual registry completeness", "request": "Colorectal cancer site, stage, age, sex and diagnosis date.", "permit": "DEMO-REG-2026", "pipeline": "CRC core → common data model v1", "investment": "Reuses existing pipeline", "status": "Human review pending"},
+    {"id": "REQ-042", "requester": "University research consortium", "purpose": "Compare stage III adjuvant outcomes", "request": "Stage III colorectal cancer, age, regimen and overall survival.", "permit": "DEMO-RES-2026", "pipeline": "CRC core → common data model v1", "investment": "Reuses existing pipeline", "status": "Reuse approved; access pending"},
+    {"id": "REQ-043", "requester": "European pathology project", "purpose": "Digital pathology validation", "request": "Stage III colorectal whole-slide images.", "permit": "", "pipeline": "No image extraction available", "investment": "Needs new investment", "status": "Returned: missing permit"},
+    {"id": "REQ-044", "requester": "Pharmaceutical consortium", "purpose": "Molecular outcomes research", "request": "Colorectal whole-genome sequencing linked to survival.", "permit": "DEMO-MOL-2026", "pipeline": "Molecular linkage not built", "investment": "Needs new investment", "status": "Investment decision pending"}
+  ]
+}
