@@ -41,6 +41,15 @@ def test_agent_falls_back_without_token(client):
     assert any(step["tool"] == "get_patient" for step in body["trace"])
 
 
+def test_issue_100_manager_agent_has_a_no_token_demo_path(client):
+    response = client.post(
+        "/api/ideas/100/manager-answer",
+        json={"task": "Ask the local data manager why Hospital A includes procedure Y cases."},
+    )
+    assert response.status_code == 200
+    assert response.json()["mode"] == "fallback"
+
+
 def test_render_ui_tool_schema_is_self_contained():
     captured = []
     tool = build_render_ui_tool(captured.append)
