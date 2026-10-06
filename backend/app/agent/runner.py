@@ -61,6 +61,7 @@ async def run_agent(
     system_prompt: str | None = None,
     prompt: str | None = None,
     extra_tools: list[Tool] | None = None,
+    data_tools: list[Tool] | None = None,
 ) -> AgentResult:
     """Run one agent turn. Ideas pass their own ``system_prompt``, ``prompt`` and ``extra_tools``."""
     if settings.copilot_auth_mode == "not-configured":
@@ -69,7 +70,11 @@ async def run_agent(
     rendered: list[RenderUIParams] = []
     trace: list[TraceStep] = []
     messages: list[str] = []
-    tools = [*DATA_TOOLS, *(extra_tools or []), build_render_ui_tool(rendered.append)]
+    tools = [
+        *(DATA_TOOLS if data_tools is None else data_tools),
+        *(extra_tools or []),
+        build_render_ui_tool(rendered.append),
+    ]
 
     def on_event(event) -> None:
         match event.data:
