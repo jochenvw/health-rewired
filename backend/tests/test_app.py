@@ -84,3 +84,17 @@ def test_idea_routers_are_discovered_and_mounted(client):
     mounted = _all_paths(app.routes)
     for router in found:
         assert {route.path for route in router.routes} <= mounted
+
+
+def test_tacit_knowledge_capture_has_a_demo_fallback(client):
+    response = client.post(
+        "/api/ideas/98/capture",
+        json={"explanation": "He looks frailer than three weeks ago and needed help walking."},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["mode"] == "fallback"
+    observation = next(block for block in body["blocks"] if block["type"] == "evidence")
+    assert observation["title"] == "Newly captured clinical observation"
+    assert any(item["label"] == "Source" and item["detail"] == "Treating clinician" for item in observation["items"])
