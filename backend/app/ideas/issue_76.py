@@ -61,6 +61,7 @@ class ExtractResult(BaseModel):
 
 
 class Assessment(BaseModel):
+    facts: list[Fact]
     recommendations: list[Recommendation]
     missing: list[MissingItem]
     conflicts: list[str]
@@ -429,4 +430,4 @@ async def recommend(request: RecommendRequest) -> Assessment:
         },
         blocks,
     )
-    return Assessment(recommendations=recommendations, missing=missing, conflicts=conflicts, agent=agent)
+    return Assessment(facts=facts, recommendations=recommendations, missing=missing, conflicts=conflicts, agent=agent)

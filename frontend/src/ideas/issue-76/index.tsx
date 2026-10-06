@@ -30,6 +30,7 @@ type Recommendation = {
   used_facts: string[]; missing: string[]; source_ids: string[];
 };
 type Assessment = {
+  facts: Fact[];
   recommendations: Recommendation[];
   missing: { field: string; status: string; source: string; action: string }[];
   conflicts: string[];
@@ -113,7 +114,7 @@ export default function ColonMdt() {
         method: 'POST', body: JSON.stringify({ patient_id: patientId, horizon, facts, reviewed: true }),
       });
       if (generation.current !== run) return;
-      setAssessment(data); setStep('options');
+      setFacts(data.facts); setAssessment(data); setStep('options');
     } catch {
       if (generation.current === run) setError('The guideline check did not finish. Your reviewed facts are preserved; try again.');
     } finally {

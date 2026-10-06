@@ -162,3 +162,15 @@ def test_qualified_negative_statements_do_not_hide_constraints(client, key, valu
     next(f for f in extracted["facts"] if f["key"] == key)["value"] = value
     result = _recommend(client, extracted).json()
     assert any(value in conflict for conflict in result["conflicts"]) is warning_expected
+
+
+def test_recommend_returns_canonical_normalized_facts_and_provenance(client):
+    extracted = _extract(client, "COL-003")
+    biopsy = next(f for f in extracted["facts"] if f["key"] == "diagnosis")
+    biopsy.update(status="recorded", source="Untrusted submitted provenance")
+    result = _recommend(client, extracted).json()
+    canonical = next(f for f in result["facts"] if f["key"] == "diagnosis")
+    assert canonical["status"] == "missing"
+    assert canonical["value"] == "Biopsy pending; suspected adenocarcinoma"
+    assert canonical["source"] == "Physician correction; original source: COL-003-ENDO"
+    assert any(m["field"] == canonical["label"] and m["status"] == "missing" for m in result["missing"])
