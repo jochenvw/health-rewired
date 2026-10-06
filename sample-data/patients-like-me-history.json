@@ -1,0 +1,30 @@
+{
+  "synthetic": true,
+  "description": "Fictional historical rectal cancer records for issue 92, not outcomes of the current sample patients. All treatment sequences include surgery. Month zero is start of treatment; follow-up ends at death or last contact. Recurrence is assessed within five years, side effects during treatment. No real-world estimates.",
+  "records": [
+    {"id":"H-01","site":"Munich","age":60,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":72,"death_month":null,"recurrence":false,"major_side_effect":true},
+    {"id":"H-02","site":"Munich","age":62,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":68,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-03","site":"Munich","age":65,"ecog":1,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":64,"death_month":null,"recurrence":true,"major_side_effect":false},
+    {"id":"H-04","site":"Munich","age":68,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":48,"death_month":48,"recurrence":true,"major_side_effect":true},
+    {"id":"H-05","site":"Munich","age":71,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":61,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-06","site":"Munich","age":73,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":62,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-07","site":"Utrecht","age":61,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":70,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-08","site":"Utrecht","age":64,"ecog":1,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":66,"death_month":null,"recurrence":false,"major_side_effect":true},
+    {"id":"H-09","site":"Utrecht","age":67,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":59,"death_month":59,"recurrence":true,"major_side_effect":false},
+    {"id":"H-10","site":"Utrecht","age":70,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":63,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-11","site":"Utrecht","age":74,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":67,"death_month":null,"recurrence":false,"major_side_effect":true},
+    {"id":"H-12","site":"Utrecht","age":77,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":24,"death_month":null,"recurrence":null,"major_side_effect":null},
+    {"id":"H-13","site":"Munich","age":60,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":65,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-14","site":"Munich","age":63,"ecog":1,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":61,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-15","site":"Munich","age":66,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":10,"death_month":10,"recurrence":true,"major_side_effect":true},
+    {"id":"H-16","site":"Munich","age":69,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":30,"death_month":30,"recurrence":true,"major_side_effect":false},
+    {"id":"H-17","site":"Munich","age":72,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":50,"death_month":50,"recurrence":true,"major_side_effect":false},
+    {"id":"H-18","site":"Munich","age":75,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":66,"death_month":null,"recurrence":false,"major_side_effect":true},
+    {"id":"H-19","site":"Utrecht","age":61,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":63,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-20","site":"Utrecht","age":64,"ecog":1,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":69,"death_month":null,"recurrence":true,"major_side_effect":false},
+    {"id":"H-21","site":"Utrecht","age":67,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":42,"death_month":42,"recurrence":true,"major_side_effect":true},
+    {"id":"H-22","site":"Utrecht","age":70,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":62,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-23","site":"Utrecht","age":74,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":64,"death_month":null,"recurrence":false,"major_side_effect":false},
+    {"id":"H-24","site":"Utrecht","age":78,"ecog":2,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Chemoradiotherapy + surgery","follow_up_months":66,"death_month":null,"recurrence":false,"major_side_effect":false}
+  ]
+}
