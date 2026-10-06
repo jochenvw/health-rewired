@@ -1,0 +1,23 @@
+{
+  "synthetic": true,
+  "id": "I80-001",
+  "name": "Elena Vermeer (synthetic)",
+  "age": 63,
+  "sex": "Female",
+  "diagnosis": "New sigmoid colon adenocarcinoma; staging incomplete",
+  "fields": [
+    {"key": "stage", "label": "Clinical stage", "value": "cT3N0Mx", "source": "MDT extract.csv — staging-form report-text extract, 6 October 2026", "likely_source": "report text", "minimal": true},
+    {"key": "histology", "label": "Histology", "value": "Adenocarcinoma", "source": "MDT extract.csv — coded Morphology, pathology 5 October 2026", "likely_source": "structured", "minimal": true},
+    {"key": "mmr", "label": "MMR / MSI", "value": "Pending; expected 8 October 2026", "source": "MDT extract.csv — pathology addendum request, report-text extract", "likely_source": "report text", "minimal": true},
+    {"key": "ct", "label": "CT staging", "value": "Pending; scheduled 9 October 2026", "source": "MDT extract.csv — radiology booking, no imaging result yet", "likely_source": "report text", "minimal": true},
+    {"key": "ecog", "label": "ECOG / WHO performance status", "value": "ECOG 1", "source": "Clinic note.docx (Word-style text) — 6 October 2026", "likely_source": "patient / clinic note", "minimal": true},
+    {"key": "comorbidity", "label": "Comorbidities", "value": "Persistent sensory neuropathy after synthetic prior gastric-cancer treatment", "source": "Clinic note.docx (Word-style text) — medical history paragraph", "likely_source": "report text", "minimal": true},
+    {"key": "allergy", "label": "Drug hypersensitivity", "value": "Oxaliplatin hypersensitivity during prior synthetic gastric-cancer treatment", "source": "Medication safety.fhir.json — synthetic AllergyIntolerance resource", "likely_source": "patient / clinic note", "minimal": false},
+    {"key": "wishes", "label": "Patient wishes", "value": "Preserve hand function for playing piano and caring for grandchildren", "source": "Clinic note.docx (Word-style text) — shared-decision paragraph", "likely_source": "patient / clinic note", "minimal": false}
+  ],
+  "documents": [
+    {"name": "MDT extract.csv", "format": "CSV", "body": "synthetic,key,value,source\ntrue,stage,cT3N0Mx,Staging-form report-text extract 6 October 2026\ntrue,histology,Adenocarcinoma,Coded Morphology pathology 5 October 2026\ntrue,mmr,Pending; expected 8 October 2026,Pathology addendum request report-text extract\ntrue,ct,Pending; scheduled 9 October 2026,Radiology booking; no imaging result yet\n"},
+    {"name": "Clinic note.docx (Word-style text)", "format": "Word-style note", "body": "SYNTHETIC — Word-style text preview, not a binary DOCX file.\nCLINIC VISIT — 6 October 2026\nPerformance status: ECOG 1.\nMEDICAL HISTORY\nPersistent sensory neuropathy after synthetic prior gastric-cancer treatment. Medication safety history is recorded separately.\nSHARED DECISION-MAKING\nPreserve hand function for playing piano and caring for grandchildren.\nHackathon prototype — not for clinical use."},
+    {"name": "Medication safety.fhir.json", "format": "FHIR JSON", "body": "{\"resourceType\":\"AllergyIntolerance\",\"id\":\"synthetic-issue80-oxaliplatin\",\"meta\":{\"tag\":[{\"system\":\"urn:health-rewired:demo\",\"code\":\"synthetic\"}]},\"clinicalStatus\":{\"coding\":[{\"system\":\"http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical\",\"code\":\"active\"}]},\"patient\":{\"reference\":\"Patient/I80-001\",\"display\":\"Elena Vermeer (synthetic)\"},\"code\":{\"text\":\"Oxaliplatin hypersensitivity\"},\"note\":[{\"text\":\"SYNTHETIC: oxaliplatin hypersensitivity during prior synthetic gastric-cancer treatment. Fictional FHIR-style teaching resource, not a validated clinical export.\"}]}"}
+  ]
+}
