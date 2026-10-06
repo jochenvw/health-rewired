@@ -1,0 +1,64 @@
+{
+  "synthetic": true,
+  "snapshot_date": "2026-10-06",
+  "patient": {
+    "id": "TM-078",
+    "name": "Eva Sommer",
+    "age": 58,
+    "sex": "female",
+    "diagnosis": "Metastatic sigmoid adenocarcinoma · liver metastases",
+    "allergies": "Not recorded"
+  },
+  "facts": {
+    "age": {"label": "Age", "value": 58, "display": "58 years", "dataset": "Age", "source": "Synthetic registration · 2026-10-06", "six_month_available": true},
+    "pathology": {"label": "Pathology", "value": "adenocarcinoma", "display": "Sigmoid adenocarcinoma", "dataset": "Morphology", "source": "Synthetic pathology report PATH-078 · 2026-08-12", "six_month_available": true},
+    "ras": {"label": "RAS", "value": "G12D", "display": "KRAS G12D", "dataset": "mCRC: RAS", "source": "Synthetic molecular report MOL-078 §2 · 2026-09-15", "six_month_available": true},
+    "msi": {"label": "MSI", "value": "MSS", "display": "Microsatellite stable (MSS)", "dataset": "mCRC: MSI", "source": "Synthetic molecular report MOL-078 §3 · 2026-09-15", "six_month_available": true},
+    "ecog": {"label": "Performance status", "value": 1, "display": "ECOG 1", "dataset": "WHO performance status", "source": "Synthetic clinic note CLIN-078 · 2026-10-02", "six_month_available": false},
+    "anc": {"label": "Neutrophils", "value": 2.4, "display": "2.4 × 10⁹/L", "dataset": "Full blood count", "source": "Synthetic lab LAB-078 · 2026-10-02", "date": "2026-10-02", "six_month_available": true},
+    "renal": {"label": "Renal function", "value": null, "display": "No current eGFR recorded", "dataset": "Renal function", "source": "Synthetic lab LAB-078 · eGFR absent", "six_month_available": true},
+    "imaging": {"label": "Radiology", "value": true, "display": "CT report: measurable liver lesion, 24 mm", "dataset": "Imaging result (e.g. CT thorax-abdomen)", "source": "Synthetic CT report RAD-078 §Findings · 2026-09-28", "date": "2026-09-28", "six_month_available": true},
+    "therapy": {"label": "Treatment history", "value": "FOLFOX", "display": "FOLFOX completed · progression documented 2026-09-28", "dataset": "Systemic therapy regimen", "source": "Synthetic prescribing record RX-078 · 2026-09-28", "six_month_available": true},
+    "autoimmune": {"label": "Active autoimmune disease", "value": null, "display": "Not assessed in available record", "dataset": "Medical history", "source": "Synthetic clinic record CLIN-078 · no assessment", "six_month_available": false}
+  },
+  "trials": [
+    {
+      "id": "LOCAL-078-A", "title": "PATHWAY-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
+      "description": "Fictional experimental targeted-therapy study after oxaliplatin-based treatment.",
+      "criteria": [
+        {"id": "I1", "kind": "Inclusion", "text": "Age ≥18 years", "field": "age", "op": "gte", "expected": 18},
+        {"id": "I2", "kind": "Inclusion", "text": "Colorectal adenocarcinoma", "field": "pathology", "op": "eq", "expected": "adenocarcinoma"},
+        {"id": "I3", "kind": "Inclusion", "text": "KRAS G12D mutation", "field": "ras", "op": "eq", "expected": "G12D"},
+        {"id": "I4", "kind": "Inclusion", "text": "Prior FOLFOX", "field": "therapy", "op": "eq", "expected": "FOLFOX"},
+        {"id": "I5", "kind": "Inclusion", "text": "ECOG ≤1", "field": "ecog", "op": "lte", "expected": 1},
+        {"id": "I6", "kind": "Inclusion", "text": "Neutrophils ≥1.5 × 10⁹/L within 14 days", "field": "anc", "op": "gte", "expected": 1.5, "max_age_days": 14},
+        {"id": "I7", "kind": "Inclusion", "text": "eGFR ≥50 mL/min/1.73 m² within 14 days", "field": "renal", "op": "gte", "expected": 50, "max_age_days": 14},
+        {"id": "I8", "kind": "Inclusion", "text": "Measurable disease on CT report within 28 days", "field": "imaging", "op": "eq", "expected": true, "max_age_days": 28}
+      ]
+    },
+    {
+      "id": "LOCAL-078-B", "title": "IMMUNE-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
+      "description": "Fictional immunotherapy study restricted to MSI-high tumours.",
+      "criteria": [
+        {"id": "I1", "kind": "Inclusion", "text": "MSI-high tumour", "field": "msi", "op": "eq", "expected": "MSI-high"},
+        {"id": "E1", "kind": "Exclusion", "text": "Exclude active autoimmune disease (must be absent)", "field": "autoimmune", "op": "eq", "expected": false}
+      ]
+    },
+    {
+      "id": "LOCAL-078-C", "title": "RAS-WT-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "III", "status": "Recruiting",
+      "description": "Fictional experimental combination requiring RAS wild-type disease.",
+      "criteria": [
+        {"id": "I1", "kind": "Inclusion", "text": "RAS wild-type tumour", "field": "ras", "op": "eq", "expected": "wild-type"},
+        {"id": "I2", "kind": "Inclusion", "text": "ECOG ≤1", "field": "ecog", "op": "lte", "expected": 1}
+      ]
+    },
+    {
+      "id": "NETWORK-078-D", "title": "EU-PATHWAY-CRC", "site": "Fictional European partner network", "scope": "network", "phase": "I/II", "status": "Recruiting",
+      "description": "Future-only simulated partner-site study; no live registry or hospital query.",
+      "criteria": [
+        {"id": "I1", "kind": "Inclusion", "text": "KRAS G12D mutation", "field": "ras", "op": "eq", "expected": "G12D"},
+        {"id": "I2", "kind": "Inclusion", "text": "eGFR ≥60 mL/min/1.73 m² within 14 days", "field": "renal", "op": "gte", "expected": 60, "max_age_days": 14}
+      ]
+    }
+  ]
+}
