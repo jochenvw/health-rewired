@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
+from app.agent.models import AgentResult
 from app.config import settings
+from app.ideas import issue_88
 from app.main import app
 
 
@@ -52,3 +54,11 @@ def test_request_front_door_without_copilot(monkeypatch):
     ).json()["assessment"]
     assert "Quality of life" in clinic_outcomes["missing_variables"]
     assert clinic_outcomes["reuse"] is None
+
+    async def sdk_without_tool(*args, **kwargs):
+        return AgentResult(mode="copilot", headline="Text-only response", blocks=[])
+
+    monkeypatch.setattr(issue_88, "run_agent", sdk_without_tool)
+    ungrounded = client.post("/api/ideas/88/assess", json=intake).json()
+    assert ungrounded["agent"]["mode"] == "fallback"
+    assert "did not complete the feasibility tool" in ungrounded["agent"]["note"]

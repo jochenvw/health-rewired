@@ -167,10 +167,12 @@ def feasibility(intake: Intake, mapping: Mapping, data: dict) -> dict:
 async def assess(intake: Intake):
     data = catalogue()
     assessment = feasibility(intake, demo_mapping(intake.request, data["variables"]), data)
+    tool_called = False
 
     def map_request(params: Mapping) -> str:
-        nonlocal assessment
+        nonlocal assessment, tool_called
         assessment = feasibility(intake, params, data)
+        tool_called = True
         return json.dumps(assessment)
 
     tool = define_tool(
@@ -201,13 +203,17 @@ async def assess(intake: Intake):
         ),
         extra_tools=[tool],
     )
-    if agent.mode == "fallback":
+    if agent.mode == "fallback" or not tool_called:
         # Discard the shared patient-chart fallback; this idea needs a request-specific demo.
         assessment = feasibility(intake, demo_mapping(intake.request, data["variables"]), data)
         agent = AgentResult(
             mode="fallback",
             headline="Request feasibility — synthetic demonstration",
-            note=(agent.note or "") + " Demo recognises catalogue keywords; unfamiliar wording needs human review.",
+            note=(
+                (agent.note or "")
+                + (" SDK did not complete the feasibility tool." if agent.mode == "copilot" else "")
+                + " Demo recognises catalogue keywords; unfamiliar wording needs human review."
+            ),
             blocks=[
                 UIBlock(
                     type="evidence",
