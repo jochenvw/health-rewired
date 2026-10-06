@@ -67,4 +67,62 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  patientsLikeMe: (body: { horizon: PatientsLikeMeHorizon; strict: boolean }) =>
+    request<PatientsLikeMeCohort>('/api/ideas/92/cohort', { method: 'POST', body: JSON.stringify(body) }),
+  explainPatientsLikeMe: (body: {
+    horizon: PatientsLikeMeHorizon;
+    strict: boolean;
+    language: 'English' | 'German';
+    literacy: 'plain' | 'detailed';
+  }) =>
+    request<AgentResult>('/api/ideas/92/explain', { method: 'POST', body: JSON.stringify(body) }),
+};
+
+export type PatientsLikeMeHorizon = 'future' | 'six-month';
+
+export type PatientsLikeMeMetric = {
+  label: string;
+  n: number;
+  events: number | null;
+  percent: number | null;
+  low: number | null;
+  high: number | null;
+  reason: string | null;
+};
+
+export type PatientsLikeMeCohort = {
+  patient: PatientRecord;
+  horizon: PatientsLikeMeHorizon;
+  strict: boolean;
+  count: number;
+  screened: number;
+  source: string;
+  matches: string[];
+  differences: string[];
+  warnings: string[];
+  groups: {
+    treatment: string;
+    count: number;
+    fit_count: number | null;
+    metrics: PatientsLikeMeMetric[];
+  }[];
+  records: {
+    id: string;
+    site: string;
+    age: number;
+    ecog: number | null;
+    stage: string;
+    msi: string;
+    treatment: string;
+    follow_up_months: number;
+    death_month: number | null;
+    recurrence: boolean | null;
+    major_side_effect: boolean | null;
+  }[];
+  coverage: {
+    group: string;
+    name: string;
+    likely_source: string;
+    status: 'available' | 'partial' | 'missing';
+  }[];
 };
