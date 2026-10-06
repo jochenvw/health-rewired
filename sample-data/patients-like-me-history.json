@@ -1,6 +1,6 @@
 {
   "synthetic": true,
-  "description": "Fictional historical rectal cancer records for issue 92, not outcomes of the current sample patients. All treatment sequences include surgery. Month zero is start of treatment; follow-up ends at death or last contact. Recurrence is assessed within five years, side effects during treatment. No real-world estimates.",
+  "description": "Fictional historical rectal cancer records for issue 92, not outcomes of the current sample patients. All treatment sequences include surgery. Month zero is start of treatment; follow-up ends at death or last contact. Recurrence is assessed within five years; major_side_effect means grade 3 or higher during treatment. No real-world estimates.",
   "records": [
     {"id":"H-01","site":"Munich","age":60,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":72,"death_month":null,"recurrence":false,"major_side_effect":true},
     {"id":"H-02","site":"Munich","age":62,"ecog":0,"stage":"III","msi":"MSS","site_of_tumour":"Rectum","treatment":"Total neoadjuvant therapy + surgery","follow_up_months":68,"death_month":null,"recurrence":false,"major_side_effect":false},
