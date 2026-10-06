@@ -97,10 +97,10 @@ def match_reviewed(record: dict, horizon: str) -> dict:
     metadata = {field["key"]: field for field in record["fields"]}
     stage, ct, mmr = (facts[key] for key in ("stage", "ct", "mmr"))
     ct_negative = bool(
-        re.search(r"\b(no|without|negative for)\s+(distant\s+)?(metastases|metastatic disease)\b", ct)
+        re.fullmatch(r"(no|without|negative for)\s+(distant\s+)?(metastases|metastatic disease)(\s+detected)?", ct)
         or ct in ("negative", "m0")
     )
-    ct_positive = bool(re.search(r"\bmetastases (present|confirmed)\b|\bm1[a-c]?\b", ct)) or ct in (
+    ct_positive = bool(re.fullmatch(r"metastases (present|confirmed)|m1[a-c]?", ct)) or ct in (
         "positive",
         "metastatic disease",
     )
@@ -119,8 +119,11 @@ def match_reviewed(record: dict, horizon: str) -> dict:
         pathways = ["metastatic"]
     elif localized and not metastatic and not ct_pending:
         pathways = ["localized"]
-    mmr_deficient = bool(re.search(r"\bdmmr\b|\bmsi[- ]high\b", mmr))
-    mmr_proficient = bool(re.search(r"\bpmmr\b|\bmss\b|\bmsi[- ](stable|negative)\b", mmr))
+    mmr_tokens = re.split(r"\s*[/+]\s*", mmr)
+    mmr_deficient = all(token in {"dmmr", "msi-high", "msi high"} for token in mmr_tokens)
+    mmr_proficient = all(
+        token in {"pmmr", "mss", "msi stable", "msi-stable", "msi negative", "msi-negative"} for token in mmr_tokens
+    )
     mmr_pending = unresolved(mmr) or mmr_deficient == mmr_proficient
     missing = []
     for key in metadata:

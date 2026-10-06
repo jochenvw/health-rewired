@@ -99,6 +99,28 @@ def test_corrections_select_pathways_and_resolve_conflicts(client):
         },
     )
     assert any("MSI-high" in r["option"] for r in deficient["recommendations"])
+    for mmr in ("MSI-high not detected", "Not dMMR"):
+        ambiguous_mmr = prepare(
+            client,
+            fields={
+                **corrections,
+                "stage": "cT3N0M1",
+                "ct": "Metastases confirmed",
+                "mmr": mmr,
+            },
+        )
+        assert any(m["label"] == "MMR / MSI" for m in ambiguous_mmr["missing"])
+        assert all("Conditional" in r["status"] for r in ambiguous_mmr["recommendations"] if "MSI-high" in r["option"])
+    ambiguous_ct = prepare(
+        client,
+        fields={
+            **corrections,
+            "stage": "cT3N0M1",
+            "ct": "Metastases confirmed previously, now absent",
+        },
+    )
+    assert any(m["label"] == "CT staging" for m in ambiguous_ct["missing"])
+    assert all("Conditional" in r["status"] for r in ambiguous_ct["recommendations"])
     unknown = prepare(client, fields={**corrections, "mmr": "Unknown"})
     assert any(m["label"] == "MMR / MSI" for m in unknown["missing"])
     unfit = prepare(client, fields={**corrections, "ecog": "ECOG 3"})

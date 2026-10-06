@@ -46,6 +46,9 @@ including explicit local-review corrections and unavailable clinic-note fields.
 ## Outputs
 Source-linked hypothetical localized/metastatic options, unresolved branches, conflicts and AgentResult
 UI blocks. Mx/pending are not M0/negative; ambiguous MMR remains unresolved.
+MMR interpretation accepts only explicit status tokens (such as dMMR / MSI-high or pMMR / MSS).
+Negated or arbitrary statements require clarification rather than selecting a positive result.
+CT interpretation likewise accepts concise status phrases, not contradictory historical narratives.
 Each of the three fictional sources covers the same localized and metastatic questions and shares
 the staging caution. Differences are invented illustrative emphases, not claims about real guidelines.
 Explicit excerpt branches select pathways; supplemental biomarker/safety cards do not imply that
