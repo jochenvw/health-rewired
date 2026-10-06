@@ -1,0 +1,121 @@
+{
+  "synthetic": true,
+  "disclaimer": "Hackathon prototype – synthetic data – not for clinical use. Guideline summaries are illustrative teaching scenarios, not verified full text, and are not claimed to be the latest guidelines.",
+  "sources": [
+    {
+      "id": "dutch",
+      "title": "Dutch Richtlijnendatabase · colorectal cancer",
+      "region": "Netherlands",
+      "url": "https://richtlijnendatabase.nl/richtlijn/colorectaal_carcinoom_crc/startpagina_-_crc.html",
+      "status": "Illustrative · full text not verified",
+      "summary": "Illustrative MDT questions: establish localisation and stage, review resection pathology and discuss patient-specific primary treatment.",
+      "limitations": "No full-text retrieval or currency check performed. No recommendation is attributed to a verified guideline section."
+    },
+    {
+      "id": "italian",
+      "title": "Italian colon cancer guideline · participant-attached PDF",
+      "region": "Italy",
+      "url": "https://github.com/user-attachments/files/33112356/LG.146_Colon_agg2024-13-17.pdf",
+      "status": "Illustrative · attached PDF not verified",
+      "summary": "Illustrative MDT questions: distinguish preoperative and postoperative decisions; resolve pending pathology and MMR/MSI before narrowing options.",
+      "limitations": "The attachment is a reference link only; its contents, edition and current status have not been verified."
+    },
+    {
+      "id": "nccn",
+      "title": "NCCN · colon cancer",
+      "region": "United States",
+      "url": "https://www.nccn.org/guidelines/guidelines-detail?category=1&id=1428",
+      "status": "Illustrative · access and full text not verified",
+      "summary": "Illustrative MDT questions: weigh postoperative risk, fitness, drug safety and patient preferences in an explicit human discussion.",
+      "limitations": "Access may require registration. No licensed full text, version, exact wording or latest-guideline claim is reproduced."
+    }
+  ],
+  "field_definitions": [
+    {"key": "site", "label": "Primary tumour site", "dataset_element": "Topography"},
+    {"key": "diagnosis", "label": "Histological diagnosis", "dataset_element": "Morphology"},
+    {"key": "phase", "label": "Primary treatment phase", "dataset_element": "Surgery yes/no"},
+    {"key": "ctnm", "label": "Clinical TNM", "dataset_element": "cTNM"},
+    {"key": "staging", "label": "Distant staging", "dataset_element": "Imaging result (e.g. CT thorax-abdomen)"},
+    {"key": "ptnm", "label": "Resection pathology / pTNM", "dataset_element": "pTNM"},
+    {"key": "mmr", "label": "MMR / MSI", "dataset_element": "Non-metastatic CRC: MSI"},
+    {"key": "margins", "label": "Resection margins", "dataset_element": "Radicality of resection (R0/R1/R2)"},
+    {"key": "performance", "label": "Performance status", "dataset_element": "WHO performance status"},
+    {"key": "renal", "label": "Renal function", "dataset_element": "Renal function"},
+    {"key": "allergy", "label": "Drug allergies / prior severe reaction", "dataset_element": null},
+    {"key": "wishes", "label": "Patient wishes and values", "dataset_element": "Patient's treatment preference"}
+  ],
+  "patients": [
+    {
+      "id": "COL-001", "name": "Eva de Vries (synthetic)", "age": 67, "sex": "Female",
+      "diagnosis": "Localised sigmoid colon adenocarcinoma", "phase": "preoperative",
+      "scenario": "Complete staging; clarify anaesthetic allergy and wish to avoid a permanent stoma.",
+      "records": [
+        {"id": "COL-001-ENDO", "type": "narrative", "title": "Endoscopy and biopsy", "date": "2026-09-21", "text": "Synthetic record: sigmoid adenocarcinoma. Clinical cT3N0. MMR proteins retained."},
+        {"id": "COL-001-CT", "type": "FHIR preview", "title": "Staging DiagnosticReport", "date": "2026-09-25", "text": "Synthetic FHIR-style preview: CT thorax/abdomen: no distant metastases, cM0."},
+        {"id": "COL-001-CLINIC", "type": "narrative", "title": "Clinic and anaesthetic review", "date": "2026-09-28", "text": "Synthetic record: primary treatment preparation, surgery not performed; no resection pathology or margins yet. WHO 0; eGFR 74. Prior anaphylaxis with cefazolin. Wants curative treatment; wishes to avoid permanent stoma."}
+      ],
+      "facts": [
+        {"key": "site", "value": "Sigmoid colon", "source": "COL-001-ENDO", "status": "recorded"},
+        {"key": "diagnosis", "value": "Adenocarcinoma", "source": "COL-001-ENDO", "status": "recorded"},
+        {"key": "phase", "value": "Preoperative primary treatment", "source": "COL-001-CLINIC", "status": "recorded"},
+        {"key": "ctnm", "value": "cT3N0M0", "source": "COL-001-CT", "status": "recorded"},
+        {"key": "staging", "value": "CT thorax/abdomen: no distant metastases", "source": "COL-001-CT", "status": "recorded"},
+        {"key": "ptnm", "value": "Not yet available: surgery not performed", "source": "COL-001-CLINIC", "status": "pending"},
+        {"key": "mmr", "value": "MMR proficient; proteins retained", "source": "COL-001-ENDO", "status": "recorded"},
+        {"key": "margins", "value": "Not yet applicable: surgery not performed", "source": "COL-001-CLINIC", "status": "pending"},
+        {"key": "performance", "value": "WHO 0", "source": "COL-001-CLINIC", "status": "recorded"},
+        {"key": "renal", "value": "eGFR 74 mL/min/1.73 m²", "source": "COL-001-CLINIC", "status": "recorded"},
+        {"key": "allergy", "value": "Cefazolin anaphylaxis", "source": "COL-001-CLINIC", "status": "recorded"},
+        {"key": "wishes", "value": "Wants curative treatment; avoid permanent stoma", "source": "COL-001-CLINIC", "status": "recorded"}
+      ]
+    },
+    {
+      "id": "COL-002", "name": "Marco Bianchi (synthetic)", "age": 59, "sex": "Male",
+      "diagnosis": "Resected ascending colon adenocarcinoma", "phase": "postoperative",
+      "scenario": "Node-positive primary cancer; oxaliplatin reaction and wishes conflict with a routine adjuvant discussion.",
+      "records": [
+        {"id": "COL-002-PATH", "type": "narrative", "title": "Colectomy pathology", "date": "2026-09-20", "text": "Synthetic record: right hemicolectomy; adenocarcinoma pT3N1a, 1/21 nodes involved; R0. MMR result pending."},
+        {"id": "COL-002-CT", "type": "FHIR preview", "title": "Staging DiagnosticReport", "date": "2026-09-10", "text": "Synthetic staging preview: cT3N1M0 before surgery. CT thorax/abdomen: no distant metastases."},
+        {"id": "COL-002-CLINIC", "type": "CSV preview", "title": "Medication safety and patient interview", "date": "2026-09-29", "text": "Synthetic CSV-style preview: WHO,1; eGFR,68; allergy,oxaliplatin severe hypersensitivity during prior unrelated treatment. Patient declines oxaliplatin and prioritises hand function for work; open to discussing other approaches."}
+      ],
+      "facts": [
+        {"key": "site", "value": "Ascending colon", "source": "COL-002-PATH", "status": "recorded"},
+        {"key": "diagnosis", "value": "Adenocarcinoma", "source": "COL-002-PATH", "status": "recorded"},
+        {"key": "phase", "value": "Postoperative primary treatment", "source": "COL-002-PATH", "status": "recorded"},
+        {"key": "ctnm", "value": "cT3N1M0 before surgery", "source": "COL-002-CT", "status": "recorded"},
+        {"key": "staging", "value": "CT thorax/abdomen: no distant metastases", "source": "COL-002-CT", "status": "recorded"},
+        {"key": "ptnm", "value": "pT3N1a, 1/21 lymph nodes", "source": "COL-002-PATH", "status": "recorded"},
+        {"key": "mmr", "value": "IHC requested; result pending", "source": "COL-002-PATH", "status": "pending"},
+        {"key": "margins", "value": "R0", "source": "COL-002-PATH", "status": "recorded"},
+        {"key": "performance", "value": "WHO 1", "source": "COL-002-CLINIC", "status": "recorded"},
+        {"key": "renal", "value": "eGFR 68 mL/min/1.73 m²", "source": "COL-002-CLINIC", "status": "recorded"},
+        {"key": "allergy", "value": "Oxaliplatin severe hypersensitivity", "source": "COL-002-CLINIC", "status": "recorded"},
+        {"key": "wishes", "value": "Declines oxaliplatin; prioritises hand function and work", "source": "COL-002-CLINIC", "status": "recorded"}
+      ]
+    },
+    {
+      "id": "COL-003", "name": "Lea Hoffmann (synthetic)", "age": 73, "sex": "Female",
+      "diagnosis": "New descending colon cancer · staging incomplete", "phase": "preoperative",
+      "scenario": "Biopsy, MMR and chest staging pending: do not infer localised disease from an incomplete record.",
+      "records": [
+        {"id": "COL-003-ENDO", "type": "narrative", "title": "Endoscopy with biopsy request", "date": "2026-10-02", "text": "Synthetic record: descending colon mass suspicious for primary carcinoma. Biopsy and MMR requested; no final histology."},
+        {"id": "COL-003-CT", "type": "FHIR preview", "title": "Incomplete staging", "date": "2026-10-03", "text": "Synthetic report: abdomen CT shows no liver metastases; chest CT pending. cT and cN not final; cM cannot be assigned."},
+        {"id": "COL-003-CLINIC", "type": "CSV preview", "title": "Clinic summary", "date": "2026-10-04", "text": "Synthetic CSV-style preview: phase,preoperative primary treatment; surgery,not performed; resection pathology and margins,not available; WHO,1; eGFR,52; allergy,not documented; wishes,wants to discuss treatment after results with daughter present."}
+      ],
+      "facts": [
+        {"key": "site", "value": "Descending colon", "source": "COL-003-ENDO", "status": "recorded"},
+        {"key": "diagnosis", "value": "Biopsy pending; suspected adenocarcinoma", "source": "COL-003-ENDO", "status": "pending"},
+        {"key": "phase", "value": "Preoperative primary treatment", "source": "COL-003-CLINIC", "status": "recorded"},
+        {"key": "ctnm", "value": "cT/cN not final; cM not assigned", "source": "COL-003-CT", "status": "pending"},
+        {"key": "staging", "value": "Chest CT pending; abdomen alone cannot establish M0", "source": "COL-003-CT", "status": "pending"},
+        {"key": "ptnm", "value": "Not yet available: surgery not performed", "source": "COL-003-CLINIC", "status": "pending"},
+        {"key": "mmr", "value": "MMR requested with biopsy; pending", "source": "COL-003-ENDO", "status": "pending"},
+        {"key": "margins", "value": "Not yet applicable: surgery not performed", "source": "COL-003-CLINIC", "status": "pending"},
+        {"key": "performance", "value": "WHO 1", "source": "COL-003-CLINIC", "status": "recorded"},
+        {"key": "renal", "value": "eGFR 52 mL/min/1.73 m²", "source": "COL-003-CLINIC", "status": "recorded"},
+        {"key": "allergy", "value": "Not documented; must ask patient", "source": "COL-003-CLINIC", "status": "missing"},
+        {"key": "wishes", "value": "Discuss results with daughter before deciding", "source": "COL-003-CLINIC", "status": "recorded"}
+      ]
+    }
+  ]
+}
