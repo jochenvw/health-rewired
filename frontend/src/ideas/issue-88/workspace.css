@@ -12,6 +12,8 @@
   font: 14px/1.5 var(--font-sans);
   --surface: var(--cp-surface); --text: var(--cp-text); --muted: var(--cp-text-muted);
   --border: var(--cp-border); --accent: var(--cp-accent);
+  --surface-strong: var(--cp-surface-soft); --accent-2: var(--cp-link);
+  --ok: var(--cp-success); --warning: var(--cp-warning); --critical: var(--cp-danger);
 }
 .op88[data-theme="dark"] {
   --cp-bg: #2b3238; --cp-bg-elevated: #242a30; --cp-surface: #1f2429;
@@ -104,6 +106,8 @@
 .op88 .block { background: var(--cp-bg-elevated); color: var(--cp-text); border: 1px solid var(--cp-border); margin: 12px 0; padding: 16px; border-radius: 8px; }
 .op88 .block-header { color: var(--cp-text); background: transparent; padding: 0; }
 .op88 .block-kind { color: var(--cp-text-soft); font: 10px var(--font-mono); text-transform: uppercase; }
+.op88 .block[data-severity="warning"], .op88 .block-alert { border-left: 3px solid var(--cp-warning); }
+.op88 .block[data-severity="critical"] { border-left: 3px solid var(--cp-danger); }
 .op88 .block p, .op88 .block li { color: var(--cp-text); }
 .op88 .block .item-source, .op88 .block .item-date { color: var(--cp-text-muted); }
 .op88 .hx-backstage { border: 1px solid var(--cp-border); border-radius: 8px; padding: 16px; background: var(--cp-bg-elevated); margin: 12px 0; color: var(--cp-text); }

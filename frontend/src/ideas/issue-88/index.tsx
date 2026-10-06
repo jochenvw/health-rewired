@@ -43,7 +43,7 @@ type Assessment = {
 };
 type Result = { assessment: Assessment; agent: AgentResult };
 
-const example = 'Stage III colorectal cancer patients: cancer type, stage, age, systemic regimen and survival.';
+const example = 'Stage III colorectal cancer, age, adjuvant regimen and overall survival.';
 const steps = [
   ['Catalogue', 'See what oncology data exists before asking for access.', 'Open prefilled request'],
   ['Requester intake', 'A researcher wants to compare adjuvant outcomes in stage III colorectal cancer.', 'Assess feasibility'],
@@ -114,7 +114,7 @@ export default function OncologyRequests() {
   }
 
   async function assess() {
-    if (!request.trim() || !purpose.trim() || busy) return;
+    if (request.trim().length < 3 || !purpose.trim() || busy) return;
     const current = ++revision.current;
     setBusy(true);
     setResult(null);
@@ -142,19 +142,19 @@ export default function OncologyRequests() {
 
   function decide(value: string) {
     if (!assessment) return;
-    if (value === 'Approved for review' && (!permit.trim() || !legalReviewed)) return;
+    if (value === 'Approved for review' && (!permit.trim() || !purpose.trim() || !legalReviewed)) return;
     setDecision(value);
   }
 
   const currentRequest: QueueRequest = {
-    id: 'NEW-088', requester: 'Colorectal outcomes research team (synthetic)',
+    id: 'REQ-045', requester: 'Pharmaceutical consortium (synthetic)',
     purpose, request, permit: permit || 'Missing permit reference',
     pipeline: assessment?.reuse?.pipeline ?? 'Feasibility review — no extraction',
     investment: assessment?.investment ?? 'Awaiting assessment',
     status: decision || (assessment ? 'Human review required' : 'Draft intake'),
   };
   const queue = [currentRequest, ...(catalogue?.requests ?? [])];
-  const canApprove = !!assessment && !!permit.trim() && legalReviewed && !decision;
+  const canApprove = !!assessment && !!permit.trim() && !!purpose.trim() && legalReviewed && !decision;
 
   return (
     <div className="op88" data-theme={theme}>
@@ -176,7 +176,7 @@ export default function OncologyRequests() {
       </header>
       <div className="op88-context">
         <div><span className="op88-eyebrow">Single requests front door</span><h1>From question to a reviewable data request</h1></div>
-        <div><strong>NEW-088 · Stage III colorectal cancer</strong><br /><span>{horizon === 'future' ? 'Future federated platform · simulated feasibility' : 'Six-month plan · minimal colorectal MDT dataset'}</span></div>
+        <div><strong>REQ-045 · Stage III colorectal cancer</strong><br /><span>{horizon === 'future' ? 'Future federated platform · simulated feasibility' : 'Six-month plan · minimal colorectal MDT dataset'}</span></div>
       </div>
       <main id="op88-main" className="op88-main">
         <section className="op88-guide" aria-label="Six-step guided walkthrough">
@@ -189,7 +189,7 @@ export default function OncologyRequests() {
             <p><span className="op88-eyebrow">Step {step + 1} / 6</span>{steps[step][1]}</p>
             <div className="op88-actions">
               {step > 0 && <button onClick={() => setStep(step - 1)}>← Back</button>}
-              {step < 5 && <button className="primary" disabled={busy || (step === 1 && (!request.trim() || !purpose.trim())) || (step >= 2 && !result)} onClick={() => go(step + 1)}>
+              {step < 5 && <button className="primary" disabled={busy || (step === 1 && (request.trim().length < 3 || !purpose.trim())) || (step >= 2 && !result)} onClick={() => go(step + 1)}>
                 {busy ? <><span className="hx-spinner" /> Assessing…</> : `${steps[step][2]} →`}
               </button>}
             </div>
@@ -219,14 +219,16 @@ export default function OncologyRequests() {
 
         {step === 1 && <div className="op88-columns">
           <section className="op88-panel">
-            <span className="op88-eyebrow">Requester intake · NEW-088</span><h2>Tell the data office what you need</h2>
+            <span className="op88-eyebrow">Requester intake · REQ-045</span><h2>Tell the data office what you need</h2>
             <form onSubmit={(event) => { event.preventDefault(); void assess(); }}>
               <label>Oncology data request<textarea rows={5} value={request} onChange={(event) => { invalidate(); setRequest(event.target.value); }} /></label>
-              <div className="op88-actions"><button type="button" onClick={() => { invalidate(); setRequest(example); }}>Stage III example</button><button type="button" onClick={() => { invalidate(); setRequest(`${example} Include whole-slide images and quality of life from clinic notes.`); }}>Add images & clinic-note outcomes</button></div>
+              {request.trim().length < 3 && <p className="op88-attention" role="status">Request is too short — describe the oncology data needed in at least 3 characters.</p>}
+              <div className="op88-actions"><button type="button" onClick={() => { invalidate(); setRequest(example); }}>Stage III example</button><button type="button" onClick={() => { invalidate(); setRequest(`${example} Include whole-slide images, performance status and quality of life from clinic notes.`); }}>Add images & clinic-note outcomes</button></div>
               <label>Purpose<input value={purpose} onChange={(event) => { invalidate(); setPurpose(event.target.value); }} /></label>
+              {!purpose.trim() && <p className="op88-attention" role="status">Purpose is missing — add the intended use.</p>}
               <label>Permit reference (synthetic only)<input placeholder="Leave empty to see the missing-permit review" value={permit} onChange={(event) => { invalidate(); setPermit(event.target.value); }} /></label>
               <p className="op88-muted">A supplied reference is not verified. Do not enter real patient information or real credentials.</p>
-              <button className="primary" disabled={busy || !request.trim() || !purpose.trim()}>{busy ? <><span className="hx-spinner" /> Assessing…</> : 'Assess feasibility with assistant'}</button>
+              <button className="primary" disabled={busy || request.trim().length < 3 || !purpose.trim()}>{busy ? <><span className="hx-spinner" /> Assessing…</> : 'Assess feasibility with assistant'}</button>
             </form>
           </section>
           <aside className="op88-panel"><span className="op88-eyebrow">A shared front door</span><h2>One request, three views</h2><dl><dt>Researcher</dt><dd>Describe the cohort, variables and purpose in plain words.</dd><dt>Data steward</dt><dd>Inspect source assumptions, gaps, permit and possible reuse.</dd><dt>CIO</dt><dd>See repeated demand and the investment needed across all requests.</dd></dl><p className="op88-attention">No extraction starts here. A human review and later access-body decision remain necessary.</p></aside>
@@ -244,7 +246,8 @@ export default function OncologyRequests() {
             {assessment.flags.length > 0 && <div className="op88-attention"><strong>Conditions to resolve</strong><ul>{assessment.flags.map((flag) => <li key={flag}>{flag}</li>)}</ul></div>}
             {result && <section className="op88-agent"><div className="op88-section-heading"><h3>{result.agent.headline}</h3><Badge text={result.agent.mode === 'copilot' ? 'Copilot SDK' : 'Demo fallback — SDK unavailable'} /></div>
               {result.agent.note && <p>{result.agent.note}</p>}
-              {result.agent.blocks.map((block, index) => <RenderBlock key={index} block={block} />)}
+              <p className="op88-muted">Assistant output is a proposal only. All request decisions use the human decision step, with permit and legal-review checks.</p>
+              {result.agent.blocks.map((block, index) => <RenderBlock key={index} block={block.type === 'actions' ? { ...block, type: 'summary' } : block} />)}
               <details><summary>Inspect assistant tool activity</summary><ol>{result.agent.trace.map((entry, index) => <li key={index}><strong>{entry.tool}</strong>{entry.arguments && <pre>{entry.arguments}</pre>}</li>)}</ol></details>
             </section>}
           </>}
@@ -253,7 +256,7 @@ export default function OncologyRequests() {
         {step === 3 && assessment && <div className="op88-columns">
           <section className="op88-panel"><span className="op88-eyebrow">Permission check</span><h2>Review does not equal access</h2><div className="op88-attention"><Badge text={assessment.permit_status} /><p>{permit.trim() ? 'This is only a supplied reference. Its scope, validity and permitted purpose have not been verified.' : 'Ask the requester for a permit reference before approving review or reuse.'}</p></div><button onClick={() => { setStep(1); }}>Edit permit / request</button><p>Editing invalidates this assessment. Reassess the revised request before making a decision.</p><dl><dt>Later: permit verification</dt><dd>A responsible reviewer verifies the authority, scope and purpose.</dd><dt>Later: access-body handoff</dt><dd>The relevant access body decides whether use is permitted.</dd><dt>Later: extraction delivery</dt><dd>An authorised pipeline delivers the agreed data. None of these actions happen in this prototype.</dd></dl></section>
           <section className="op88-panel"><span className="op88-eyebrow">Reuse / investment proposal</span><h2>Do not build the same extraction twice</h2>
-            {assessment.reuse ? <><h3>{assessment.reuse.title}</h3><p>Pipeline: <code>{assessment.reuse.pipeline}</code></p><p>Variable overlap: {assessment.reuse.overlap} (backend comparison). This suggests reuse, not permission to reuse.</p></> : <p>{horizon === 'six-months' ? 'Pipeline reuse needs the future extraction registry — not available in six months.' : 'No matching reusable extraction was found for this request.'}</p>}
+            {assessment.reuse ? <><h3>{assessment.reuse.title}</h3><p>Pipeline: <code>{assessment.reuse.pipeline}</code></p><p>Variable overlap: {assessment.reuse.overlap}% (backend comparison). This suggests reuse, not permission to reuse.</p></> : <p>{horizon === 'six-months' ? 'Pipeline reuse needs the future extraction registry — not available in six months.' : 'No matching reusable extraction was found for this request.'}</p>}
             <div className="op88-attention"><strong>Proposed investment</strong><p>{assessment.investment}</p></div>
             <button disabled title="Later capability; no extraction is started">Launch extraction — later</button>
             {catalogue && <details><summary>Inspect registered extraction examples (future)</summary>{catalogue.extractions.map((item) => <p key={item.id}><strong>{item.title}</strong> · {item.cancer} · {item.stage}<br /><code>{item.pipeline}</code><br />{item.variables.join(', ')}</p>)}</details>}
@@ -263,12 +266,12 @@ export default function OncologyRequests() {
         {(step === 4 || step === 5) && <section className="op88-panel">
           <div className="op88-section-heading"><div><span className="op88-eyebrow">CIO / data steward · all requests</span><h2>Demand, pipelines and investment</h2></div><Badge text={`${queue.length} synthetic requests`} /></div>
           <p>Compare proposed work across requests. Open a request to inspect its question, purpose and permit reference.</p>
-          <div className="op88-table-wrap"><table><caption>Local request queue · decisions are session-only; no data delivered</caption><thead><tr><th>Request / requester</th><th>Status</th><th>Pipeline</th><th>Investment needed</th></tr></thead><tbody>{queue.map((item) => <tr key={item.id}><td><details><summary><strong>{item.id}</strong> · {item.requester}</summary><dl><dt>Question</dt><dd>{item.request}</dd><dt>Purpose</dt><dd>{item.purpose}</dd><dt>Permit</dt><dd>{item.permit || 'Missing permit reference'}</dd></dl></details></td><td><Badge text={item.status} /></td><td>{item.pipeline}</td><td>{item.investment}</td></tr>)}</tbody></table></div>
+          <div className="op88-table-wrap"><table><caption>Local request queue · decisions are session-only; no data delivered</caption><thead><tr><th>Request / requester</th><th>Status</th><th>Pipeline</th><th>Investment needed</th></tr></thead><tbody>{queue.map((item) => <tr key={item.id}><td><details><summary><strong>{item.id}</strong> · {item.requester}</summary><dl><dt>Question</dt><dd>{item.request}</dd><dt>Purpose</dt><dd>{item.purpose}</dd><dt>Permit</dt><dd>{item.permit || 'Missing permit reference'}</dd></dl></details></td><td><Badge text={item.status} /></td><td>{item.pipeline}{horizon === 'six-months' && item.id !== currentRequest.id && <small>Future pipeline / reuse proposal — not available in six months</small>}</td><td>{item.investment}{horizon === 'six-months' && item.id !== currentRequest.id && <small>Future investment proposal; six-month work is source mapping and permit review.</small>}</td></tr>)}</tbody></table></div>
           <p className="op88-muted">Repeated oncology outcomes requests suggest shared source mapping; image requests require a separate future work package. These are planning proposals, not approved budgets.</p>
         </section>}
 
         {step === 5 && <section className="op88-panel op88-decision">
-          <span className="op88-eyebrow">Human control · NEW-088</span><h2>Choose the next step, not the access outcome</h2>
+          <span className="op88-eyebrow">Human control · REQ-045</span><h2>Choose the next step, not the access outcome</h2>
           <p>Approve a steward review / reuse proposal, return it to the requester, or edit and reassess.</p>
           <p><strong>Permit:</strong> {assessment?.permit_status ?? 'No current assessment'}</p>
           <label className="op88-check"><input type="checkbox" checked={legalReviewed} onChange={(event) => { setLegalReviewed(event.target.checked); setDecision(''); }} />I have reviewed the legal conditions for forwarding this synthetic proposal. This does not verify the permit or grant access.</label>
@@ -278,7 +281,7 @@ export default function OncologyRequests() {
             <button onClick={() => { invalidate(); setStep(1); }}>Edit request & reassess</button>
             <button disabled={!assessment || !!decision} onClick={() => decide('Sent back to requester')}>Send back for clarification</button>
           </div>
-          {decision && <div className="op88-receipt" role="status"><span className="op88-eyebrow">Decision receipt · session only</span><h3>{decision}</h3><p>NEW-088 is updated in the CIO queue above. {decision === 'Approved for review' ? 'The proposal is ready for a responsible steward to review; it has not been sent to an access body.' : 'The requester must clarify the permit, source gaps or scope before further review.'}</p><strong>Access NOT granted. No data delivered.</strong><p>{horizon === 'six-months' ? 'Six-month payoff: a reviewable minimal-dataset request and a visible hospital mapping work package.' : 'Future payoff: one front door connects request feasibility, proposed reuse and a CIO investment decision.'}</p></div>}
+          {decision && <div className="op88-receipt" role="status"><span className="op88-eyebrow">Decision receipt · session only</span><h3>{decision}</h3><p>REQ-045 is updated in the CIO queue above. {decision === 'Approved for review' ? 'The proposal is ready for a responsible steward to review; it has not been sent to an access body.' : 'The requester must clarify the permit, source gaps or scope before further review.'}</p><strong>Access NOT granted. No data delivered.</strong><p>{horizon === 'six-months' ? 'Six-month payoff: a reviewable minimal-dataset request and a visible hospital mapping work package.' : 'Future payoff: one front door connects request feasibility, proposed reuse and a CIO investment decision.'}</p></div>}
         </section>}
 
         {horizon === 'six-months' && catalogue && <section className="op88-panel">

@@ -47,3 +47,8 @@ def test_request_front_door_without_copilot(monkeypatch):
         "/api/ideas/88/assess", json={**intake, "request": "Stage IIIA colorectal cancer"}
     ).json()["assessment"]
     assert unsupported_stage["patient_count"] is None
+    clinic_outcomes = client.post(
+        "/api/ideas/88/assess", json={**intake, "request": intake["request"] + " Quality of life."}
+    ).json()["assessment"]
+    assert "Quality of life" in clinic_outcomes["missing_variables"]
+    assert clinic_outcomes["reuse"] is None

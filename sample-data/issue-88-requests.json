@@ -45,6 +45,7 @@
     {"id": "cea", "label": "CEA", "minimal_name": "CEA", "aliases": ["cea"]},
     {"id": "performance", "label": "Performance status", "minimal_name": "WHO performance status", "aliases": ["performance", "ecog", "who status"]},
     {"id": "images", "label": "Whole-slide pathology images", "minimal_name": null, "aliases": ["whole-slide", "slide images", "digital pathology", "images"]},
+    {"id": "quality_of_life", "label": "Quality of life", "minimal_name": null, "aliases": ["quality of life", "patient-reported outcomes"]},
     {"id": "genomics", "label": "Whole-genome sequencing", "minimal_name": "mCRC: whole-genome sequencing", "aliases": ["genomic", "whole-genome", "sequencing"]}
   ],
   "cohorts": [
