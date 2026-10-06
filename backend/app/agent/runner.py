@@ -10,6 +10,7 @@ import json
 import logging
 import re
 import tempfile
+from collections.abc import Callable
 from typing import Any
 
 from copilot import CopilotClient
@@ -61,15 +62,20 @@ async def run_agent(
     system_prompt: str | None = None,
     prompt: str | None = None,
     extra_tools: list[Tool] | None = None,
+    include_data_tools: bool = True,
+    fallback_builder: Callable[[AgentRequest, str], AgentResult] | None = None,
 ) -> AgentResult:
     """Run one agent turn. Ideas pass their own ``system_prompt``, ``prompt`` and ``extra_tools``."""
+    def fallback(note: str) -> AgentResult:
+        return fallback_builder(request, note) if fallback_builder else build_fallback(request, note)
+
     if settings.copilot_auth_mode == "not-configured":
-        return build_fallback(request, "Copilot SDK not configured: set COPILOT_GITHUB_TOKEN.")
+        return fallback("Copilot SDK not configured: set COPILOT_GITHUB_TOKEN.")
 
     rendered: list[RenderUIParams] = []
     trace: list[TraceStep] = []
     messages: list[str] = []
-    tools = [*DATA_TOOLS, *(extra_tools or []), build_render_ui_tool(rendered.append)]
+    tools = [*(DATA_TOOLS if include_data_tools else []), *(extra_tools or []), build_render_ui_tool(rendered.append)]
 
     def on_event(event) -> None:
         match event.data:
@@ -98,7 +104,7 @@ async def run_agent(
             )
     except Exception as exc:  # noqa: BLE001 - any SDK/auth/network failure degrades to the demo path
         logger.warning("Copilot SDK call failed: %s", exc)
-        return build_fallback(request, f"Copilot SDK unavailable ({type(exc).__name__}). Showing deterministic demo.")
+        return fallback(f"Copilot SDK unavailable ({type(exc).__name__}). Showing deterministic demo.")
 
     if rendered:
         view = rendered[-1]

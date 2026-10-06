@@ -1,0 +1,136 @@
+{
+  "synthetic": true,
+  "case_id": "AE-2026-041",
+  "title": "Chemotherapy dose not adjusted after eGFR drop",
+  "episode": "Synthetic colorectal cancer episode · 14 April 2026",
+  "patient": {
+    "id": "SYN-86-014",
+    "age": 68,
+    "diagnosis": "Colorectal cancer · stage III"
+  },
+  "events": [
+    {
+      "id": "lab-egfr",
+      "time": "07:42",
+      "date": "14 Apr 2026",
+      "source": "Laboratory",
+      "actor": "Laboratory system",
+      "kind": "system",
+      "summary": "eGFR 38 mL/min/1.73 m² recorded",
+      "detail": "The result was available in the record before the tumour board recommendation.",
+      "availableAt": "07:42",
+      "record": "Renal function · synthetic lab result",
+      "minimalDataset": true
+    },
+    {
+      "id": "agent-review",
+      "time": "07:49",
+      "date": "14 Apr 2026",
+      "source": "Case preparation agent",
+      "actor": "Oncology preparation agent",
+      "kind": "agent",
+      "summary": "Flagged renal-dose review before ordering",
+      "detail": "The draft cited the eGFR result and the demo protocol rule. Model: Rewired-Clinical-0.9 · Guideline: Demo renal-dose protocol v3.2.",
+      "availableAt": "07:49",
+      "record": "Agent action · synthetic audit record",
+      "minimalDataset": false
+    },
+    {
+      "id": "mdt-recommendation",
+      "time": "08:30",
+      "date": "14 Apr 2026",
+      "source": "Tumour board",
+      "actor": "Dr M. Weber · board chair",
+      "kind": "human",
+      "summary": "Board recorded CAPOX; asked pharmacy to verify dose",
+      "detail": "The chair accepted the treatment plan with a pharmacy dose check. No conclusion about responsibility is drawn from this record.",
+      "availableAt": "08:30",
+      "record": "MDT treatment recommendation · synthetic MDT form",
+      "minimalDataset": true
+    },
+    {
+      "id": "pharmacy-order",
+      "time": "09:12",
+      "date": "14 Apr 2026",
+      "source": "Pharmacy",
+      "actor": "Pharmacy order system",
+      "kind": "system",
+      "summary": "CAPOX order entered at planned starting dose",
+      "detail": "The order has no linked renal-dose review in this synthetic episode.",
+      "availableAt": "09:12",
+      "record": "Medication order · synthetic pharmacy log",
+      "minimalDataset": false
+    },
+    {
+      "id": "infusion-start",
+      "time": "09:40",
+      "date": "14 Apr 2026",
+      "source": "Infusion unit",
+      "actor": "Infusion unit",
+      "kind": "human",
+      "summary": "Cycle 1 infusion started",
+      "detail": "The infusion record confirms the treatment began after the order was signed.",
+      "availableAt": "09:40",
+      "record": "Infusion encounter · synthetic unit log",
+      "minimalDataset": false
+    },
+    {
+      "id": "pathology-addendum",
+      "time": "11:15",
+      "date": "14 Apr 2026",
+      "source": "Pathology",
+      "actor": "Pathology system",
+      "kind": "system",
+      "summary": "MMR pathology addendum became available",
+      "detail": "This result arrived after the board recommendation and was not available to that decision.",
+      "availableAt": "11:15",
+      "record": "Pathology addendum · synthetic report",
+      "minimalDataset": true
+    }
+  ],
+  "decision": {
+    "event_id": "mdt-recommendation",
+    "title": "Tumour board recommendation · 08:30",
+    "decision": "CAPOX plan recorded; pharmacy asked to verify dose",
+    "available_then": [
+      {
+        "label": "Renal function",
+        "value": "eGFR 38 mL/min/1.73 m²",
+        "available_at": "07:42",
+        "source": "Synthetic lab result"
+      },
+      {
+        "label": "Treatment recommendation",
+        "value": "CAPOX · dose verification requested",
+        "available_at": "08:30",
+        "source": "Synthetic MDT form"
+      }
+    ],
+    "arrived_later": [
+      {
+        "label": "MMR pathology addendum",
+        "value": "Result recorded",
+        "available_at": "11:15",
+        "source": "Synthetic pathology report"
+      }
+    ],
+    "guideline": "Demo renal-dose protocol v3.2",
+    "model": "Rewired-Clinical-0.9"
+  },
+  "similar_cases": [
+    {
+      "label": "Synthetic case AE-2026-019 · Medical oncology",
+      "detail": "Low eGFR was visible at board review; the pharmacy check was documented after order entry."
+    },
+    {
+      "label": "Synthetic case AE-2026-027 · Day unit",
+      "detail": "A dose-verification handoff was not linked to the infusion record."
+    }
+  ],
+  "integrity": {
+    "status": "Chain matches",
+    "checked_at": "14 Apr 2026 · 11:22",
+    "digest": "SIM-4f92 · illustrative only",
+    "note": "This check is simulated; no cryptographic or tamper-proof storage is implemented."
+  }
+}

@@ -41,6 +41,17 @@ def test_agent_falls_back_without_token(client):
     assert any(step["tool"] == "get_patient" for step in body["trace"])
 
 
+def test_issue_86_audit_review_has_a_synthetic_fallback(client):
+    response = client.post("/api/ideas/86/review", json={"task": "Review the decision evidence"})
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["mode"] == "fallback"
+    assert "Synthetic review" in body["headline"]
+    assert any(block["title"] == "Potential protocol deviation" for block in body["blocks"])
+    assert "not configured" in body["note"]
+
+
 def test_render_ui_tool_schema_is_self_contained():
     captured = []
     tool = build_render_ui_tool(captured.append)
