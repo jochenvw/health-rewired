@@ -219,7 +219,7 @@ export default function TrialMatching() {
   }
 
   function prepareStart() {
-    if (!chosen || !screeningApproved || !patientAgreement || !teamValidation) return;
+    if (!chosen || !screeningApproved || !patientAgreement || !teamValidation || gaps.length) return;
     setReceipt({
       kind: 'preparation', trial: chosen.title,
       note: 'Human acknowledgements recorded: patient agreement and trial-team eligibility validation are both required before any actual trial start. Neither is supplied or confirmed by this prototype.',
@@ -298,9 +298,10 @@ export default function TrialMatching() {
           <div className="tm78-workspace">
             {message && <p role="status" className="tm78-attention">{message}</p>}
             {phase === 'eligibility' && <Panel title={chosen?.title === 'PATHWAY-CRC'
-              ? 'Best screening candidate · local priority' : 'Selected screening candidate'}>
+              ? 'Best screening candidate · local first' : 'Selected screening candidate'}>
               {chosen ? <>
-                <div className="tm78-candidate-header"><h2>{chosen.title}</h2><Pill tone="warn">Eligibility not confirmed</Pill></div>
+                <div className="tm78-candidate-header"><h2>{chosen.title}</h2><Pill tone={gaps.length ? 'warn' : 'ok'}>
+                  {gaps.length ? 'Partial match' : 'Supported criteria'}</Pill></div>
                 <div className="tm78-section-meta"><span>{chosen.site}</span><span>Phase {chosen.phase} · {chosen.status}</span></div>
                 <div className="tm78-counts"><Pill tone="ok">{chosen.counts.Match} supported</Pill>
                   <Pill tone="warn">{chosen.counts.Unknown} missing information</Pill>
@@ -459,9 +460,15 @@ export default function TrialMatching() {
               <label className="tm78-choice"><input type="checkbox" checked={teamValidation} onChange={(event) => {
                 setTeamValidation(event.target.checked); setReceipt(null);
               }} />I acknowledge trial-team eligibility validation is required; the evidence gaps remain unresolved.</label>
-              <button className="hx-btn primary" disabled={!screeningApproved || !patientAgreement || !teamValidation}
+              <button className="hx-btn primary" disabled={!screeningApproved || !patientAgreement || !teamValidation || !!gaps.length}
                 onClick={prepareStart}>Approve local preparation receipt only</button>
-              <small>Acknowledges the requirements, not their completion. No consent or eligibility certification is generated.</small>
+              <small>Unresolved evidence blocks this final receipt too. Acknowledgements do not waive gaps or certify consent or eligibility.</small>
+              {!!gaps.length && <div className="tm78-receipt">
+                <strong>Preparation checklist ready · trial start remains blocked</strong>
+                <ul>{gaps.map((criterion) => <li key={criterion.id}>Request and validate {criterion.patient_label || criterion.text}</li>)}
+                  <li>Obtain and document patient agreement</li><li>Obtain trial-team full protocol eligibility validation</li></ul>
+                <small>Your approved screening request is the local preparation payoff; nothing has been enrolled or sent.</small>
+              </div>}
               <details><summary>Outstanding matching evidence</summary><MatchingTable trial={chosen} /></details>
             </Panel>}
             {receipt && phase !== 'eligibility' && <div className="tm78-receipt" role="status">
