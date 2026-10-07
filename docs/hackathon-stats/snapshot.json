@@ -1,0 +1,1415 @@
+{
+  "generated_at": "2026-10-07T13:05:39.424931+00:00",
+  "repo": "jochenvw/health-rewired",
+  "window_start": "2026-10-06T00:00:00+02:00",
+  "ideas": {
+    "submitted": 12,
+    "distinct_submitters": 5,
+    "outcomes": {
+      "preview-ready": 11,
+      "open": 1
+    },
+    "coach_first_reply_min": {
+      "n": 12,
+      "min": 0.6,
+      "median": 0.9,
+      "p75": 2.4,
+      "max": 8.9,
+      "total": 24.4
+    },
+    "idea_to_ready_for_build_min": {
+      "n": 11,
+      "min": 2.4,
+      "median": 3.0,
+      "p75": 10.9,
+      "max": 43.8,
+      "total": 99.8
+    },
+    "ready_to_agent_pr_min": {
+      "n": 11,
+      "min": 0.1,
+      "median": 0.1,
+      "p75": 1.7,
+      "max": 2.3,
+      "total": 7.5
+    },
+    "idea_to_first_preview_min": {
+      "n": 11,
+      "min": 16.3,
+      "median": 25.3,
+      "p75": 39.3,
+      "max": 1040.7,
+      "total": 1330.0
+    },
+    "fastest_journeys": [
+      {
+        "issue": 89,
+        "title": "[Idea] Zero trust for AI agents that touch oncology patient data",
+        "author": "JanvandenBrand",
+        "created": "2026-10-06T16:39:34+00:00",
+        "coach_first_reply_min": 0.6,
+        "to_ready_for_build_min": 2.4,
+        "ready_to_agent_pr_min": 0.1,
+        "to_first_preview_min": 16.3,
+        "agent_pr": 94,
+        "agent_pr_additions": 525,
+        "agent_pr_commits": 2,
+        "human_comments_after_preview": 0,
+        "outcome": "preview-ready"
+      },
+      {
+        "issue": 90,
+        "title": "[Idea] Automated, instant check whether an agent may use oncology data",
+        "author": "JanvandenBrand",
+        "created": "2026-10-06T16:40:03+00:00",
+        "coach_first_reply_min": 0.8,
+        "to_ready_for_build_min": 2.7,
+        "ready_to_agent_pr_min": 0.1,
+        "to_first_preview_min": 17.1,
+        "agent_pr": 95,
+        "agent_pr_additions": 823,
+        "agent_pr_commits": 4,
+        "human_comments_after_preview": 0,
+        "outcome": "preview-ready"
+      },
+      {
+        "issue": 92,
+        "title": "[Idea] Patients like me: how were similar patients treated and how did they do?",
+        "author": "JanvandenBrand",
+        "created": "2026-10-06T16:41:27+00:00",
+        "coach_first_reply_min": 0.7,
+        "to_ready_for_build_min": 2.6,
+        "ready_to_agent_pr_min": 0.1,
+        "to_first_preview_min": 18.5,
+        "agent_pr": 97,
+        "agent_pr_additions": 1047,
+        "agent_pr_commits": 3,
+        "human_comments_after_preview": 1,
+        "outcome": "preview-ready"
+      },
+      {
+        "issue": 88,
+        "title": "One front door for external requests for oncology data",
+        "author": "JanvandenBrand",
+        "created": "2026-10-06T16:38:50+00:00",
+        "coach_first_reply_min": 0.8,
+        "to_ready_for_build_min": 3.0,
+        "ready_to_agent_pr_min": 0.1,
+        "to_first_preview_min": 19.6,
+        "agent_pr": 93,
+        "agent_pr_additions": 862,
+        "agent_pr_commits": 4,
+        "human_comments_after_preview": 0,
+        "outcome": "preview-ready"
+      },
+      {
+        "issue": 91,
+        "title": "[Idea] Automated real-world safety monitoring of newly approved cancer treatments",
+        "author": "JanvandenBrand",
+        "created": "2026-10-06T16:40:39+00:00",
+        "coach_first_reply_min": 0.9,
+        "to_ready_for_build_min": 2.9,
+        "ready_to_agent_pr_min": 0.1,
+        "to_first_preview_min": 22.3,
+        "agent_pr": 96,
+        "agent_pr_additions": 823,
+        "agent_pr_commits": 3,
+        "human_comments_after_preview": 0,
+        "outcome": "preview-ready"
+      }
+    ],
+    "most_iterated": [
+      {
+        "pr": 105,
+        "issue": 104,
+        "title": "Add post-MDT shared decision-making prototype",
+        "revisions": 11,
+        "median_feedback_to_ready_min": 7.3
+      },
+      {
+        "pr": 75,
+        "issue": 74,
+        "title": "Prepare colorectal MDT cases before the meeting",
+        "revisions": 11,
+        "median_feedback_to_ready_min": 9.5
+      },
+      {
+        "pr": 83,
+        "issue": 78,
+        "title": "Add evidence-based trial screening within the patient chart",
+        "revisions": 8,
+        "median_feedback_to_ready_min": 18.1
+      },
+      {
+        "pr": 101,
+        "issue": 100,
+        "title": "Prototype oncology research data-trust review",
+        "revisions": 2,
+        "median_feedback_to_ready_min": 10.2
+      },
+      {
+        "pr": 97,
+        "issue": 92,
+        "title": "Add \u201cPatients like me\u201d guided consultation prototype",
+        "revisions": 1,
+        "median_feedback_to_ready_min": 1.8
+      }
+    ]
+  },
+  "agents": {
+    "build_sessions": 14,
+    "revision_sessions": 37,
+    "prs_with_feedback_revisions": 9,
+    "build_session_min": {
+      "n": 14,
+      "min": 7.87,
+      "median": 12.8,
+      "p75": 15.9,
+      "max": 18.1,
+      "total": 182.7
+    },
+    "revision_session_min": {
+      "n": 37,
+      "min": 1.18,
+      "median": 6.2,
+      "p75": 11.4,
+      "max": 18.12,
+      "total": 272.1
+    },
+    "ai_coach_runs": 51,
+    "ai_coach_breakdown": {
+      "Presentation editor": {
+        "runs": 1,
+        "minutes": 3.0
+      },
+      "Architecture coach": {
+        "runs": 3,
+        "minutes": 11.7
+      },
+      "Post-build critic": {
+        "runs": 16,
+        "minutes": 63.7
+      },
+      "Idea coach": {
+        "runs": 31,
+        "minutes": 82.8
+      }
+    },
+    "agent_hours_total": 10.3,
+    "peak_concurrent_agents": 7,
+    "peak_concurrent_agents_at": "2026-10-06T15:17:06+00:00",
+    "peak_concurrent_coding_agents": 6,
+    "peak_concurrent_coding_agents_at": "2026-10-06T16:44:18+00:00"
+  },
+  "compute_hours": {
+    "ai_coach": 2.7,
+    "automation": 4.7,
+    "coding_agent": 7.6,
+    "dependabot": 0.0
+  },
+  "workflow_runs": {
+    "triggered": 1420,
+    "executed": 387
+  },
+  "pull_requests": {
+    "total": 19,
+    "by_coding_agent": 14,
+    "agent_lines_added": 25969,
+    "agent_lines_deleted": 13,
+    "agent_files_changed": 116,
+    "agent_commits": 86,
+    "merged": 4,
+    "preview_deployments": 85
+  },
+  "conversation": {
+    "agent_comments": 205,
+    "agent_words": 19233,
+    "human_comments": 135,
+    "distinct_humans": 10,
+    "by_author": {
+      "github-actions[bot]": 168,
+      "jochenvw": 100,
+      "Copilot": 37,
+      "marcel-fokker": 14,
+      "Ferraa96": 6,
+      "cammeleon66": 4,
+      "ybaccouche": 4,
+      "JanvandenBrand": 2,
+      "qinghezeng": 2,
+      "jvdwm": 1,
+      "malay-gaherwar": 1,
+      "SanddhyaJ": 1
+    }
+  },
+  "codebase": {
+    "ref": "origin/main",
+    "commits": 8,
+    "commits_with_copilot": 4
+  },
+  "iteration": {
+    "versions": 51,
+    "prototypes": 14,
+    "revisions_by_trigger": {
+      "human": 36,
+      "automated": 1
+    },
+    "versions_per_prototype": {
+      "n": 14,
+      "min": 1,
+      "median": 2.0,
+      "p75": 3,
+      "max": 12,
+      "total": 51
+    },
+    "feedback_to_new_version_min": {
+      "n": 36,
+      "min": 1.8,
+      "median": 9.4,
+      "p75": 13.8,
+      "max": 1044.6,
+      "total": 1509.9
+    },
+    "between_versions_min": {
+      "n": 37,
+      "min": -1.4,
+      "median": 21.3,
+      "p75": 79.8,
+      "max": 1037.2,
+      "total": 6884.3
+    },
+    "agent_minutes_per_revision": {
+      "n": 37,
+      "min": 1.18,
+      "median": 6.2,
+      "p75": 11.4,
+      "max": 18.12,
+      "total": 272.1
+    },
+    "feedback_to_new_version_by_day": {
+      "2026-10-06": {
+        "n": 3,
+        "min": 6.0,
+        "median": 9.5,
+        "p75": 13.0,
+        "max": 13.0,
+        "total": 28.5
+      },
+      "2026-10-07": {
+        "n": 33,
+        "min": 1.8,
+        "median": 9.3,
+        "p75": 14.5,
+        "max": 1044.6,
+        "total": 1481.4
+      }
+    },
+    "feedback_to_new_version_by_revision": {
+      "1": {
+        "n": 8,
+        "min": 1.8,
+        "median": 10.6,
+        "p75": 13.0,
+        "max": 1044.6,
+        "total": 1109.7
+      },
+      "2": {
+        "n": 4,
+        "min": 6.9,
+        "median": 11.6,
+        "p75": 13.6,
+        "max": 14.5,
+        "total": 44.5
+      },
+      "3": {
+        "n": 3,
+        "min": 7.3,
+        "median": 17.2,
+        "p75": 49.9,
+        "max": 49.9,
+        "total": 74.4
+      },
+      "4": {
+        "n": 3,
+        "min": 6.9,
+        "median": 13.0,
+        "p75": 18.8,
+        "max": 18.8,
+        "total": 38.7
+      },
+      "5+": {
+        "n": 18,
+        "min": 5.5,
+        "median": 8.8,
+        "p75": 12.2,
+        "max": 76.1,
+        "total": 242.6
+      }
+    }
+  },
+  "tokens": {
+    "coding_agent": {
+      "sessions": 51,
+      "sessions_with_usage": 51,
+      "reasoning_effort": {
+        "medium": 51
+      },
+      "by_model": {
+        "gpt-6.1-sol": {
+          "requests": 1630,
+          "input": 141452618,
+          "output": 661510
+        },
+        "gpt-6-luna": {
+          "requests": 790,
+          "input": 112688927,
+          "output": 637854
+        },
+        "claude-haiku-4.5": {
+          "requests": 84,
+          "input": 2395721,
+          "output": 37401
+        }
+      }
+    },
+    "ai_coaches": {
+      "available": true,
+      "runs": 48,
+      "by_step_model": [
+        {
+          "step": "agent",
+          "model": "claude-sonnet-5.5",
+          "input": 240013,
+          "output": 69531,
+          "cache_read": 6850536,
+          "cache_write": 1586683,
+          "requests": 198,
+          "ai_credits": 651.22
+        },
+        {
+          "step": "detection",
+          "model": "claude-haiku-4.5",
+          "input": 191527,
+          "output": 18333,
+          "cache_read": 1576298,
+          "cache_write": 359514,
+          "requests": 79,
+          "ai_credits": 89.02
+        }
+      ],
+      "by_coach": {
+        "Architecture coach": {
+          "runs": 2,
+          "tokens": 476032,
+          "ai_credits": 40.7
+        },
+        "Idea coach": {
+          "runs": 31,
+          "tokens": 4606859,
+          "ai_credits": 381.8
+        },
+        "Post-build critic": {
+          "runs": 14,
+          "tokens": 5600603,
+          "ai_credits": 300.3
+        },
+        "Presentation editor": {
+          "runs": 1,
+          "tokens": 208941,
+          "ai_credits": 17.4
+        }
+      },
+      "total_tokens": 10892435,
+      "total_ai_credits": 740.2,
+      "total_usd": 7.4
+    }
+  },
+  "participation": {
+    "participants": 6,
+    "organisers": 4,
+    "new_github_accounts": 1,
+    "participants_with_idea": 4,
+    "issues_by_role": {
+      "organiser": 6,
+      "agent": 3,
+      "participant": 9
+    },
+    "comments_by_role": {
+      "organiser": 122,
+      "agent": 205,
+      "participant": 13
+    },
+    "words_by_role": {
+      "organiser": 49639,
+      "agent": 19233,
+      "participant": 884
+    },
+    "agent_pickup_of_participant_comment_s": {
+      "n": 13,
+      "min": 10,
+      "median": 11,
+      "p75": 13,
+      "max": 85,
+      "total": 255
+    },
+    "ideas_with_multiple_humans": 5,
+    "people": [
+      {
+        "login": "JanvandenBrand",
+        "role": "participant",
+        "issues": 6,
+        "ideas": 6,
+        "ideas_with_preview": 6,
+        "comments": 2,
+        "words": 15,
+        "threads": 2,
+        "new_github_account": false
+      },
+      {
+        "login": "Ferraa96",
+        "role": "participant",
+        "issues": 1,
+        "ideas": 1,
+        "ideas_with_preview": 0,
+        "comments": 6,
+        "words": 578,
+        "threads": 2,
+        "new_github_account": false
+      },
+      {
+        "login": "malay-gaherwar",
+        "role": "participant",
+        "issues": 1,
+        "ideas": 1,
+        "ideas_with_preview": 1,
+        "comments": 1,
+        "words": 1,
+        "threads": 1,
+        "new_github_account": false
+      },
+      {
+        "login": "jvdwm",
+        "role": "participant",
+        "issues": 1,
+        "ideas": 1,
+        "ideas_with_preview": 1,
+        "comments": 1,
+        "words": 14,
+        "threads": 1,
+        "new_github_account": true
+      },
+      {
+        "login": "qinghezeng",
+        "role": "participant",
+        "issues": 0,
+        "ideas": 0,
+        "ideas_with_preview": 0,
+        "comments": 2,
+        "words": 93,
+        "threads": 1,
+        "new_github_account": false
+      },
+      {
+        "login": "SanddhyaJ",
+        "role": "participant",
+        "issues": 0,
+        "ideas": 0,
+        "ideas_with_preview": 0,
+        "comments": 1,
+        "words": 183,
+        "threads": 1,
+        "new_github_account": false
+      },
+      {
+        "login": "jochenvw",
+        "role": "organiser",
+        "issues": 3,
+        "ideas": 0,
+        "ideas_with_preview": 0,
+        "comments": 100,
+        "words": 43729,
+        "threads": 57,
+        "new_github_account": false
+      },
+      {
+        "login": "marcel-fokker",
+        "role": "organiser",
+        "issues": 0,
+        "ideas": 0,
+        "ideas_with_preview": 0,
+        "comments": 14,
+        "words": 5650,
+        "threads": 3,
+        "new_github_account": true
+      },
+      {
+        "login": "ybaccouche",
+        "role": "organiser",
+        "issues": 3,
+        "ideas": 3,
+        "ideas_with_preview": 3,
+        "comments": 4,
+        "words": 128,
+        "threads": 2,
+        "new_github_account": false
+      },
+      {
+        "login": "cammeleon66",
+        "role": "organiser",
+        "issues": 0,
+        "ideas": 0,
+        "ideas_with_preview": 0,
+        "comments": 4,
+        "words": 132,
+        "threads": 4,
+        "new_github_account": false
+      }
+    ]
+  },
+  "effort_heuristic": {
+    "assumptions": {
+      "loc_per_dev_day": 100,
+      "sprint_weeks": 3
+    },
+    "agent_code_lines": 23517,
+    "dev_days": {
+      "low": 118,
+      "mid": 235,
+      "high": 470
+    },
+    "versions": 51,
+    "sprint_weeks_at_one_version_per_sprint": 153,
+    "median_versions_per_prototype": 2.0,
+    "median_prototype_active_hours": 6.0
+  },
+  "versions": [
+    {
+      "pr": 83,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T15:15:04+00:00",
+      "ready": "2026-10-06T15:30:32+00:00",
+      "agent_minutes": 12.63,
+      "feedback_at": "2026-10-06T15:12:51+00:00",
+      "feedback_to_ready_min": 17.7,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 83,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-06T15:27:56+00:00",
+      "ready": "2026-10-07T08:39:42+00:00",
+      "agent_minutes": 1.83,
+      "feedback_at": "2026-10-06T15:15:07+00:00",
+      "feedback_to_ready_min": 1044.6,
+      "since_previous_version_min": 1029.2
+    },
+    {
+      "pr": 83,
+      "version": 3,
+      "trigger": "human",
+      "session_start": "2026-10-07T08:26:22+00:00",
+      "ready": "2026-10-07T08:39:42+00:00",
+      "agent_minutes": 11.82,
+      "feedback_at": "2026-10-07T08:26:05+00:00",
+      "feedback_to_ready_min": 13.6,
+      "since_previous_version_min": 0.0
+    },
+    {
+      "pr": 83,
+      "version": 4,
+      "trigger": "human",
+      "session_start": "2026-10-07T09:09:55+00:00",
+      "ready": "2026-10-07T09:59:30+00:00",
+      "agent_minutes": 1.62,
+      "feedback_at": "2026-10-07T09:09:38+00:00",
+      "feedback_to_ready_min": 49.9,
+      "since_previous_version_min": 79.8
+    },
+    {
+      "pr": 83,
+      "version": 5,
+      "trigger": "human",
+      "session_start": "2026-10-07T09:40:59+00:00",
+      "ready": "2026-10-07T09:59:30+00:00",
+      "agent_minutes": 15.53,
+      "feedback_at": "2026-10-07T09:40:41+00:00",
+      "feedback_to_ready_min": 18.8,
+      "since_previous_version_min": 0.0
+    },
+    {
+      "pr": 83,
+      "version": 6,
+      "trigger": "human",
+      "session_start": "2026-10-07T10:35:28+00:00",
+      "ready": "2026-10-07T10:48:58+00:00",
+      "agent_minutes": 12.7,
+      "feedback_at": "2026-10-07T10:35:12+00:00",
+      "feedback_to_ready_min": 13.8,
+      "since_previous_version_min": 49.5
+    },
+    {
+      "pr": 83,
+      "version": 7,
+      "trigger": "human",
+      "session_start": "2026-10-07T10:53:59+00:00",
+      "ready": "2026-10-07T12:09:49+00:00",
+      "agent_minutes": 1.18,
+      "feedback_at": "2026-10-07T10:53:43+00:00",
+      "feedback_to_ready_min": 76.1,
+      "since_previous_version_min": 80.8
+    },
+    {
+      "pr": 83,
+      "version": 8,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:56:38+00:00",
+      "ready": "2026-10-07T12:13:44+00:00",
+      "agent_minutes": 18.12,
+      "feedback_at": "2026-10-07T11:56:19+00:00",
+      "feedback_to_ready_min": 17.4,
+      "since_previous_version_min": 3.9
+    },
+    {
+      "pr": 83,
+      "version": 9,
+      "trigger": "human",
+      "session_start": "2026-10-07T12:51:46+00:00",
+      "ready": "2026-10-07T13:03:20+00:00",
+      "agent_minutes": 14.32,
+      "feedback_at": "2026-10-07T12:51:26+00:00",
+      "feedback_to_ready_min": 11.9,
+      "since_previous_version_min": 49.6
+    },
+    {
+      "pr": 105,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-07T09:18:54+00:00",
+      "ready": "2026-10-07T09:30:47+00:00",
+      "agent_minutes": 12.98,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 105,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-07T09:59:36+00:00",
+      "ready": "2026-10-07T10:08:33+00:00",
+      "agent_minutes": 7.57,
+      "feedback_at": "2026-10-07T09:59:20+00:00",
+      "feedback_to_ready_min": 9.2,
+      "since_previous_version_min": 37.8
+    },
+    {
+      "pr": 105,
+      "version": 3,
+      "trigger": "human",
+      "session_start": "2026-10-07T10:30:09+00:00",
+      "ready": "2026-10-07T10:36:46+00:00",
+      "agent_minutes": 6.17,
+      "feedback_at": "2026-10-07T10:29:53+00:00",
+      "feedback_to_ready_min": 6.9,
+      "since_previous_version_min": 28.2
+    },
+    {
+      "pr": 105,
+      "version": 4,
+      "trigger": "human",
+      "session_start": "2026-10-07T10:53:00+00:00",
+      "ready": "2026-10-07T11:00:01+00:00",
+      "agent_minutes": 6.62,
+      "feedback_at": "2026-10-07T10:52:41+00:00",
+      "feedback_to_ready_min": 7.3,
+      "since_previous_version_min": 23.2
+    },
+    {
+      "pr": 105,
+      "version": 5,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:10:10+00:00",
+      "ready": "2026-10-07T11:16:51+00:00",
+      "agent_minutes": 6.27,
+      "feedback_at": "2026-10-07T11:09:55+00:00",
+      "feedback_to_ready_min": 6.9,
+      "since_previous_version_min": 16.8
+    },
+    {
+      "pr": 105,
+      "version": 6,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:18:42+00:00",
+      "ready": "2026-10-07T11:24:06+00:00",
+      "agent_minutes": 3.95,
+      "feedback_at": "2026-10-07T11:18:26+00:00",
+      "feedback_to_ready_min": 5.7,
+      "since_previous_version_min": 7.2
+    },
+    {
+      "pr": 105,
+      "version": 7,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:30:00+00:00",
+      "ready": "2026-10-07T11:38:16+00:00",
+      "agent_minutes": 6.68,
+      "feedback_at": "2026-10-07T11:29:45+00:00",
+      "feedback_to_ready_min": 8.5,
+      "since_previous_version_min": 14.2
+    },
+    {
+      "pr": 105,
+      "version": 8,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:45:29+00:00",
+      "ready": "2026-10-07T11:53:27+00:00",
+      "agent_minutes": 5.7,
+      "feedback_at": "2026-10-07T11:45:15+00:00",
+      "feedback_to_ready_min": 8.2,
+      "since_previous_version_min": 15.2
+    },
+    {
+      "pr": 105,
+      "version": 9,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:51:25+00:00",
+      "ready": "2026-10-07T11:59:41+00:00",
+      "agent_minutes": 5.47,
+      "feedback_at": "2026-10-07T11:50:21+00:00",
+      "feedback_to_ready_min": 9.3,
+      "since_previous_version_min": 6.2
+    },
+    {
+      "pr": 105,
+      "version": 10,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:59:34+00:00",
+      "ready": "2026-10-07T12:18:05+00:00",
+      "agent_minutes": 1.98,
+      "feedback_at": "2026-10-07T11:59:17+00:00",
+      "feedback_to_ready_min": 18.8,
+      "since_previous_version_min": 18.4
+    },
+    {
+      "pr": 105,
+      "version": 11,
+      "trigger": "human",
+      "session_start": "2026-10-07T12:12:53+00:00",
+      "ready": "2026-10-07T12:18:05+00:00",
+      "agent_minutes": 3.32,
+      "feedback_at": "2026-10-07T12:12:34+00:00",
+      "feedback_to_ready_min": 5.5,
+      "since_previous_version_min": 0.0
+    },
+    {
+      "pr": 105,
+      "version": 12,
+      "trigger": "human",
+      "session_start": "2026-10-07T12:34:57+00:00",
+      "ready": "2026-10-07T12:41:56+00:00",
+      "agent_minutes": 5.65,
+      "feedback_at": "2026-10-07T12:34:40+00:00",
+      "feedback_to_ready_min": 7.3,
+      "since_previous_version_min": 23.9
+    },
+    {
+      "pr": 75,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T13:47:11+00:00",
+      "ready": "2026-10-06T14:01:13+00:00",
+      "agent_minutes": 10.13,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 75,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-06T15:08:19+00:00",
+      "ready": "2026-10-06T15:21:00+00:00",
+      "agent_minutes": 11.5,
+      "feedback_at": "2026-10-06T15:08:00+00:00",
+      "feedback_to_ready_min": 13.0,
+      "since_previous_version_min": 79.8
+    },
+    {
+      "pr": 75,
+      "version": 3,
+      "trigger": "human",
+      "session_start": "2026-10-06T15:20:04+00:00",
+      "ready": "2026-10-06T15:28:52+00:00",
+      "agent_minutes": 7.25,
+      "feedback_at": "2026-10-06T15:19:23+00:00",
+      "feedback_to_ready_min": 9.5,
+      "since_previous_version_min": 7.9
+    },
+    {
+      "pr": 75,
+      "version": 4,
+      "trigger": "human",
+      "session_start": "2026-10-07T08:04:37+00:00",
+      "ready": "2026-10-07T08:21:30+00:00",
+      "agent_minutes": 15.08,
+      "feedback_at": "2026-10-07T08:04:19+00:00",
+      "feedback_to_ready_min": 17.2,
+      "since_previous_version_min": 1012.6
+    },
+    {
+      "pr": 75,
+      "version": 5,
+      "trigger": "human",
+      "session_start": "2026-10-07T08:19:58+00:00",
+      "ready": "2026-10-07T08:25:54+00:00",
+      "agent_minutes": 4.98,
+      "feedback_at": "2026-10-07T08:12:54+00:00",
+      "feedback_to_ready_min": 13.0,
+      "since_previous_version_min": 4.4
+    },
+    {
+      "pr": 75,
+      "version": 6,
+      "trigger": "human",
+      "session_start": "2026-10-07T08:35:19+00:00",
+      "ready": "2026-10-07T08:42:25+00:00",
+      "agent_minutes": 5.68,
+      "feedback_at": "2026-10-07T08:35:04+00:00",
+      "feedback_to_ready_min": 7.3,
+      "since_previous_version_min": 16.5
+    },
+    {
+      "pr": 75,
+      "version": 7,
+      "trigger": "human",
+      "session_start": "2026-10-07T08:50:48+00:00",
+      "ready": "2026-10-07T08:59:28+00:00",
+      "agent_minutes": 7.6,
+      "feedback_at": "2026-10-07T08:50:30+00:00",
+      "feedback_to_ready_min": 9.0,
+      "since_previous_version_min": 17.1
+    },
+    {
+      "pr": 75,
+      "version": 8,
+      "trigger": "human",
+      "session_start": "2026-10-07T09:13:58+00:00",
+      "ready": "2026-10-07T09:20:45+00:00",
+      "agent_minutes": 5.57,
+      "feedback_at": "2026-10-07T09:13:44+00:00",
+      "feedback_to_ready_min": 7.0,
+      "since_previous_version_min": 21.3
+    },
+    {
+      "pr": 75,
+      "version": 9,
+      "trigger": "human",
+      "session_start": "2026-10-07T10:12:41+00:00",
+      "ready": "2026-10-07T10:24:36+00:00",
+      "agent_minutes": 11.45,
+      "feedback_at": "2026-10-07T10:12:22+00:00",
+      "feedback_to_ready_min": 12.2,
+      "since_previous_version_min": 63.9
+    },
+    {
+      "pr": 75,
+      "version": 10,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:06:39+00:00",
+      "ready": "2026-10-07T11:13:45+00:00",
+      "agent_minutes": 5.33,
+      "feedback_at": "2026-10-07T11:06:22+00:00",
+      "feedback_to_ready_min": 7.4,
+      "since_previous_version_min": 49.1
+    },
+    {
+      "pr": 75,
+      "version": 11,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:14:39+00:00",
+      "ready": "2026-10-07T11:21:57+00:00",
+      "agent_minutes": 6.97,
+      "feedback_at": "2026-10-07T11:14:24+00:00",
+      "feedback_to_ready_min": 7.5,
+      "since_previous_version_min": 8.2
+    },
+    {
+      "pr": 75,
+      "version": 12,
+      "trigger": "human",
+      "session_start": "2026-10-07T11:21:51+00:00",
+      "ready": "2026-10-07T11:27:17+00:00",
+      "agent_minutes": 3.77,
+      "feedback_at": "2026-10-07T11:17:35+00:00",
+      "feedback_to_ready_min": 9.7,
+      "since_previous_version_min": 5.3
+    },
+    {
+      "pr": 97,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T16:44:18+00:00",
+      "ready": "2026-10-06T17:00:02+00:00",
+      "agent_minutes": 13.3,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 97,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-07T09:50:26+00:00",
+      "ready": "2026-10-07T09:51:54+00:00",
+      "agent_minutes": 1.47,
+      "feedback_at": "2026-10-07T09:50:08+00:00",
+      "feedback_to_ready_min": 1.8,
+      "since_previous_version_min": 1011.9
+    },
+    {
+      "pr": 87,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T16:34:04+00:00",
+      "ready": "2026-10-06T16:34:28+00:00",
+      "agent_minutes": 12.02,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 87,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-07T09:45:20+00:00",
+      "ready": "2026-10-07T09:51:39+00:00",
+      "agent_minutes": 3.33,
+      "feedback_at": "2026-10-07T09:45:03+00:00",
+      "feedback_to_ready_min": 6.6,
+      "since_previous_version_min": 1037.2
+    },
+    {
+      "pr": 85,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T15:16:18+00:00",
+      "ready": "2026-10-06T15:36:19+00:00",
+      "agent_minutes": 15.95,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 85,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-07T08:27:32+00:00",
+      "ready": "2026-10-07T08:39:24+00:00",
+      "agent_minutes": 11.05,
+      "feedback_at": "2026-10-07T08:27:17+00:00",
+      "feedback_to_ready_min": 12.1,
+      "since_previous_version_min": 1023.1
+    },
+    {
+      "pr": 99,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T21:02:07+00:00",
+      "ready": "2026-10-06T21:12:36+00:00",
+      "agent_minutes": 7.87,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 99,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-07T05:52:10+00:00",
+      "ready": "2026-10-07T06:08:16+00:00",
+      "agent_minutes": 15.7,
+      "feedback_at": "2026-10-07T05:51:55+00:00",
+      "feedback_to_ready_min": 16.4,
+      "since_previous_version_min": 535.7
+    },
+    {
+      "pr": 101,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T21:18:28+00:00",
+      "ready": "2026-10-06T21:31:21+00:00",
+      "agent_minutes": 10.17,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 101,
+      "version": 2,
+      "trigger": "human",
+      "session_start": "2026-10-06T21:33:13+00:00",
+      "ready": "2026-10-06T21:39:01+00:00",
+      "agent_minutes": 3.87,
+      "feedback_at": "2026-10-06T21:32:58+00:00",
+      "feedback_to_ready_min": 6.0,
+      "since_previous_version_min": 7.7
+    },
+    {
+      "pr": 101,
+      "version": 3,
+      "trigger": "human",
+      "session_start": "2026-10-07T05:44:51+00:00",
+      "ready": "2026-10-07T05:59:06+00:00",
+      "agent_minutes": 13.22,
+      "feedback_at": "2026-10-07T05:44:35+00:00",
+      "feedback_to_ready_min": 14.5,
+      "since_previous_version_min": 500.1
+    },
+    {
+      "pr": 96,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T16:43:47+00:00",
+      "ready": "2026-10-06T17:03:04+00:00",
+      "agent_minutes": 16.1,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 95,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T16:43:02+00:00",
+      "ready": "2026-10-06T16:57:12+00:00",
+      "agent_minutes": 11.4,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 94,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T16:42:18+00:00",
+      "ready": "2026-10-06T16:56:03+00:00",
+      "agent_minutes": 10.5,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 93,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T16:42:11+00:00",
+      "ready": "2026-10-06T16:58:35+00:00",
+      "agent_minutes": 13.5,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 82,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T15:13:22+00:00",
+      "ready": "2026-10-06T15:34:55+00:00",
+      "agent_minutes": 18.1,
+      "feedback_at": "2026-10-06T15:13:16+00:00",
+      "feedback_to_ready_min": 21.6,
+      "since_previous_version_min": null
+    },
+    {
+      "pr": 82,
+      "version": 2,
+      "trigger": "automated",
+      "session_start": "2026-10-06T15:31:42+00:00",
+      "ready": "2026-10-06T15:33:28+00:00",
+      "agent_minutes": 1.77,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": -1.4
+    },
+    {
+      "pr": 84,
+      "version": 1,
+      "trigger": "build",
+      "session_start": "2026-10-06T15:15:22+00:00",
+      "ready": "2026-10-06T15:36:01+00:00",
+      "agent_minutes": 18.0,
+      "feedback_at": null,
+      "feedback_to_ready_min": null,
+      "since_previous_version_min": null
+    }
+  ],
+  "per_day": {
+    "2026-10-06": {
+      "ideas": 10,
+      "agent_sessions": 18,
+      "coach_runs": 41,
+      "agent_minutes": 325.6
+    },
+    "2026-10-07": {
+      "ideas": 2,
+      "agent_sessions": 33,
+      "coach_runs": 10,
+      "agent_minutes": 290.4
+    }
+  },
+  "per_hour": {
+    "2026-10-06 11:00": {
+      "ideas": 0,
+      "agent_sessions": 0,
+      "coach_runs": 4
+    },
+    "2026-10-06 15:00": {
+      "ideas": 0,
+      "agent_sessions": 1,
+      "coach_runs": 3
+    },
+    "2026-10-06 16:00": {
+      "ideas": 2,
+      "agent_sessions": 0,
+      "coach_runs": 3
+    },
+    "2026-10-06 17:00": {
+      "ideas": 2,
+      "agent_sessions": 8,
+      "coach_runs": 14
+    },
+    "2026-10-06 18:00": {
+      "ideas": 6,
+      "agent_sessions": 6,
+      "coach_runs": 11
+    },
+    "2026-10-06 19:00": {
+      "ideas": 0,
+      "agent_sessions": 0,
+      "coach_runs": 1
+    },
+    "2026-10-06 22:00": {
+      "ideas": 0,
+      "agent_sessions": 0,
+      "coach_runs": 1
+    },
+    "2026-10-06 23:00": {
+      "ideas": 0,
+      "agent_sessions": 3,
+      "coach_runs": 4
+    },
+    "2026-10-07 07:00": {
+      "ideas": 0,
+      "agent_sessions": 2,
+      "coach_runs": 2
+    },
+    "2026-10-07 10:00": {
+      "ideas": 0,
+      "agent_sessions": 6,
+      "coach_runs": 0
+    },
+    "2026-10-07 11:00": {
+      "ideas": 2,
+      "agent_sessions": 7,
+      "coach_runs": 4
+    },
+    "2026-10-07 12:00": {
+      "ideas": 0,
+      "agent_sessions": 5,
+      "coach_runs": 1
+    },
+    "2026-10-07 13:00": {
+      "ideas": 0,
+      "agent_sessions": 10,
+      "coach_runs": 3
+    },
+    "2026-10-07 14:00": {
+      "ideas": 0,
+      "agent_sessions": 3,
+      "coach_runs": 0
+    }
+  },
+  "journeys": [
+    {
+      "issue": 76,
+      "title": "[Idea] Guideline recommendations during preparation of the MDT",
+      "author": "jvdwm",
+      "created": "2026-10-06T14:27:38+00:00",
+      "coach_first_reply_min": 3.5,
+      "to_ready_for_build_min": 43.8,
+      "ready_to_agent_pr_min": 1.7,
+      "to_first_preview_min": 67.1,
+      "agent_pr": 82,
+      "agent_pr_additions": 1218,
+      "agent_pr_commits": 4,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 78,
+      "title": "Trial matching and patient specific treatment",
+      "author": "malay-gaherwar",
+      "created": "2026-10-06T14:51:07+00:00",
+      "coach_first_reply_min": 3.2,
+      "to_ready_for_build_min": 21.5,
+      "ready_to_agent_pr_min": 2.3,
+      "to_first_preview_min": 39.3,
+      "agent_pr": 83,
+      "agent_pr_additions": 2336,
+      "agent_pr_commits": 11,
+      "human_comments_after_preview": 12,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 80,
+      "title": "[Idea] Guideline recommendations during preparation of the MDT",
+      "author": "ybaccouche",
+      "created": "2026-10-06T15:02:29+00:00",
+      "coach_first_reply_min": 8.9,
+      "to_ready_for_build_min": 10.9,
+      "ready_to_agent_pr_min": 1.8,
+      "to_first_preview_min": 33.4,
+      "agent_pr": 84,
+      "agent_pr_additions": 1012,
+      "agent_pr_commits": 4,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 81,
+      "title": "[Idea] Guideline for recommendations during preparation of the MDT",
+      "author": "ybaccouche",
+      "created": "2026-10-06T15:10:53+00:00",
+      "coach_first_reply_min": 2.4,
+      "to_ready_for_build_min": 4.3,
+      "ready_to_agent_pr_min": 0.9,
+      "to_first_preview_min": 25.3,
+      "agent_pr": 85,
+      "agent_pr_additions": 1725,
+      "agent_pr_commits": 4,
+      "human_comments_after_preview": 1,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 86,
+      "title": "[Idea] One audit trail of human and AI actions for investigating adverse events in cancer care",
+      "author": "JanvandenBrand",
+      "created": "2026-10-06T16:30:46+00:00",
+      "coach_first_reply_min": 1.0,
+      "to_ready_for_build_min": 3.0,
+      "ready_to_agent_pr_min": 0.2,
+      "to_first_preview_min": 1040.7,
+      "agent_pr": 87,
+      "agent_pr_additions": 1722,
+      "agent_pr_commits": 4,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 88,
+      "title": "One front door for external requests for oncology data",
+      "author": "JanvandenBrand",
+      "created": "2026-10-06T16:38:50+00:00",
+      "coach_first_reply_min": 0.8,
+      "to_ready_for_build_min": 3.0,
+      "ready_to_agent_pr_min": 0.1,
+      "to_first_preview_min": 19.6,
+      "agent_pr": 93,
+      "agent_pr_additions": 862,
+      "agent_pr_commits": 4,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 89,
+      "title": "[Idea] Zero trust for AI agents that touch oncology patient data",
+      "author": "JanvandenBrand",
+      "created": "2026-10-06T16:39:34+00:00",
+      "coach_first_reply_min": 0.6,
+      "to_ready_for_build_min": 2.4,
+      "ready_to_agent_pr_min": 0.1,
+      "to_first_preview_min": 16.3,
+      "agent_pr": 94,
+      "agent_pr_additions": 525,
+      "agent_pr_commits": 2,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 90,
+      "title": "[Idea] Automated, instant check whether an agent may use oncology data",
+      "author": "JanvandenBrand",
+      "created": "2026-10-06T16:40:03+00:00",
+      "coach_first_reply_min": 0.8,
+      "to_ready_for_build_min": 2.7,
+      "ready_to_agent_pr_min": 0.1,
+      "to_first_preview_min": 17.1,
+      "agent_pr": 95,
+      "agent_pr_additions": 823,
+      "agent_pr_commits": 4,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 91,
+      "title": "[Idea] Automated real-world safety monitoring of newly approved cancer treatments",
+      "author": "JanvandenBrand",
+      "created": "2026-10-06T16:40:39+00:00",
+      "coach_first_reply_min": 0.9,
+      "to_ready_for_build_min": 2.9,
+      "ready_to_agent_pr_min": 0.1,
+      "to_first_preview_min": 22.3,
+      "agent_pr": 96,
+      "agent_pr_additions": 823,
+      "agent_pr_commits": 3,
+      "human_comments_after_preview": 0,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 92,
+      "title": "[Idea] Patients like me: how were similar patients treated and how did they do?",
+      "author": "JanvandenBrand",
+      "created": "2026-10-06T16:41:27+00:00",
+      "coach_first_reply_min": 0.7,
+      "to_ready_for_build_min": 2.6,
+      "ready_to_agent_pr_min": 0.1,
+      "to_first_preview_min": 18.5,
+      "agent_pr": 97,
+      "agent_pr_additions": 1047,
+      "agent_pr_commits": 3,
+      "human_comments_after_preview": 1,
+      "outcome": "preview-ready"
+    },
+    {
+      "issue": 102,
+      "title": "[Idea] Post MDT shared decision making",
+      "author": "Ferraa96",
+      "created": "2026-10-07T09:04:03+00:00",
+      "coach_first_reply_min": 0.9,
+      "to_ready_for_build_min": null,
+      "ready_to_agent_pr_min": null,
+      "to_first_preview_min": null,
+      "agent_pr": null,
+      "agent_pr_additions": 0,
+      "agent_pr_commits": 0,
+      "human_comments_after_preview": 0,
+      "outcome": "open"
+    },
+    {
+      "issue": 104,
+      "title": "[Idea] Post MDT shared decision making",
+      "author": "ybaccouche",
+      "created": "2026-10-07T09:15:57+00:00",
+      "coach_first_reply_min": 0.7,
+      "to_ready_for_build_min": 2.7,
+      "ready_to_agent_pr_min": 0.1,
+      "to_first_preview_min": 30.4,
+      "agent_pr": 105,
+      "agent_pr_additions": 1351,
+      "agent_pr_commits": 15,
+      "human_comments_after_preview": 11,
+      "outcome": "preview-ready"
+    }
+  ]
+}
