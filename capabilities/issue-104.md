@@ -89,6 +89,14 @@ Each comparable record shows age distance and top-priority/stage selection match
 diagnosis, sex, pTNM, MMR, ECOG and renal function alongside the selected patient's values, labelled Matches, Differs
 or Unknown. These additional synthetic characteristics are not selection filters; avoidance switches
 were not recorded in the cohort and are not claimed to match.
+Each visible case shows a similarity percentage and matched/known count, with unknown coverage.
+The equal-weight demonstration uses the three selection matches (age within five years, stage III,
+any shared top slider priority) plus exact matches for the six inspected clinical characteristics.
+Similarity is matching checks divided by known checks, rounded to a percentage; unknown values
+are excluded rather than treated as matches. Each case expands to show the calculation and
+matching/differing/unknown characteristics. Avoidance switches, free text, treatments and outcomes
+are not scored. This does not change case selection or imply treatment suitability, predicted
+outcomes or a validated clinical similarity measure.
 
 ## Outputs
 Focused sections: worklist → visual outcomes → priorities → Patients like me → decision.

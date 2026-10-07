@@ -154,3 +154,5 @@
   .sdm-evidence-sources, .sdm-option-cards, .sdm-recovery { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .sdm104 .hx-spinner { animation: none; } }
+.sdm-case summary .sdm-similarity { display: block; margin-top: 6px; color: var(--cp-text); font-variant-numeric: tabular-nums; }
+.sdm-case summary small { display: block; margin-top: 3px; color: var(--cp-text-muted); }

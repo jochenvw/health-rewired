@@ -246,17 +246,32 @@ export default function SharedDecision() {
       {step === 'patients' && <Panel title="Patients like me · synthetic European examples">
         <p>{comparable.length} matches for {patient.name} · age {patient.age - 5}–{patient.age + 5} · stage III · {topPriorities.map((item) => item.label).join(' / ')}</p>
         {caseId !== 'neuropathy' && <p>No synthetic records capture hair-loss or nausea priorities. Neuropathy examples are not relabelled as matches.</p>}
-        <small>Selection uses age within five years, stage III and top slider priorities only. Other characteristics are shown for inspection, not used to select matches. Additional avoidance switches were not recorded in these examples.</small>
+        <small>Selection uses age within five years, stage III and top slider priorities only. Similarity also compares the six clinical characteristics below; it does not change selection. Equal-weight demo score, not treatment suitability or an outcome prediction.</small>
         <div className="sdm-option-cards">{data.options.map((option, i) => <section key={option.id}><h3>{country.labels[i]}</h3>
           <div className="sdm-match-count"><strong>{comparable.filter((patient) => patient.option === option.id).length}</strong> synthetic cases</div>
-          {comparable.filter((record) => record.option === option.id).map((record) => <details className="sdm-case" key={record.id}><summary>{record.age} years · {record.site.split(' · ')[0]}</summary>
+          {comparable.filter((record) => record.option === option.id).map((record) => {
+            const characteristics = Object.entries(data.comparableCharacteristics[record.id]).map(([key, value]) => {
+              const current: string = patient.characteristics[key as keyof typeof patient.characteristics];
+              const status = value === 'Not recorded' || current === 'Not recorded' ? 'Unknown' : value === current ? 'Matches' : 'Differs';
+              return { key, value, current, status };
+            });
+            const known = 3 + characteristics.filter((item) => item.status !== 'Unknown').length;
+            const matched = 3 + characteristics.filter((item) => item.status === 'Matches').length;
+            return <details className="sdm-case" key={record.id}><summary>
+              <span>{record.age} years · {record.site.split(' · ')[0]}</span>
+              <strong className="sdm-similarity">{Math.round(matched / known * 100)}% similarity</strong>
+              <small>{matched} / {known} known characteristics match · {9 - known} unknown</small>
+            </summary>
             <p>{record.outcome}</p><small>{record.id} · {caseCriteria.find((item) => item.key === record.priority)?.label}</small>
             <p><strong>Selection matches:</strong> Stage III; age {record.age} vs {patient.name} {patient.age} ({Math.abs(record.age - patient.age)} years apart); shared top slider priority.</p>
-            <dl className="sdm-characteristics">{Object.entries(data.comparableCharacteristics[record.id]).map(([key, value]) => {
-              const current = patient.characteristics[key as keyof typeof patient.characteristics];
-              return <div key={key}><dt>{key} · {value === 'Not recorded' ? 'Unknown' : value === current ? 'Matches' : 'Differs'}</dt><dd>Case: {value} · {patient.name}: {current}</dd></div>;
-            })}</dl>
-          </details>)}
+            <dl className="sdm-characteristics">{characteristics.map(({ key, value, current, status }) =>
+              <div key={key}><dt>{key} · {status}</dt><dd>Case: {value} · {patient.name}: {current}</dd></div>)}</dl>
+            <p><strong>Similarity calculation:</strong> {matched} matching ÷ {known} known checks × 100, rounded.
+              Age within five years, stage III and any shared top slider priority each count once; diagnosis, sex, pTNM, MMR, ECOG and renal function require exact matches.
+              All nine checks have equal weight; unknown values are excluded, not assumed to match.
+              Avoidance switches and free text are not scored. This synthetic comparison is not a validated clinical measure.</p>
+          </details>;
+          })}
         </section>)}</div>
         <button className="hx-btn" onClick={() => setStep('priorities')}>Change priorities to explore other cases</button>
         {why('Local invented cases only: age within five years, stage III and any tied highest priority. Different follow-up, missing outcomes and selection bias prevent causal comparisons. No real hospital query or pooled outcome probability.')}
