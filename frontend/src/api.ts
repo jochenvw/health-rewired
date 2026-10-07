@@ -67,4 +67,11 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  askIssue100: (body: { task: string }) =>
+    request<AgentResult>('/api/ideas/100/manager-answer', { method: 'POST', body: JSON.stringify(body) }),
+  issue100Dataset: <T,>() => request<T>('/api/ideas/100/dataset'),
+  analyzeIssue100Dataset: <T,>(body: { definition_id: 'strict' | 'inclusive' | 'local'; refined: boolean }) =>
+    request<T>('/api/ideas/100/dataset/analyze', { method: 'POST', body: JSON.stringify(body) }),
+  explainIssue100Dataset: (body: { task: string }) =>
+    request<AgentResult>('/api/ideas/100/dataset-explanation', { method: 'POST', body: JSON.stringify(body) }),
 };
