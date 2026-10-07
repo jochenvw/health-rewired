@@ -30,6 +30,7 @@ Job timings for completed runs are cached in `.cache/`, so reruns are fast.
 | Iteration speed | Each agent session on a PR is one version. Its version is ready when the preview deploy finishes. Feedback latency is measured from the latest human comment on the PR or idea issue since the previous session started. |
 | Participation | Issue authors and commenters in the window, split into participants, organisers (`--organisers`, comma-separated logins) and agents. New account = GitHub account created within 30 days before the event. Pickup = seconds from a participant comment to the next agent comment in the same thread. |
 | Models and tokens | Coding agent: `[cca-engine] assistant.usage` lines in each run log (model, input incl. cached prompt, output; no credits). AI coaches: `gh aw logs` usage artifacts, split into the coach and its threat-detection pass, with AI credits (1 credit = USD 0.01). Both cached in `.cache/` because Actions logs expire. Exact premium-request billing by model needs `gh auth refresh -s user` and the billing API; not used. |
+| Cost | Realistic and worst case. Coding agent: logged tokens × list price (gpt-6.x priced as gpt-5.6; realistic 90% cached input at GitHub Copilot prices, worst no caching at the highest list price). AI coaches: measured credits. Actions: billable minutes (each job rounded up), free for a public repo, worst $0.008/min. Azure: Cost Management for the `AZURE_RESOURCE_GROUP` repository variable (needs `az login`); worst case counts everything since setup. |
 
 ## Traditional-delivery heuristic
 

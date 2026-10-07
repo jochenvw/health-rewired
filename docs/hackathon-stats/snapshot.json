@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T13:05:39.424931+00:00",
+  "generated_at": "2026-10-07T14:16:25.714587+00:00",
   "repo": "jochenvw/health-rewired",
   "window_start": "2026-10-06T00:00:00+02:00",
   "ideas": {
@@ -203,13 +203,13 @@
   },
   "compute_hours": {
     "ai_coach": 2.7,
-    "automation": 4.7,
+    "automation": 4.8,
     "coding_agent": 7.6,
     "dependabot": 0.0
   },
   "workflow_runs": {
-    "triggered": 1420,
-    "executed": 387
+    "triggered": 1422,
+    "executed": 388
   },
   "pull_requests": {
     "total": 19,
@@ -219,15 +219,15 @@
     "agent_files_changed": 116,
     "agent_commits": 86,
     "merged": 4,
-    "preview_deployments": 85
+    "preview_deployments": 86
   },
   "conversation": {
-    "agent_comments": 205,
-    "agent_words": 19233,
+    "agent_comments": 206,
+    "agent_words": 19281,
     "human_comments": 135,
     "distinct_humans": 10,
     "by_author": {
-      "github-actions[bot]": 168,
+      "github-actions[bot]": 169,
       "jochenvw": 100,
       "Copilot": 37,
       "marcel-fokker": 14,
@@ -243,8 +243,8 @@
   },
   "codebase": {
     "ref": "origin/main",
-    "commits": 8,
-    "commits_with_copilot": 4
+    "commits": 9,
+    "commits_with_copilot": 5
   },
   "iteration": {
     "versions": 51,
@@ -373,34 +373,34 @@
     },
     "ai_coaches": {
       "available": true,
-      "runs": 48,
+      "runs": 49,
       "by_step_model": [
         {
           "step": "agent",
           "model": "claude-sonnet-5.5",
-          "input": 240013,
-          "output": 69531,
-          "cache_read": 6850536,
-          "cache_write": 1586683,
-          "requests": 198,
-          "ai_credits": 651.22
+          "input": 244915,
+          "output": 71448,
+          "cache_read": 7029500,
+          "cache_write": 1639881,
+          "requests": 203,
+          "ai_credits": 670.99
         },
         {
           "step": "detection",
           "model": "claude-haiku-4.5",
-          "input": 191527,
-          "output": 18333,
-          "cache_read": 1576298,
-          "cache_write": 359514,
-          "requests": 79,
-          "ai_credits": 89.02
+          "input": 203632,
+          "output": 19483,
+          "cache_read": 1707719,
+          "cache_write": 383314,
+          "requests": 85,
+          "ai_credits": 95.1
         }
       ],
       "by_coach": {
         "Architecture coach": {
-          "runs": 2,
-          "tokens": 476032,
-          "ai_credits": 40.7
+          "runs": 3,
+          "tokens": 883489,
+          "ai_credits": 66.6
         },
         "Idea coach": {
           "runs": 31,
@@ -418,10 +418,51 @@
           "ai_credits": 17.4
         }
       },
-      "total_tokens": 10892435,
-      "total_ai_credits": 740.2,
-      "total_usd": 7.4
+      "total_tokens": 11299892,
+      "total_ai_credits": 766.1,
+      "total_usd": 7.66
     }
+  },
+  "cost": {
+    "rows": [
+      {
+        "item": "Coding agent (tokens \u00d7 list price)",
+        "realistic": 66.06,
+        "worst": 752.99,
+        "basis": "Realistic: 90% of input is cached context, GitHub Copilot price list. Worst: no caching, highest list price."
+      },
+      {
+        "item": "AI coaches",
+        "realistic": 7.66,
+        "worst": 7.66,
+        "basis": "Measured AI credits per request (1 credit = USD 0.01)."
+      },
+      {
+        "item": "GitHub Actions runners",
+        "realistic": 0.0,
+        "worst": 10.87,
+        "basis": "1,359 billable minutes. Realistic: public repository, free. Worst: private, $0.008/min, no included minutes."
+      },
+      {
+        "item": "Azure hosting of live previews",
+        "realistic": 2.05,
+        "worst": 19.24,
+        "basis": "Actual cost of `rg-health-rewired-munich`. Realistic: event days. Worst: everything since setup on 2026-09-23."
+      }
+    ],
+    "total": {
+      "realistic": 75.77,
+      "worst": 790.76
+    },
+    "per_prototype": {
+      "realistic": 6.89,
+      "worst": 71.89
+    },
+    "per_version": {
+      "realistic": 1.49,
+      "worst": 15.51
+    },
+    "azure_available": true
   },
   "participation": {
     "participants": 6,
@@ -435,12 +476,12 @@
     },
     "comments_by_role": {
       "organiser": 122,
-      "agent": 205,
+      "agent": 206,
       "participant": 13
     },
     "words_by_role": {
       "organiser": 49639,
-      "agent": 19233,
+      "agent": 19281,
       "participant": 884
     },
     "agent_pickup_of_participant_comment_s": {

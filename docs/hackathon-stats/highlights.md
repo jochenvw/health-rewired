@@ -1,6 +1,6 @@
 # Oncology Hackathon 2026 Munich: what AI agents built
 
-_2 days, 06 Oct – 07 Oct 2026, 15:05. Source: GitHub activity on `jochenvw/health-rewired`. All patient data is synthetic._
+_2 days, 06 Oct – 07 Oct 2026, 16:16. Source: GitHub activity on `jochenvw/health-rewired`. All patient data is synthetic._
 
 ## In one line
 
@@ -51,17 +51,34 @@ A sprint team ships one version every few weeks. Here, consecutive versions were
 
 Both are rough heuristics. They leave out clinical alignment, design and review, which still need people.
 
+## What it cost
+
+Not wireframes or mock-ups: 11 running, clickable applications with synthetic patient data, rebuilt and redeployed 51 times. They are prototypes for discussion, not production systems.
+
+**Worst case: $791 in total, $72 per working prototype.** Realistic: $76.
+
+| Item | Realistic | Worst case | Basis |
+|---|---|---|---|
+| Coding agent (tokens × list price) | $66.06 | $752.99 | Realistic: 90% of input is cached context, GitHub Copilot price list. Worst: no caching, highest list price. |
+| AI coaches | $7.66 | $7.66 | Measured AI credits per request (1 credit = USD 0.01). |
+| GitHub Actions runners | $0.00 | $10.87 | 1,359 billable minutes. Realistic: public repository, free. Worst: private, $0.008/min, no included minutes. |
+| Azure hosting of live previews | $2.05 | $19.24 | Actual cost of `rg-health-rewired-munich`. Realistic: event days. Worst: everything since setup on 2026-09-23. |
+| **Total** | **$75.77** | **$790.76** | |
+| Per working prototype | $6.89 | $71.89 | |
+| Per running version | $1.49 | $15.51 | |
+
+Not included: Copilot licences, AI calls the running prototypes make, people's time, and platform setup before the event.
+
 ## Under the hood
 
 - **Models:** coding agent gpt-6.1-sol, gpt-6-luna, claude-haiku-4.5; AI coaches claude-sonnet-5.5; safety check on every coach answer claude-haiku-4.5.
-- **Scale:** ~268.8 M tokens processed; 51 versions; 85 preview deployments.
-- **Cost of all AI coaching:** 740 AI credits ≈ **$7.40** for 48 coach runs.
+- **Scale:** ~269.2 M tokens processed; 51 versions; 86 preview deployments.
 - **Data:** synthetic patients only; no real patient data.
 
 ## Fine print
 
 - Counts activity from 2026-10-06; earlier activity was organiser testing.
 - Agent hours overlap: agents run in parallel. They are not saved human hours.
-- Coding-agent cost is not reported in its logs; token counts include re-sent cached context.
+- Coding-agent cost is estimated from logged tokens and list prices (gpt-6.x priced as gpt-5.6); token counts include re-sent cached context.
 - Prototypes are previews for discussion, not clinical software.
 - Full method and per-metric detail: [`report.md`](report.md). Regenerate with `python scripts/hackathon-stats/collect_stats.py`.

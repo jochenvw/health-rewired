@@ -1,6 +1,6 @@
 # Hackathon in numbers
 
-_Generated 2026-10-07 15:05 (local) from `jochenvw/health-rewired`; activity since 2026-10-06._
+_Generated 2026-10-07 16:16 (local) from `jochenvw/health-rewired`; activity since 2026-10-06._
 
 ## Headline
 
@@ -20,8 +20,8 @@ _Generated 2026-10-07 15:05 (local) from `jochenvw/health-rewired`; activity sin
 | Peak coding agents building simultaneously | 6 |
 | Lines added by the coding agent | **25,969** (−13) |
 | Coding-agent commits / pull requests | 86 / 14 |
-| Preview deployments (PR build → test → deploy) | 85 |
-| Agent comments | 205 (~19,233 words) vs 135 human |
+| Preview deployments (PR build → test → deploy) | 86 |
+| Agent comments | 206 (~19,281 words) vs 135 human |
 | Humans involved | 10 |
 
 ## Participation
@@ -31,8 +31,8 @@ _Generated 2026-10-07 15:05 (local) from `jochenvw/health-rewired`; activity sin
 | Participants (excluding organisers) | **6**, of whom 4 submitted an idea; 1 created a GitHub account for the event |
 | Organisers / facilitators | 4 |
 | Issues opened by participants / organisers / agents | 9 / 6 / 3 |
-| Comments by participants / organisers / agents | 13 / 122 / 205 |
-| Words by participants / organisers / agents | 884 / 49,639 / 19,233 |
+| Comments by participants / organisers / agents | 13 / 122 / 206 |
+| Words by participants / organisers / agents | 884 / 49,639 / 19,281 |
 | Agent comments per human comment | 1.5 |
 | Participant comment picked up by an agent | **11 s** median (n=13, max 85 s); the revised prototype follows in the feedback → new version time below |
 | Ideas discussed by more than one person | 5 |
@@ -57,22 +57,36 @@ _Generated 2026-10-07 15:05 (local) from `jochenvw/health-rewired`; activity sin
 | Coding agent | gpt-6.1-sol | 1,630 | 141.5 M | 662 k | not reported |
 | Coding agent | gpt-6-luna | 790 | 112.7 M | 638 k | not reported |
 | Coding agent | claude-haiku-4.5 | 84 | 2.4 M | 37 k | not reported |
-| AI coaches | claude-sonnet-5.5 | 198 | 8.7 M | 70 k | 651 ($6.51) |
-| AI coaches: safety check | claude-haiku-4.5 | 79 | 2.1 M | 18 k | 89 ($0.89) |
+| AI coaches | claude-sonnet-5.5 | 203 | 8.9 M | 71 k | 671 ($6.71) |
+| AI coaches: safety check | claude-haiku-4.5 | 85 | 2.3 M | 19 k | 95 ($0.95) |
 
 Coding agent: 51 of 51 sessions logged usage; 257.9 M tokens (input includes cached prompt); reasoning effort medium: 51.
-AI coaches: 48 runs, 10.9 M tokens, **740 AI credits ≈ $7.40** in total.
+AI coaches: 49 runs, 11.3 M tokens, **766 AI credits ≈ $7.66** in total.
+
+## Cost (realistic and worst case)
+
+| Item | Realistic | Worst case | Basis |
+|---|---|---|---|
+| Coding agent (tokens × list price) | $66.06 | $752.99 | Realistic: 90% of input is cached context, GitHub Copilot price list. Worst: no caching, highest list price. |
+| AI coaches | $7.66 | $7.66 | Measured AI credits per request (1 credit = USD 0.01). |
+| GitHub Actions runners | $0.00 | $10.87 | 1,359 billable minutes. Realistic: public repository, free. Worst: private, $0.008/min, no included minutes. |
+| Azure hosting of live previews | $2.05 | $19.24 | Actual cost of `rg-health-rewired-munich`. Realistic: event days. Worst: everything since setup on 2026-09-23. |
+| **Total** | **$75.77** | **$790.76** | |
+| Per working prototype | $6.89 | $71.89 | |
+| Per running version | $1.49 | $15.51 | |
+
+Not included: Copilot licences, AI calls the running prototypes make, people's time, and platform setup before the event.
 
 ## Compute (Actions execution hours, executed runs only)
 
 | Category | Hours |
 |---|---|
 | ai coach | 2.7 |
-| automation | 4.7 |
+| automation | 4.8 |
 | coding agent | 7.6 |
 | dependabot | 0.0 |
 
-Workflow runs triggered: 1,420; executed (not skipped): 387.
+Workflow runs triggered: 1,422; executed (not skipped): 388.
 
 ## AI coaches
 
@@ -157,7 +171,7 @@ Heuristic assumptions are flags (`--sprint-weeks`, `--loc-per-dev-day`). Lines p
 
 ## Platform changes on main
 
-8 commits since 2026-10-06, 4 involving Copilot. Prototypes are not merged: each lives in its own preview pull request.
+9 commits since 2026-10-06, 5 involving Copilot. Prototypes are not merged: each lives in its own preview pull request.
 
 ## Caveats
 

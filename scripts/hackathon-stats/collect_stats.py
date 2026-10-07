@@ -14,9 +14,11 @@ import argparse
 import json
 import math
 import re
+import shutil
 import statistics
 import subprocess
 import sys
+import time
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta, timezone
@@ -162,9 +164,145 @@ def fetch_durations(repo: str, runs: list[dict], cache_file: Path, now: datetime
             r["executed"], r["minutes"] = False, 0.0
             continue
         r["minutes"] = round(sum((e - s).total_seconds() for s, e in spans) / 60, 2)
+        r["billable_minutes"] = sum(math.ceil(max((e - s).total_seconds() / 60, 0.01)) for s, e in spans)
         r["start"], r["end"] = min(s for s, _ in spans), max(e for _, e in spans)
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     cache_file.write_text(json.dumps(cache), encoding="utf-8")
+
+
+# USD per million tokens: (input, output, cached input). gpt-6.x has no published price; proxies are the
+# gpt-5.6 equivalents. Realistic = GitHub Copilot price list; worst case = highest list price seen (OpenAI direct).
+MODEL_PRICES = {
+    "gpt-6.1-sol": {"realistic": (2.0, 10.0, 0.2), "worst": (5.0, 30.0, 0.5)},
+    "gpt-6-luna": {"realistic": (0.2, 1.2, 0.02), "worst": (0.2, 1.2, 0.02)},
+    "claude-haiku-4.5": {"realistic": (1.0, 5.0, 0.1), "worst": (1.0, 5.0, 0.1)},
+}
+UNKNOWN_MODEL_PRICE = (5.0, 30.0, 0.5)
+REALISTIC_CACHE_SHARE = 0.9  # coding-agent turns resend ~200k tokens of context; most is a cache hit
+ACTIONS_USD_PER_MIN = 0.008  # GitHub-hosted Linux 2-core, private repository, no included minutes
+
+
+def fetch_azure_cost(repo: str, since: datetime, now: datetime) -> dict:
+    """Actual cost of the preview resource group (Azure Cost Management). Requires `az login`."""
+    print("Fetching Azure cost ...", file=sys.stderr)
+    try:
+        variables = {v["name"]: v["value"] for v in gh_json(["variable", "list", "-R", repo, "--json", "name,value"])}
+        sub, rg = variables["AZURE_SUBSCRIPTION_ID"], variables["AZURE_RESOURCE_GROUP"]
+        body = {
+            "type": "ActualCost",
+            "timeframe": "Custom",
+            "timePeriod": {
+                "from": f"{since - timedelta(days=90):%Y-%m-%dT00:00:00Z}",
+                "to": f"{now:%Y-%m-%dT23:59:59Z}",
+            },
+            "dataset": {"granularity": "Daily", "aggregation": {"cost": {"name": "Cost", "function": "Sum"}}},
+        }
+        body_file = CACHE_FILE.parent / "azure-cost-query.json"
+        body_file.parent.mkdir(parents=True, exist_ok=True)
+        body_file.write_text(json.dumps(body), encoding="utf-8")
+        url = (
+            f"https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}"
+            "/providers/Microsoft.CostManagement/query?api-version=2023-11-01"
+        )
+        cmd = [shutil.which("az") or "az", "rest", "--method", "post", "--url", url, "--body", f"@{body_file}"]
+        for attempt in range(4):  # Cost Management rate-limits (429) bursts of queries
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            if result.returncode == 0:
+                break
+            time.sleep(15 * (attempt + 1))
+        else:
+            print(f"Azure cost unavailable: {result.stderr.strip()[:300]}", file=sys.stderr)
+            return {"available": False}
+        out = json.loads(result.stdout)
+    except (SystemExit, KeyError, FileNotFoundError, json.JSONDecodeError):
+        return {"available": False}
+    cols = [c["name"] for c in out["properties"]["columns"]]
+    rows = [dict(zip(cols, r, strict=True)) for r in out["properties"]["rows"]]
+    first = min((str(r["UsageDate"]) for r in rows), default=None)
+    return {
+        "available": True,
+        "resource_group": rg,
+        "event_usd": round(sum(r["Cost"] for r in rows if str(r["UsageDate"]) >= f"{since:%Y%m%d}"), 2),
+        "since_setup_usd": round(sum(r["Cost"] for r in rows), 2),
+        "setup_date": f"{first[:4]}-{first[4:6]}-{first[6:]}" if first else None,
+    }
+
+
+def analyse_cost(tokens: dict, billable_minutes: int, azure: dict, prototypes: int, versions: int) -> dict:
+    """Realistic and worst-case spend. Worst case: no prompt caching, highest list price, private repository
+    without included Actions minutes, and all Azure cost since the environment was set up."""
+
+    def coding_agent(scenario: str, cache_share: float) -> float:
+        total = 0.0
+        for model, u in tokens["coding_agent"]["by_model"].items():
+            p_in, p_out, p_cache = MODEL_PRICES.get(model, {}).get(scenario, UNKNOWN_MODEL_PRICE)
+            total += (u["input"] * ((1 - cache_share) * p_in + cache_share * p_cache) + u["output"] * p_out) / 1e6
+        return round(total, 2)
+
+    coaches = tokens["ai_coaches"].get("total_usd", 0.0)
+    rows = [
+        {
+            "item": "Coding agent (tokens × list price)",
+            "realistic": coding_agent("realistic", REALISTIC_CACHE_SHARE),
+            "worst": coding_agent("worst", 0.0),
+            "basis": f"Realistic: {REALISTIC_CACHE_SHARE:.0%} of input is cached context, GitHub Copilot price list. "
+            "Worst: no caching, highest list price.",
+        },
+        {
+            "item": "AI coaches",
+            "realistic": coaches,
+            "worst": coaches,
+            "basis": "Measured AI credits per request (1 credit = USD 0.01).",
+        },
+        {
+            "item": "GitHub Actions runners",
+            "realistic": 0.0,
+            "worst": round(billable_minutes * ACTIONS_USD_PER_MIN, 2),
+            "basis": f"{billable_minutes:,} billable minutes. Realistic: public repository, free. "
+            f"Worst: private, ${ACTIONS_USD_PER_MIN}/min, no included minutes.",
+        },
+    ]
+    if azure.get("available"):
+        rows.append(
+            {
+                "item": "Azure hosting of live previews",
+                "realistic": azure["event_usd"],
+                "worst": azure["since_setup_usd"],
+                "basis": f"Actual cost of `{azure['resource_group']}`. Realistic: event days. "
+                f"Worst: everything since setup on {azure['setup_date']}.",
+            }
+        )
+    realistic = round(sum(r["realistic"] for r in rows), 2)
+    worst = round(sum(r["worst"] for r in rows), 2)
+    return {
+        "rows": rows,
+        "total": {"realistic": realistic, "worst": worst},
+        "per_prototype": {
+            "realistic": round(realistic / max(prototypes, 1), 2),
+            "worst": round(worst / max(prototypes, 1), 2),
+        },
+        "per_version": {
+            "realistic": round(realistic / max(versions, 1), 2),
+            "worst": round(worst / max(versions, 1), 2),
+        },
+        "azure_available": azure.get("available", False),
+    }
+
+
+def render_cost(s: dict) -> list[str]:
+    c = s["cost"]
+    return [
+        "| Item | Realistic | Worst case | Basis |",
+        "|---|---|---|---|",
+        *[f"| {r['item']} | ${r['realistic']:,.2f} | ${r['worst']:,.2f} | {r['basis']} |" for r in c["rows"]],
+        f"| **Total** | **${c['total']['realistic']:,.2f}** | **${c['total']['worst']:,.2f}** | |",
+        f"| Per working prototype | ${c['per_prototype']['realistic']:,.2f} | ${c['per_prototype']['worst']:,.2f} | |",
+        f"| Per running version | ${c['per_version']['realistic']:,.2f} | ${c['per_version']['worst']:,.2f} | |",
+        "",
+        "Not included: Copilot licences, AI calls the running prototypes make, people's time, and platform "
+        "setup before the event." + ("" if c["azure_available"] else " Azure cost unavailable (run `az login`)."),
+        "",
+    ]
 
 
 USAGE_LINE = re.compile(r"assistant\.usage: model=(\S+) input=(\d+) output=(\d+)")
@@ -234,24 +372,31 @@ def fetch_ai_coach_usage(repo: str, since: datetime, cache_dir: Path) -> dict:
     stray = REPO_ROOT / ".github" / "aw" / "logs"  # gh aw always creates this default folder
     stray_existed = stray.exists()
     try:
-        out = run(
+        run(
             ["gh", "aw", "logs", "-r", repo, "--start-date", f"{since:%Y-%m-%d}", "-c", "1000"]
             + ["-o", str(cache_dir), "--json"]
         )
     except SystemExit:
-        return {"available": False}
+        print("gh aw logs failed; using cached AI coach runs only", file=sys.stderr)
     finally:
         if not stray_existed and stray.exists() and {f.name for f in stray.iterdir()} <= {".gitignore"}:
             for f in stray.iterdir():
                 f.unlink()
             stray.rmdir()
-    data = json.loads(out)
+    # gh aw sometimes lists only part of the runs; every downloaded run stays in the cache, so read that.
+    cached_runs = []
+    for d in cache_dir.glob("run-*"):
+        if (d / "run.json").exists():
+            r = json.loads((d / "run.json").read_text(encoding="utf-8"))
+            cached_runs.append({**r, "run_id": d.name.removeprefix("run-")})
+    if not cached_runs:
+        return {"available": False}
     by_step_model: dict[tuple[str, str], Counter] = defaultdict(Counter)
     by_coach: dict[str, Counter] = defaultdict(Counter)
-    for r in data.get("runs", []):
+    for r in cached_runs:
         if not ts(r["created_at"]) or ts(r["created_at"]) < since:
             continue
-        coach = r["workflow_name"].split(" · ")[0]
+        coach = (r.get("workflow_name") or r.get("name") or "unknown").split(" · ")[0]
         by_coach[coach]["runs"] += 1
         for step in ("agent", "detection"):
             f = cache_dir / f"run-{r['run_id']}" / "usage" / step / "token_usage.jsonl"
@@ -760,6 +905,13 @@ def analyse(repo: str, event_start: datetime, local: timezone, baseline: dict, o
         "codebase": git_codebase("origin/main", event_start),
         "iteration": iteration,
         "tokens": tokens,
+        "cost": analyse_cost(
+            tokens,
+            sum(r.get("billable_minutes", 0) for r in sel),
+            fetch_azure_cost(repo, event_start, now),
+            Counter(j["outcome"] for j in journeys).get("preview-ready", 0),
+            iteration["versions"],
+        ),
         "participation": analyse_participation(issues, comments, journeys, in_window, organisers, event_start),
         "effort_heuristic": effort,
         "versions": versions,
@@ -951,6 +1103,9 @@ def render(s: dict, local: timezone) -> str:
         "",
         *render_participation(s),
         *render_tokens(s),
+        "## Cost (realistic and worst case)",
+        "",
+        *render_cost(s),
         "## Compute (Actions execution hours, executed runs only)",
         "",
         "| Category | Hours |",
@@ -1112,6 +1267,16 @@ def render_highlights(s: dict, local: timezone) -> str:
         "",
         "Both are rough heuristics. They leave out clinical alignment, design and review, which still need people.",
         "",
+        "## What it cost",
+        "",
+        f"Not wireframes or mock-ups: {previews} running, clickable applications with synthetic patient data, "
+        f"rebuilt and redeployed {it['versions']} times. They are prototypes for discussion, not production systems.",
+        "",
+        f"**Worst case: ${s['cost']['total']['worst']:,.0f} in total, "
+        f"${s['cost']['per_prototype']['worst']:,.0f} per working prototype.** "
+        f"Realistic: ${s['cost']['total']['realistic']:,.0f}.",
+        "",
+        *render_cost(s),
         "## Under the hood",
         "",
         f"- **Models:** coding agent {coding_models}; AI coaches {', '.join(coach_models) or 'n/a'}; safety check "
@@ -1119,11 +1284,6 @@ def render_highlights(s: dict, local: timezone) -> str:
         f"- **Scale:** ~{fmt_tokens(total_tokens)} tokens processed; {it['versions']} versions; "
         f"{p['preview_deployments']} preview deployments.",
     ]
-    if aw.get("available"):
-        lines.append(
-            f"- **Cost of all AI coaching:** {aw['total_ai_credits']:.0f} AI credits ≈ **${aw['total_usd']:.2f}** "
-            f"for {aw['runs']} coach runs."
-        )
     lines += [
         "- **Data:** synthetic patients only; no real patient data.",
         "",
@@ -1131,7 +1291,8 @@ def render_highlights(s: dict, local: timezone) -> str:
         "",
         f"- Counts activity from {s['window_start']:%Y-%m-%d}; earlier activity was organiser testing.",
         "- Agent hours overlap: agents run in parallel. They are not saved human hours.",
-        "- Coding-agent cost is not reported in its logs; token counts include re-sent cached context.",
+        "- Coding-agent cost is estimated from logged tokens and list prices (gpt-6.x priced as gpt-5.6); "
+        "token counts include re-sent cached context.",
         "- Prototypes are previews for discussion, not clinical software.",
         "- Full method and per-metric detail: [`report.md`](report.md). Regenerate with "
         "`python scripts/hackathon-stats/collect_stats.py`.",

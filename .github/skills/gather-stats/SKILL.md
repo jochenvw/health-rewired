@@ -1,6 +1,6 @@
 ---
 name: gather-stats
-description: Gather the latest Oncology Hackathon stats on what AI agents did (ideas → prototypes, iteration speed, participation, models, tokens, cost) and write an audience-ready Markdown summary. Use when asked for hackathon stats, numbers, metrics, a scoreboard, "what did the agents do", or an update to docs/hackathon-stats.
+description: Gather the latest Oncology Hackathon stats on what AI agents did (ideas → prototypes, iteration speed, participation, models, tokens, realistic and worst-case cost) and write an audience-ready Markdown summary. Use when asked for hackathon stats, numbers, metrics, a scoreboard, "what did the agents do", or an update to docs/hackathon-stats.
 ---
 
 # Gather hackathon stats
@@ -10,8 +10,8 @@ clinicians and researchers.
 
 ## Run
 
-From the repository root (requires authenticated `gh` with the `gh aw` extension, and `git`;
-Python standard library only):
+From the repository root (requires authenticated `gh` with the `gh aw` extension, `git`, and
+`az login` for Azure cost; Python standard library only):
 
 ```bash
 python scripts/hackathon-stats/collect_stats.py
