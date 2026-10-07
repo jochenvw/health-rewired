@@ -20,19 +20,11 @@ would work – then iterate.
 3. Use the existing stack (FastAPI + uv, React + TypeScript + Vite, one Docker container) unless there
    is a strong reason not to.
 4. Use **synthetic data** from `/sample-data`. Never real patient data.
-5. Keep applications visually polished and credible for the participant's work. Use `HospitalShell`
-   for clinical workflows; use an issue-local research or operations visual language when that
-   better expresses the idea. In both cases, follow the shared
-   [`design-language.md`](hackathon/design-language.md): institutional chrome, semantic tokens,
-   operational typography, inspectable detail, visible human control, and separate visible
-   `Light` / `Dark` theme buttons. Do not force every prototype into the same layout; consistency
-   comes from shared foundations.
+5. Design, layout and visual style are entirely up to the builder. `HospitalShell` and
+   [`design-language.md`](hackathon/design-language.md) are optional inspiration, not requirements.
 6. Build demonstrable functionality, not architecture diagrams.
 7. Avoid unnecessary infrastructure (no databases, queues, extra services).
 8. Preserve the participant's clinical insight – it is the point of the idea.
-8a. Show two horizons with one switch: what works **in six months** with only the minimal
-    tumour-board dataset (`/sample-data/minimal-mdt-dataset.json`), and **the future** with the full
-    federated platform. See [`six-month-horizon.md`](hackathon/six-month-horizon.md).
 9. Prefer agentic behaviour (tools, multi-step work, generative UI, human-in-the-loop) over a generic chatbot.
 10. Never add complexity merely to appear "agentic".
 11. Bias to action: build fast, clickable prototypes that non-technical clinicians can iterate on.

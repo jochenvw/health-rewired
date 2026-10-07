@@ -1,6 +1,8 @@
-# Two horizons: in six months, and the future
+# Two horizons: in six months, and the future (optional)
 
-Every prototype shows **two versions of the same idea** with a switch at the top of the page:
+This is optional guidance, not a requirement. An idea may choose to show **two versions of the
+same idea**, but there is no required switch, control or specific UI for it — use whatever
+presentation fits the idea, or skip this entirely.
 
 | | **In six months** | **The future** |
 |---|---|---|
@@ -41,11 +43,10 @@ Assume, six months from now:
 - nothing in `not_in_minimal_dataset` exists yet: no images, no live cross-hospital querying, no
   model training across hospitals, no write-back into hospital systems.
 
-## How the prototype shows it
+## How the prototype could show it (optional, pick any presentation)
 
-1. **One switch, two horizons.** A clearly labelled control in the header: `In six months` and
-   `The future`, styled like the Light / Dark buttons, with `aria-pressed`. Open on **The future**
-   so the story still starts with the vision; the switch is the second act.
+1. **If you add a switch, keep it simple.** A clearly labelled control, for example `In six months`
+   and `The future`. Not required — any way of presenting both horizons (or just one) is fine.
 2. **Same storyline, same patient.** Both horizons walk the same steps. In six months, a step that
    depends on something outside the minimal dataset is shown greyed out with a short label: "Needs
    live hospital queries – not in six months". Do not delete steps; the gaps are the message.
