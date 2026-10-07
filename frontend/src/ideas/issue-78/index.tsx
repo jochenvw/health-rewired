@@ -127,6 +127,7 @@ export default function TrialMatching() {
   const reviewController = useRef<AbortController | null>(null);
   const reviewTimer = useRef<number | undefined>(undefined);
   const confirmationRef = useRef<HTMLDivElement | null>(null);
+  const missingPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     try { localStorage.setItem('tm78-presentation', presentation); }
@@ -227,6 +228,12 @@ export default function TrialMatching() {
       confirmationRef.current?.scrollIntoView({ behavior: 'instant', block: 'nearest' });
     }
   }, [confirmation]);
+
+  useEffect(() => {
+    if (!missingPanelRef.current) return;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    missingPanelRef.current.focus({ preventScroll: true });
+  }, [phase]);
 
   const chosen = context?.trials.find((trial) => trial.id === candidate);
   const compared = context?.trials.filter((trial) => compare.includes(trial.id)) ?? [];
@@ -373,7 +380,7 @@ export default function TrialMatching() {
              }
            }}>Full chart & sources ↓</button>
          </section>}
-         <section className="tm78-attention tm78-missing" aria-label="Missing information">
+         <section className="tm78-attention tm78-missing" aria-label="Missing information" ref={missingPanelRef} tabIndex={-1}>
            <div className="tm78-section-meta"><strong>Missing information · {chosen?.title ?? 'No screening candidate'} · eligibility not confirmed</strong>
              <button className="hx-btn" aria-expanded={missingExpanded} onClick={() => setMissingExpanded(!missingExpanded)}>
                {missingExpanded ? 'Collapse missing information' : 'Expand missing information'}</button></div>
@@ -647,7 +654,8 @@ export default function TrialMatching() {
               <div className="tm78-handoff-context"><span className="tm78-eyebrow">Trial-site hand-off · REF-078</span>
                 <h3>Principal investigator</h3><p>{chosen.site_contact.name}</p><small>{chosen.site_contact.email} · demo address</small>
                 <p>Request participation assessment only. The trial site handles onboarding outside this prototype.</p>
-                <SourceReference source={`${chosen.registry_id} · illustrative trial-site contact and assessment pathway`} /></div>
+                <SourceReference source={`${chosen.registry_id} · illustrative trial-site contact and assessment pathway`} />
+                <button className="hx-btn" onClick={() => { setPhase('screening'); setConfirmation(null); }}>Back to screening preparation</button></div>
             </PhaseInspector>}
             </div></section>}
             {receipt && phase !== 'eligibility' && <div className="tm78-receipt" role="status">

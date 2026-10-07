@@ -9,7 +9,7 @@ export function SourceReference({ source }: { source: string }) {
 
 export function TrialCentres({ trial }: { trial: Trial }) {
   return <div className="tm78-centres">
-    <small>Registry: {trial.registry_id} · fictional, not a live registry</small>
+    <small>Synthetic registry identifier: {trial.registry_id} · fictional, not a live registry</small>
     {trial.centres?.map((centre) => <small key={`${centre.name}-${centre.city}`}>
       {centre.nearest ? 'Nearest centre · ' : ''}{centre.name} · {centre.city} · {centre.distance_km} km
     </small>)}
