@@ -28,10 +28,12 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
   workflow ignores `HospitalShell` without reason; a research/network/operations idea is forced
   into a generic blue EHR despite the proposal; or the result is a chat box, marketing page or
   sparse dashboard with too little synthetic data to picture a real working day.
-- The page ignores [`design-language.md`](design-language.md): it invents an unrelated palette or
-  component style, lacks institutional chrome or current-object context, uses color decoratively,
-  hides status or uncertainty, or makes consequential output impossible to inspect. Distinct
-  issue-local workspaces are welcome; independent design systems are not.
+- The page ignores [`design-language.md`](design-language.md) in a way that hurts the demo: it is
+  internally inconsistent, uses color decoratively instead of semantically, hides status or
+  uncertainty, or makes consequential output impossible to inspect. A deliberately different
+  palette, type or component style for an audience that isn't a clinician at a workstation is fine,
+  as long as it is accessible and consistent — only flag this if it actually breaks legibility,
+  accessibility or inspectability, not merely for looking different from `HospitalShell`.
 - The page does not provide separate, plainly labelled `Light` and `Dark` buttons in a persistent
   top-level area, does not identify the active choice with `aria-pressed`, or leaves parts of the
   walkthrough in the wrong theme.
