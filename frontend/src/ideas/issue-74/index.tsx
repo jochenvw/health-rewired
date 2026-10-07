@@ -134,7 +134,13 @@ const evidenceDescriptions: Record<EvidenceState, string> = {
 };
 
 function reviewKey(assertion: EvidenceAssertion) {
-  return `${assertion.patientId}:${JSON.stringify({ statement: assertion.statement, sources: assertion.sources })}`;
+  const content = JSON.stringify({ statement: assertion.statement, sources: assertion.sources });
+  let hash = 14695981039346656037n;
+  for (let index = 0; index < content.length; index += 1) {
+    hash ^= BigInt(content.charCodeAt(index));
+    hash = BigInt.asUintN(64, hash * 1099511628211n);
+  }
+  return `evidence-${hash.toString(16)}`;
 }
 
 function reviewStatusLabel(review: EvidenceReview) {
