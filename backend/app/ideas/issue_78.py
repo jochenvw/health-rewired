@@ -83,6 +83,8 @@ def screening(horizon: Horizon) -> dict:
                 {
                     **criterion,
                     "status": status,
+                    "patient_label": fact["label"],
+                    "patient_value": fact["display"],
                     "evidence": reason,
                     "source": fact["source"],
                     "protocol_source": f"{DATA} · {trial['id']} synthetic protocol §{criterion['id']}",
@@ -124,6 +126,7 @@ def screening(horizon: Horizon) -> dict:
         "facts": facts,
         "trials": candidates,
         "excluded_count": sum(bool(t["counts"]["Conflict"]) for t in trials),
+        "excluded_trials": [t for t in trials if t["counts"]["Conflict"]],
         "coverage": coverage,
         "horizon": horizon,
         "notice": "Synthetic screening only. Not confirmed eligibility or a treatment recommendation.",

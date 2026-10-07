@@ -24,6 +24,10 @@
   "trials": [
     {
       "id": "LOCAL-078-A", "title": "PATHWAY-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
+      "treatment": "Investigational KRAS G12D-targeted agent DEMO-A",
+      "design": "Single-arm phase II",
+      "arms": ["DEMO-A alone (fictional regimen)"],
+      "practical_meaning": "Daily study tablets, local trial-clinic visits and blood tests; kidney function must be checked before screening can be completed.",
       "description": "Fictional experimental targeted-therapy study after oxaliplatin-based treatment.",
       "priority_reason": "Shown first because it is local and the recorded KRAS G12D and prior FOLFOX match its screening criteria; not a recommendation or evidence ranking.",
       "patient_pack": "You have received FOLFOX chemotherapy. This fictional study tests an experimental treatment aimed at a change called KRAS G12D in the cancer. We do not yet know whether it helps more than usual care. Earlier small studies cannot predict what will happen to you. The trial team would explain visits, blood tests, possible side effects, alternatives and your right to stop. Kidney function and other checks are still needed. Please take time to read, ask questions and discuss your preferences before deciding; receiving this pack does not enrol you.",
@@ -45,6 +49,10 @@
     },
     {
       "id": "LOCAL-078-B", "title": "IMMUNE-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
+      "treatment": "Investigational immunotherapy DEMO-B",
+      "design": "Single-arm phase II",
+      "arms": ["DEMO-B infusion (fictional regimen)"],
+      "practical_meaning": "Trial-clinic infusions and safety checks; the recorded MSS tumour conflicts with the required MSI-high criterion.",
       "description": "Fictional immunotherapy study restricted to MSI-high tumours.",
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "MSI-high tumour", "field": "msi", "op": "eq", "expected": "MSI-high"},
@@ -53,6 +61,10 @@
     },
     {
       "id": "LOCAL-078-C", "title": "RAS-WT-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "III", "status": "Recruiting",
+      "treatment": "Investigational antibody combination DEMO-C",
+      "design": "Randomised phase III",
+      "arms": ["DEMO-C combination (fictional regimen)", "Protocol comparator (fictional usual-care arm)"],
+      "practical_meaning": "Treatment assigned by chance; the recorded KRAS G12D result conflicts with the required RAS wild-type criterion.",
       "description": "Fictional experimental combination requiring RAS wild-type disease.",
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "RAS wild-type tumour", "field": "ras", "op": "eq", "expected": "wild-type"},
@@ -61,6 +73,10 @@
     },
     {
       "id": "NETWORK-078-D", "title": "EU-PATHWAY-CRC", "site": "Fictional European partner network", "scope": "network", "phase": "I/II", "status": "Recruiting",
+      "treatment": "Investigational KRAS G12D-targeted agent DEMO-D",
+      "design": "Single-arm dose-expansion phase I/II",
+      "arms": ["DEMO-D alone (fictional regimen)"],
+      "practical_meaning": "Partner-site visits, dose/safety checks and travel planning; kidney function is missing. Partner access is simulated, not a live enquiry.",
       "description": "Future-only simulated partner-site study; no live registry or hospital query.",
       "priority_reason": "Simulated partner option with a matching KRAS G12D result; renal function remains unknown.",
       "patient_pack": "This fictional early-phase partner study explores an experimental treatment for KRAS G12D colorectal cancer. Early studies focus on dose and safety; benefit is uncertain. Travel, extra visits, blood tests, risks and alternatives would need discussion with the trial team. Kidney function must be checked first. This pack does not enrol you, and you may decline.",
@@ -75,6 +91,10 @@
     },
     {
       "id": "LOCAL-078-E", "title": "RECOVER-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "III", "status": "Recruiting",
+      "treatment": "Investigational chemotherapy combination DEMO-E",
+      "design": "Randomised phase III",
+      "arms": ["DEMO-E combination (fictional regimen)", "Protocol comparator (fictional usual-care arm)"],
+      "practical_meaning": "Treatment assigned by chance, extra trial visits and blood tests; kidney function and full protocol eligibility require review.",
       "description": "Fictional experimental combination study after FOLFOX in microsatellite-stable colorectal cancer.",
       "priority_reason": "Second local option: recorded MSS and prior FOLFOX support screening, but current kidney function and performance status must be verified.",
       "patient_pack": "After FOLFOX chemotherapy, this fictional study compares an experimental combination with usual care. Earlier studies suggested some cancers shrank, but we do not know whether the new treatment is better or helps people live longer. Treatment assignment would be by chance. Extra appointments and side effects are possible. Ask the trial team about visits, risks, alternatives and your right to withdraw. Kidney function and performance status need checking. You can read this now and discuss it next week; no enrolment has taken place.",

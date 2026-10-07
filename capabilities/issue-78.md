@@ -19,7 +19,7 @@ Help oncologists notice relevant trials without leaving the patient chart, and s
 An oncologist reviewing a colorectal patient after FOLFOX; a trial coordinator receiving a clinician-reviewed enquiry.
 
 ## Capability
-One page opens with the patient context and two local screening candidates, with no tabs or duplicate navigation. Known protocol conflicts are filtered automatically. Up to four candidates can be compared using criterion evidence, outstanding checks and a clearly labelled synthetic prior-phase/subgroup evidence track. Candidates with gaps remain potential matches, never confirmed eligible.
+The decision-first overview opens with compact patient context and a prominent local screening candidate: treatment, design, arms, practical implications, supported criteria and missing information. Detailed chart facts, patient-versus-criterion tables, excluded studies and prior-phase evidence sit behind drill-downs. Known conflicts stay outside selectable candidates; missing data does not hide promising options. Up to four potential candidates can be compared. Candidate priority is not a treatment recommendation or confirmation of eligibility.
 
 ## Agent behaviour
 The shared Copilot SDK runner reviews the selected horizon-specific candidates, summarises earlier-phase findings and limitations, and drafts an enquiry for each trial. Editable deterministic drafts are available immediately without waiting for AI. A bounded review timeout and issue-specific fallback keep the consultation usable without credentials or when the SDK stalls. Neither mode confirms eligibility or recommends treatment.
@@ -33,11 +33,15 @@ Evidence comparison, editable screening enquiry and proposed evidence/order chec
 ## Human decisions
 The oncologist chooses one candidate or none, reviews an inline prefilled request, then explicitly approves a local screening request or patient-pack sharing simulation. A request is not enrolment or consent. Auto-send is unavailable in this prototype; manual approval remains mandatory. Dismissal and missing-evidence review remain on the same page.
 
+The visible journey is Eligibility → Screening / preparation → Start trial. Eligibility shows what is supported and what is missing; screening opens the prefilled enquiry and proposed checks. Start remains unavailable: patient agreement and full trial-team review are prerequisites, not facts created by ticking a box. A local preparation receipt may acknowledge those outstanding requirements, but unresolved eligibility gaps remain blocking and cannot be waived. No simulated request establishes clinical eligibility, consent or enrolment.
+
 ## Dependencies
 HospitalShell with issue-local single-page presentation, a compact guided storyline, Backstage, the shared SDK runner, existing UI blocks and file-based sample data. No new services or libraries.
 
 ## Major assumptions
 All protocols, recruitment statuses and clinical evidence are fictional, assessed against the fixed synthetic snapshot date. Criteria are illustrative, not complete protocols. Experimental options are study descriptions, not patient-specific treatment recommendations.
+
+DEMO-A/B/C/D/E treatment names, arms and visit descriptions are fictional examples, not real regimens or dosing instructions.
 
 Prior-phase counts and subgroup responses are invented demonstration data, not published findings. Different cohorts cannot be ranked by response rates as if they were head-to-head trials. Candidate order prioritises local access and recorded criterion compatibility, not predicted benefit. Age <75 is specific to one fictional protocol, not a universal restriction; current renal function is missing and must be checked.
 

@@ -14,19 +14,32 @@ def test_trial_screening_and_demo_review(monkeypatch):
         future = response.json()
         assert len(future["trials"]) == 3
         assert future["excluded_count"] == 2
+        assert len(future["excluded_trials"]) == 2
+        assert {t["id"] for t in future["excluded_trials"]}.isdisjoint(t["id"] for t in future["trials"])
+        assert all(t["counts"]["Conflict"] > 0 for t in future["excluded_trials"])
         candidate = future["trials"][0]
         assert candidate["counts"] == {"Match": 8, "Conflict": 0, "Unknown": 1}
         assert candidate["criteria"][6]["status"] == "Unknown"
+        assert candidate["criteria"][0]["patient_label"] == "Age"
+        assert candidate["criteria"][0]["patient_value"] == "58 years"
+        assert candidate["criteria"][6]["patient_value"] == "No current eGFR recorded"
         assert all(c["source"] and c["protocol_source"] for c in candidate["criteria"])
         assert all(t["counts"]["Conflict"] == 0 for t in future["trials"])
         assert future["trials"][1]["id"] == "LOCAL-078-E"
         assert all(t["patient_pack"] and t["enquiry_note"] for t in future["trials"])
+        assert all(
+            t["treatment"] and t["design"] and t["arms"] and t["practical_meaning"]
+            for t in future["trials"] + future["excluded_trials"]
+        )
         assert all("synthetic" in e["source"].lower() for t in future["trials"] for e in t["evidence_track"])
 
         six_month = client.get("/api/ideas/78/context?horizon=six-month").json()
         assert len(six_month["trials"]) == 2
         assert six_month["trials"][0]["counts"]["Unknown"] == 2
         assert six_month["facts"]["ecog"]["value"] is None
+        ecog = next(c for c in six_month["trials"][0]["criteria"] if c["field"] == "ecog")
+        assert ecog["patient_value"] == "Not structured in the six-month dataset"
+        assert ecog["status"] == "Unknown"
         assert all(c["likely_source"] != "Not in dataset" for c in six_month["coverage"])
         assert client.get("/api/ideas/78/context?horizon=invalid").status_code == 422
 
