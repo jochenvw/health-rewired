@@ -50,6 +50,40 @@ def test_issue_100_manager_agent_has_a_no_token_demo_path(client):
     assert response.json()["mode"] == "fallback"
 
 
+def test_issue_100_dataset_is_deterministic_and_definition_sensitive(client):
+    from app.ideas.issue_100_data import build_dataset
+
+    dataset = build_dataset()
+    assert dataset == build_dataset()
+    assert dataset["synthetic"] is True
+    assert dataset["patient_count"] == 24_000
+    assert dataset["hospital_count"] == 12
+    assert dataset["procedure_event_count"] >= 20_000
+    assert dataset["definition_stats"]["inclusive"]["total"] == 4_217
+    assert dataset["definition_stats"]["strict"]["total"] == 3_841
+    assert dataset["definition_sensitivity"]["cases"] == 376
+    hospital_c = next(hospital for hospital in dataset["hospitals"] if hospital["id"] == "C")
+    assert hospital_c["difference_percent"] == 21.1
+
+    response = client.post(
+        "/api/ideas/100/dataset/analyze",
+        json={"definition_id": "strict", "refined": True},
+    )
+    assert response.status_code == 200
+    result = response.json()
+    assert result["selected_definition"] == "refined"
+    assert result["definition_history"][1]["status"] == "current"
+
+
+def test_issue_100_dataset_explanation_has_a_no_token_demo_path(client):
+    response = client.post(
+        "/api/ideas/100/dataset-explanation",
+        json={"task": "Explain why the hospitals classify these synthetic colorectal procedures differently."},
+    )
+    assert response.status_code == 200
+    assert response.json()["mode"] == "fallback"
+
+
 def test_render_ui_tool_schema_is_self_contained():
     captured = []
     tool = build_render_ui_tool(captured.append)

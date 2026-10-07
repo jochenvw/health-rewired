@@ -15,24 +15,98 @@ type Horizon = 'future' | 'six-months';
 type Theme = 'light' | 'dark';
 type Step = 'question' | 'evidence' | 'rule' | 'analysis';
 type RuleStatus = 'unreviewed' | 'approved' | 'dismissed';
+type DatasetDefinition = 'strict' | 'inclusive' | 'local' | 'refined';
 type MinimalDataset = {
   groups: { elements: { name: string; likely_source: string }[] }[];
   not_in_minimal_dataset: string[];
 };
-
-const dimensions = [
-  { label: 'Provenance', weight: 0.2, rating: 90, note: 'The reported value traces to an EMR coding chain.' },
-  { label: 'Independent corroboration', weight: 0.18, rating: 35, note: 'Six records represent only three independent evidence chains.' },
-  { label: 'Source reputation', weight: 0.14, rating: 85, note: 'The EMR is a strong source for coded counts.' },
-  { label: 'Semantic consistency', weight: 0.18, rating: 75, note: 'Hospital A and B do not count the same procedure definition.' },
-  { label: 'Incentive exposure', weight: 0.12, rating: 70, note: 'The threshold creates a reason to scrutinise the measure, not infer intent.' },
-  { label: 'Threshold proximity', weight: 0.12, rating: 15, note: '30 is exactly the reporting threshold.' },
-  { label: 'Evidence completeness', weight: 0.08, rating: 15, note: 'The OR log and pathology record disagree with the reported count.' },
-];
-const trustScore = Math.round(dimensions.reduce((total, item) => total + item.weight * item.rating, 0));
-const reportedHospitalACounts: [number, number][] = [[28, 0.1], [29, 0.15], [30, 0.55], [31, 0.2]];
-const approvedHospitalACounts: [number, number][] = [[27, 0.1], [28, 0.35], [29, 0.35], [30, 0.2]];
-const hospitalBCounts: [number, number][] = [[28, 0.12], [29, 0.64], [30, 0.24]];
+type DatasetSnapshot = {
+  synthetic: boolean;
+  seed: number;
+  patient_count: number;
+  hospital_count: number;
+  procedure_event_count: number;
+  other_event_count: number;
+  other_event_types: Record<string, number>;
+  cancer_types: Record<string, number>;
+  patients_by_year: Record<string, number>;
+  patient_age: { mean: number; median: number; minimum: number; maximum: number };
+  modalities: { name: string; records: number; lineage: string }[];
+  quality: {
+    completeness_percent: number;
+    expected_source_records: number;
+    observed_source_records: number;
+    missing_source_records: number;
+    dependent_lineage_records: number;
+    duplicate_records: number;
+    independent_modalities: number;
+  };
+  definitions: { id: DatasetDefinition; version: string; name: string; text: string }[];
+  definition_stats: Record<DatasetDefinition, {
+    n: number;
+    total: number;
+    mean: number;
+    median: number;
+    standard_deviation: number;
+    minimum: number;
+    maximum: number;
+    hospitals_at_threshold: number;
+    reporting_threshold: number;
+  }>;
+  selected_definition: DatasetDefinition;
+  refinement_approved: boolean;
+  definition_history: { version: string; status: string; change: string; approved_by: string | null; date: string }[];
+  hospitals: {
+    id: string;
+    name: string;
+    synthetic: boolean;
+    patients: number;
+    strict: number;
+    inclusive: number;
+    local: number;
+    difference: number;
+    difference_percent: number;
+    strict_rate_per_1000: number;
+    inclusive_rate_per_1000: number;
+    source_completeness_percent: number;
+    missing_source_records: number;
+    patterns: { name: string; cases: number }[];
+    top_two_patterns_percent: number;
+  }[];
+  definition_sensitivity: {
+    cases: number;
+    percent: number;
+    cross_hospital_agreement_before: number;
+    cross_hospital_agreement_after: number;
+    unexplained_before: number;
+    unexplained_after: number;
+    agreement_sample_size: number;
+  };
+  trust_assessment: {
+    score: number;
+    confidence: number;
+    dimensions: { label: string; weight: number; rating: number; note: string }[];
+  };
+  uncertainty_analysis: {
+    simulations: number;
+    estimate: number;
+    lower: number;
+    upper: number;
+    hospital_a_distribution: { count: number; probability_percent: number }[];
+    hospital_b_distribution: { count: number; probability_percent: number }[];
+    rule_approved: boolean;
+  };
+  patterns: { name: string; cases: number; percent_of_sensitive: number }[];
+  representative_cases: {
+    id: string;
+    hospital: string;
+    year: number;
+    pattern: string;
+    summary: string;
+    evidence: { source: string; value: string; lineage: string }[];
+  }[];
+  histogram: { age_band: string; patients: number }[];
+};
 
 const sources = [
   { name: 'EMR coding', count: 30, parent: 'Independent source', chain: 'A' },
@@ -44,47 +118,11 @@ const sources = [
 ];
 
 const story = [
-  { id: 'question' as const, title: 'Compare two hospitals', description: 'A researcher asks whether procedure volume relates to patient outcome.', nextPrompt: 'Open Hospital A’s evidence to see why 30 needs a closer look.' },
-  { id: 'evidence' as const, title: 'Inspect the count', description: 'Six records show 30, but several copies come from the same source.', nextPrompt: 'Ask the simulated data manager why Hospital A includes those cases.' },
-  { id: 'rule' as const, title: 'Review the local rule', description: 'A simulated data manager explains why two procedures were included.', nextPrompt: 'Review and approve or dismiss the candidate rule before comparing results.' },
+  { id: 'question' as const, title: 'Compare definitions', description: 'Start with 24,000 synthetic patients across 12 hospitals. See how the same question changes with its definition.', nextPrompt: 'Switch between inclusive, strict and hospital-reported counts; select Hospital C to inspect its 21% change.' },
+  { id: 'evidence' as const, title: 'Inspect case evidence', description: 'Open a representative synthetic case and trace its classifications back to their source records.', nextPrompt: 'Review the source lineage and the separate claim-level trust assessment.' },
+  { id: 'rule' as const, title: 'Refine the shared rule', description: 'Ask why hospitals classify the same case differently, then decide whether to clarify the common definition.', nextPrompt: 'Approve the proposed v2 wording and rerun the dataset to compare agreement and unresolved cases.' },
   { id: 'analysis' as const, title: 'Carry uncertainty through', description: 'Compare the result from raw values with 500 plausible datasets.', nextPrompt: 'Run both analyses below: compare the apparent 18% reduction with the uncertainty-aware estimate and interval.' },
 ];
-
-function randomGenerator(seed: number) {
-  let value = seed >>> 0;
-  return () => {
-    value = (1664525 * value + 1013904223) >>> 0;
-    return value / 4294967296;
-  };
-}
-
-function sampleCount(random: () => number, options: [number, number][]) {
-  const draw = random();
-  let cumulative = 0;
-  for (const [count, probability] of options) {
-    cumulative += probability;
-    if (draw <= cumulative) return count;
-  }
-  return options[options.length - 1][0];
-}
-
-function simulateAnalysis(applySharedDefinition: boolean): { estimate: number; lower: number; upper: number } {
-  const random = randomGenerator(20261006);
-  const hospitalACounts = applySharedDefinition ? approvedHospitalACounts : reportedHospitalACounts;
-  const hospitalAMean = applySharedDefinition ? 28.65 : 29.85;
-  const estimates = Array.from({ length: 500 }, () => {
-    const countA = sampleCount(random, hospitalACounts);
-    const countB = sampleCount(random, hospitalBCounts);
-    const normal = Math.sqrt(-2 * Math.log(Math.max(random(), 0.0001))) * Math.cos(2 * Math.PI * random());
-    return 10 + (countA - hospitalAMean) * 3 + (countB - 29.12) * -2 + normal * 5.8;
-  }).sort((a, b) => a - b);
-  const average = estimates.reduce((sum, estimate) => sum + estimate, 0) / estimates.length;
-  return {
-    estimate: Math.round(average),
-    lower: Math.round(estimates[Math.floor(estimates.length * 0.025)]),
-    upper: Math.round(estimates[Math.floor(estimates.length * 0.975)]),
-  };
-}
 
 function agentText(result: AgentResult) {
   return result.blocks
@@ -103,19 +141,39 @@ export default function DataTrust() {
   const [managerLoading, setManagerLoading] = useState(false);
   const [managerError, setManagerError] = useState('');
   const [ruleStatus, setRuleStatus] = useState<RuleStatus>('unreviewed');
+  const [datasetRuleApproved, setDatasetRuleApproved] = useState(false);
+  const [selectedDefinition, setSelectedDefinition] = useState<DatasetDefinition>('inclusive');
+  const [dataset, setDataset] = useState<DatasetSnapshot | null>(null);
+  const [datasetLoading, setDatasetLoading] = useState(true);
+  const [datasetError, setDatasetError] = useState('');
+  const [selectedHospital, setSelectedHospital] = useState('C');
+  const [datasetExplanation, setDatasetExplanation] = useState<AgentResult | null>(null);
+  const [explanationLoading, setExplanationLoading] = useState(false);
+  const [explanationError, setExplanationError] = useState('');
+  const [selectedCaseId, setSelectedCaseId] = useState('SYN-C-2024-00817');
+  const [datasetRerunning, setDatasetRerunning] = useState(false);
   const [editingRule, setEditingRule] = useState(false);
   const [ruleText, setRuleText] = useState('Procedure Y + additional bowel resection → counted locally as X');
+  const [sharedRuleText, setSharedRuleText] = useState('Count only completed primary colorectal resections. Exclude secondary bowel resections performed during another primary oncological operation.');
   const [naiveResult, setNaiveResult] = useState(false);
-  const [uncertaintyResult, setUncertaintyResult] = useState<ReturnType<typeof simulateAnalysis> | null>(null);
+  const [uncertaintyResult, setUncertaintyResult] = useState<DatasetSnapshot['uncertainty_analysis'] | null>(null);
   const [analysisStarted, setAnalysisStarted] = useState(false);
   const [analysisRuns, setAnalysisRuns] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [minimalDataset, setMinimalDataset] = useState<MinimalDataset | null>(null);
-  const analysisCountsA = ruleStatus === 'approved' ? approvedHospitalACounts : reportedHospitalACounts;
+  const trustDimensions = dataset?.trust_assessment.dimensions ?? [];
+  const claimTrustScore = dataset?.trust_assessment.score ?? 0;
 
   const currentIndex = story.findIndex((item) => item.id === step);
   useEffect(() => {
     api.sampleData<MinimalDataset>('minimal-mdt-dataset.json').then(setMinimalDataset).catch(() => setMinimalDataset(null));
+    api.issue100Dataset<DatasetSnapshot>()
+      .then((result) => {
+        setDataset(result);
+        setSelectedDefinition(result.selected_definition);
+      })
+      .catch(() => setDatasetError('The synthetic research dataset could not be loaded.'))
+      .finally(() => setDatasetLoading(false));
   }, []);
   const coverage = useMemo(() => {
     const elements = new Map(minimalDataset?.groups.flatMap((group) => group.elements.map((element) => [element.name, element.likely_source] as const)));
@@ -134,6 +192,54 @@ export default function DataTrust() {
     setTheme(next);
   };
 
+  const runPopulationAnalysis = async (definition: DatasetDefinition, refined = definition === 'refined') => {
+    setSelectedDefinition(definition);
+    setDatasetLoading(true);
+    setDatasetError('');
+    try {
+      const result = await api.analyzeIssue100Dataset<DatasetSnapshot>({
+        definition_id: definition === 'refined' ? 'strict' : definition,
+        refined: definition === 'refined' || refined,
+      });
+      setDataset(result);
+      return true;
+    } catch {
+      setDatasetError('The synthetic definition comparison could not be recalculated.');
+      return false;
+    } finally {
+      setDatasetLoading(false);
+    }
+  };
+
+  const approveDefinitionRefinement = async () => {
+    setDatasetRerunning(true);
+    if (await runPopulationAnalysis('refined', true)) setDatasetRuleApproved(true);
+    setDatasetRerunning(false);
+  };
+
+  const explainPopulationDifference = async () => {
+    setExplanationLoading(true);
+    setExplanationError('');
+    try {
+      setDatasetExplanation(await api.explainIssue100Dataset({
+        task: `Explain the synthetic definition-sensitive patterns at Hospital ${selectedHospital}.`,
+      }));
+    } catch {
+      setExplanationError('The assistant is unavailable. The deterministic pattern and case evidence remain available.');
+    } finally {
+      setExplanationLoading(false);
+    }
+  };
+
+  const selectedSite = dataset?.hospitals.find((hospital) => hospital.id === selectedHospital);
+  const selectedCase = dataset?.representative_cases.find((caseRecord) => caseRecord.id === selectedCaseId)
+    ?? dataset?.representative_cases[0];
+  const currentDefinitionStats = dataset?.definition_stats[selectedDefinition];
+  const currentDefinition = dataset?.definitions.find((item) => item.id === selectedDefinition);
+  const definitionAgentText = datasetExplanation?.blocks
+    .map((block) => [block.title, block.body, ...block.items.map((item) => `${item.label}: ${item.detail ?? ''}`)].filter(Boolean).join('\n'))
+    .join('\n\n');
+
   const askManager = async () => {
     setManagerAsked(true);
     setManagerLoading(true);
@@ -151,10 +257,15 @@ export default function DataTrust() {
     setAnalysisStarted(true);
     setAnalysisRuns((runs) => runs + 1);
     setAnalysisLoading(true);
-    window.setTimeout(() => {
-      setUncertaintyResult(simulateAnalysis(ruleStatus === 'approved'));
-      setAnalysisLoading(false);
-    }, 2600);
+    void api.analyzeIssue100Dataset<DatasetSnapshot>({
+      definition_id: selectedDefinition === 'refined' ? 'strict' : selectedDefinition,
+      refined: selectedDefinition === 'refined',
+    }).then((result) => {
+      setDataset(result);
+      setUncertaintyResult(result.uncertainty_analysis);
+    }).catch(() => {
+      setDatasetError('The Python analysis could not be completed.');
+    }).finally(() => setAnalysisLoading(false));
   };
 
   const managerNarrative = managerResult?.mode === 'copilot' ? agentText(managerResult) : '';
@@ -184,16 +295,16 @@ export default function DataTrust() {
       detail: managerResponseAvailable ? `${ruleText} · two reported cases affected · awaiting your approval` : 'The candidate is not applied until you approve it.',
     },
   ];
-  const scoreRules = dimensions.map((item) => `${item.label} ${item.weight * 100}% × ${item.rating}`).join(' · ');
+  const scoreRules = trustDimensions.map((item) => `${item.label} ${item.weight * 100}% × ${item.rating}`).join(' · ');
   const analysisStages: Stage[] = [
     {
       label: 'Apply the fixed, deterministic trust-score rules',
-      detail: `${scoreRules} → ${trustScore}/100. The score does not change during analysis.`,
+      detail: `${scoreRules} → ${claimTrustScore}/100. The score does not change during analysis.`,
       ms: 650,
     },
     {
       label: 'Keep assessment confidence separate',
-      detail: 'Confidence 92/100 describes assessment completeness; it is not included in the trust score.',
+      detail: `Confidence ${dataset?.trust_assessment.confidence ?? 92}/100 describes assessment completeness; it is not included in the trust score.`,
       ms: 650,
     },
     {
@@ -206,6 +317,16 @@ export default function DataTrust() {
       detail: uncertaintyResult
         ? `${uncertaintyResult.estimate}% estimated reduction · 95% interval ${uncertaintyResult.lower}% to ${uncertaintyResult.upper}%.`
         : 'Recalculate the outcome estimate across all 500 plausible datasets.',
+    },
+  ];
+  const refinementStages: Stage[] = [
+    { label: 'Inspect the recurring semantic discrepancy', detail: 'Synthetic case evidence shows secondary resections during other primary operations are classified differently.', ms: 650 },
+    { label: 'Apply your approved ONCO-CRC-PROC-v2 wording', detail: datasetRuleApproved ? sharedRuleText : 'No shared rule or dataset changes before your approval.', ms: 650 },
+    {
+      label: 'Rerun classifications across the synthetic cohort',
+      detail: datasetRuleApproved && dataset
+        ? `Agreement ${dataset.definition_sensitivity.cross_hospital_agreement_before}% → ${dataset.definition_sensitivity.cross_hospital_agreement_after}%; unexplained cases ${dataset.definition_sensitivity.unexplained_before} → ${dataset.definition_sensitivity.unexplained_after}.`
+        : 'Waiting for a researcher to approve the candidate definition.',
     },
   ];
 
@@ -236,10 +357,10 @@ export default function DataTrust() {
         <section className="dt-context">
           <div>
             <p className="dt-eyebrow">MULTI-HOSPITAL STUDY · SYNTHETIC EXAMPLE</p>
-            <h1>Does procedure volume relate to patient outcome?</h1>
-            <p>Before comparing results, check how much evidence supports each hospital's count.</p>
+            <h1>How do I trust data from another hospital?</h1>
+            <p>The same oncology question can produce different answers under different definitions.</p>
           </div>
-          <div className="dt-context-meta"><span>2 hospitals</span><span>Colorectal oncology</span><span>Research question R-204</span></div>
+          <div className="dt-context-meta"><span>12 synthetic hospitals</span><span>24,000 synthetic patients</span><span>Colorectal research</span></div>
         </section>
 
         <section className="dt-story" aria-label="Guided walkthrough">
@@ -278,6 +399,116 @@ export default function DataTrust() {
         )}
 
         {step === 'question' && (
+          <>
+          <section className="dt-panel dt-population">
+            <div className="dt-panel-heading">
+              <div><p className="dt-eyebrow">FEDERATED ONCOLOGY DATA · REPRODUCIBLE SYNTHETIC COHORT</p><h2>How do I trust data from another hospital?</h2></div>
+              <span className="dt-status dt-neutral">Seeded · 2023–2026</span>
+            </div>
+            {datasetLoading && <div className="dt-working" role="status"><span className="dt-spinner" /> Generating and calculating the synthetic cohort in Python…</div>}
+            {datasetError && <p className="dt-status dt-warning">{datasetError}</p>}
+            {dataset && (
+              <>
+                <div className="dt-population-metrics">
+                  <div><strong>{dataset.hospital_count}</strong><span>synthetic hospitals</span></div>
+                  <div><strong>{dataset.patient_count.toLocaleString()}</strong><span>synthetic oncology patients</span></div>
+                  <div><strong>{dataset.procedure_event_count.toLocaleString()}</strong><span>procedure and care events</span></div>
+                  <div><strong>{dataset.modalities.length}</strong><span>source modalities</span></div>
+                </div>
+                <div className="dt-definition-lab">
+                  <div className="dt-panel-heading">
+                    <div><p className="dt-eyebrow">DEFINITION LAB · SAME QUESTION, DIFFERENT COHORT</p><h3>How many qualifying colorectal procedures were performed?</h3></div>
+                    <label className="dt-version-select">Definition version
+                      <select value={selectedDefinition === 'refined' ? 'v2' : 'v1'} onChange={(event) => {
+                        const next = event.target.value === 'v2' ? 'refined' : 'inclusive';
+                        void runPopulationAnalysis(next);
+                      }}>
+                        <option value="v1">ONCO-CRC-PROC-v1</option>
+                        {datasetRuleApproved && <option value="v2">ONCO-CRC-PROC-v2</option>}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="dt-definition-options">
+                    {dataset.definitions.filter((definition) => definition.id !== 'refined' || datasetRuleApproved).map((definition) => (
+                      <button
+                        type="button"
+                        className={`dt-definition-option ${selectedDefinition === definition.id ? 'is-selected' : ''}`}
+                        aria-pressed={selectedDefinition === definition.id}
+                        key={definition.id}
+                        onClick={() => void runPopulationAnalysis(definition.id)}
+                      >
+                        <span className="dt-eyebrow">{definition.version}</span>
+                        <strong>{definition.name}</strong>
+                        <small>{definition.text}</small>
+                        <b>{dataset.definition_stats[definition.id].total.toLocaleString()} procedures</b>
+                      </button>
+                    ))}
+                  </div>
+                  {currentDefinitionStats && currentDefinition && (
+                    <div className="dt-selected-definition">
+                      <p><strong>Selected: {currentDefinition.name} · {currentDefinition.version}</strong> — {currentDefinition.text}</p>
+                      <div className="dt-statline">
+                        <span>Total <strong>{currentDefinitionStats.total.toLocaleString()}</strong></span>
+                        <span>Mean / hospital <strong>{currentDefinitionStats.mean}</strong></span>
+                        <span>Median <strong>{currentDefinitionStats.median}</strong></span>
+                        <span>SD <strong>{currentDefinitionStats.standard_deviation}</strong></span>
+                        <span>Range <strong>{currentDefinitionStats.minimum}–{currentDefinitionStats.maximum}</strong></span>
+                        <span>Hospitals ≥{currentDefinitionStats.reporting_threshold} <strong>{currentDefinitionStats.hospitals_at_threshold}</strong></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="dt-population-insights">
+                  <div className="dt-insight-stat"><span className="dt-eyebrow">DEFINITION-SENSITIVE</span><strong>{dataset.definition_sensitivity.cases} <small>cases · {dataset.definition_sensitivity.percent}%</small></strong><span>Change classification under the inclusive definition.</span></div>
+                  <div className="dt-insight-stat"><span className="dt-eyebrow">SEMANTIC AGREEMENT</span><strong>{dataset.definition_sensitivity.cross_hospital_agreement_before}% <small>before refinement</small></strong><span>{dataset.definition_sensitivity.cross_hospital_agreement_after}% after the proposed clarification.</span></div>
+                  <div className="dt-insight-stat"><span className="dt-eyebrow">UNRESOLVED CASES</span><strong>{dataset.definition_sensitivity.unexplained_before} <small>→ {dataset.definition_sensitivity.unexplained_after}</small></strong><span>Illustrative synthetic comparison before and after review.</span></div>
+                  <div className="dt-insight-stat"><span className="dt-eyebrow">DATASET COMPLETENESS</span><strong>{dataset.quality.completeness_percent}%</strong><span>{dataset.quality.missing_source_records} missing source records · {dataset.quality.duplicate_records} duplicate records.</span></div>
+                </div>
+                <div className="dt-population-lower">
+                  <div className="dt-table-wrap dt-hospital-table">
+                    <table>
+                      <caption>Counts are calculated from the same seeded synthetic hospital cohort. Select a row to inspect it.</caption>
+                      <thead><tr><th>Hospital</th><th>Patients</th><th>Strict</th><th>Inclusive</th><th>Local registry</th><th>Definition-sensitive</th><th>Rate / 1,000</th><th>Source completeness</th></tr></thead>
+                      <tbody>{dataset.hospitals.map((hospital) => (
+                        <tr key={hospital.id} className={selectedHospital === hospital.id ? 'is-selected' : ''}>
+                          <td><button type="button" className="dt-table-select" onClick={() => { setSelectedHospital(hospital.id); setDatasetExplanation(null); }}>{hospital.id} · {hospital.name}</button></td>
+                          <td>{hospital.patients.toLocaleString()}</td><td>{hospital.strict}</td><td>{hospital.inclusive}</td><td>{hospital.local}</td>
+                          <td><strong>+{hospital.difference}</strong> · {hospital.difference_percent}%</td><td>{hospital.inclusive_rate_per_1000}</td>
+                          <td>{hospital.source_completeness_percent}% <small>· {hospital.missing_source_records} missing</small></td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                  <aside className="dt-panel dt-dataset-side">
+                    {selectedSite && <>
+                      <p className="dt-eyebrow">SELECTED SITE · SYNTHETIC</p>
+                      <h3>{selectedSite.id} · {selectedSite.name}</h3>
+                      <strong className="dt-site-sensitivity">+{selectedSite.difference} <small>({selectedSite.difference_percent}%) under inclusive definition</small></strong>
+                      <p>{selectedSite.top_two_patterns_percent}% of this site's definition-sensitive difference is concentrated in its two most common interpretation patterns.</p>
+                      <ul className="dt-pattern-list">{selectedSite.patterns.map((pattern) => <li key={pattern.name}><span>{pattern.name}</span><strong>{pattern.cases}</strong></li>)}</ul>
+                      <div className="dt-review-actions">
+                        <button type="button" className="dt-button" onClick={() => { setSelectedCaseId(dataset.representative_cases.find((caseRecord) => caseRecord.hospital.includes(selectedSite.name))?.id ?? dataset.representative_cases[0].id); setStep('evidence'); }}>Open representative case</button>
+                        <button type="button" className="dt-button dt-primary" disabled={explanationLoading} onClick={explainPopulationDifference}>{explanationLoading ? <><span className="dt-spinner" /> Explaining patterns…</> : 'Explain the difference'}</button>
+                      </div>
+                      {explanationLoading && <div className="dt-working" role="status"><span className="dt-spinner" /> The Copilot SDK is retrieving grounded population findings…</div>}
+                      {explanationError && <p className="dt-status dt-warning">{explanationError}</p>}
+                      {datasetExplanation?.mode === 'fallback' && <p className="dt-status dt-neutral">Demo mode · SDK unavailable. Python-calculated counts and the seeded explanation remain visible.</p>}
+                      {definitionAgentText && <div className="dt-agent-note"><span className="dt-eyebrow">COPILOT SDK · GROUNDED EXPLANATION</span><p>{definitionAgentText}</p>{datasetExplanation?.trace.map((item, index) => <small key={`${item.tool}-${index}`}>Tool: {item.tool}</small>)}</div>}
+                    </>}
+                  </aside>
+                </div>
+                <div className="dt-population-foot">
+                  <p><strong>Sources:</strong> {dataset.modalities.map((source) => `${source.name} (${source.records.toLocaleString()})`).join(' · ')}</p>
+                  <p><strong>Lineage matters:</strong> {dataset.quality.independent_modalities} source systems are independent; copied extracts remain one evidence chain. Age: mean {dataset.patient_age.mean}, median {dataset.patient_age.median}, range {dataset.patient_age.minimum}–{dataset.patient_age.maximum} years. All metrics are Python-calculated from fixed seed {dataset.seed}.</p>
+                  <div className="dt-population-distributions">
+                    <div><span className="dt-eyebrow">PATIENT AGE DISTRIBUTION</span>{dataset.histogram.map((band) => <div className="dt-probability" key={band.age_band}><span>{band.age_band}</span><div><i style={{ width: `${band.patients / dataset.patient_count * 100}%` }} /></div><strong>{band.patients.toLocaleString()}</strong></div>)}</div>
+                    <div><span className="dt-eyebrow">CANCER TYPE MIX</span>{Object.entries(dataset.cancer_types).map(([type, count]) => <div className="dt-probability" key={type}><span>{type}</span><div><i style={{ width: `${count / dataset.patient_count * 100}%` }} /></div><strong>{(count / dataset.patient_count * 100).toFixed(1)}%</strong></div>)}</div>
+                    <div><span className="dt-eyebrow">PATIENTS BY YEAR</span>{Object.entries(dataset.patients_by_year).map(([year, count]) => <div className="dt-probability" key={year}><span>{year}</span><div><i style={{ width: `${count / dataset.patient_count * 100}%` }} /></div><strong>{count.toLocaleString()}</strong></div>)}</div>
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
           <section className="dt-panel">
             <div className="dt-panel-heading">
               <div><p className="dt-eyebrow">THE CLAIM UNDER REVIEW</p><h2>Qualifying oncology procedures</h2></div>
@@ -297,31 +528,53 @@ export default function DataTrust() {
                 <p>Uses the shared procedure definition</p>
                 <button type="button" className="dt-text-button" onClick={() => { setStep('evidence'); setShowEvidence(true); }}>Compare sources →</button>
               </article>
-              <button type="button" className="dt-claim-card" title="Trust is a fixed, visible rule-of-thumb assessment of evidence for this claim." aria-label={`Inspect the claim with trust ${trustScore} out of 100 and assessment confidence 92 out of 100`} onClick={() => { setStep('evidence'); setShowEvidence(true); }}>
+              <button type="button" className="dt-claim-card" title="Trust is a fixed, visible rule-of-thumb assessment of evidence for this claim." aria-label={`Inspect the claim with trust ${claimTrustScore} out of 100 and assessment confidence ${dataset?.trust_assessment.confidence ?? 92} out of 100`} onClick={() => { setStep('evidence'); setShowEvidence(true); }}>
                 <span className="dt-eyebrow">CLAIM-LEVEL ASSESSMENT · HOSPITAL A</span>
-                <span className="dt-claim-scores"><span><strong>{trustScore}</strong><small>Trust / 100</small></span><span><strong>92</strong><small>Confidence / 100</small></span></span>
+                <span className="dt-claim-scores"><span><strong>{claimTrustScore}</strong><small>Trust / 100</small></span><span><strong>{dataset?.trust_assessment.confidence ?? 92}</strong><small>Confidence / 100</small></span></span>
                 <span className="dt-claim-hint">Select to inspect why the evidence supports the claim only partly.</span>
               </button>
             </div>
             <div className="dt-callout"><strong>Trust belongs to this claim, for this research question.</strong> It is not a rating of a hospital or its people.</div>
           </section>
+          </>
         )}
 
         {step === 'evidence' && (
           <section className="dt-evidence-layout">
+            <article className="dt-panel dt-case-evidence">
+              <div className="dt-panel-heading">
+                <div><p className="dt-eyebrow">REPRESENTATIVE CASE · SYNTHETIC</p><h2>{selectedCase?.id ?? 'Loading synthetic case'}</h2></div>
+                {selectedCase && <span className="dt-status dt-neutral">{selectedCase.hospital} · {selectedCase.year}</span>}
+              </div>
+              {selectedCase && <>
+                <p>{selectedCase.summary}</p>
+                <p className="dt-eyebrow">INTERPRETATION PATTERN · {selectedCase.pattern}</p>
+                <div className="dt-table-wrap"><table>
+                  <caption>Source classifications for this synthetic record</caption>
+                  <thead><tr><th>Source record</th><th>Classification / value</th><th>Lineage</th></tr></thead>
+                  <tbody>{selectedCase.evidence.map((record) => <tr key={`${record.source}-${record.value}`}><td>{record.source}</td><td>{record.value}</td><td>{record.lineage}</td></tr>)}</tbody>
+                </table></div>
+                <label className="dt-version-select">Choose an example case
+                  <select value={selectedCase.id} onChange={(event) => setSelectedCaseId(event.target.value)}>
+                    {dataset?.representative_cases.map((record) => <option key={record.id} value={record.id}>{record.id} · {record.pattern}</option>)}
+                  </select>
+                </label>
+              </>}
+              <button type="button" className="dt-button" onClick={() => setStep('question')}>← Back to hospital comparison</button>
+            </article>
             <article className="dt-panel">
               <div className="dt-panel-heading">
                 <div><p className="dt-eyebrow">CLAIM-LEVEL ASSESSMENT</p><h2>Hospital A · 30 qualifying procedures</h2></div>
                 <span className="dt-status dt-warning">Worth a closer look</span>
               </div>
               <div className="dt-score-row">
-                <div className="dt-score"><strong>{trustScore}</strong><span>Trust / 100</span></div>
-                <div className="dt-score"><strong>92</strong><span>Confidence / 100</span></div>
+                <div className="dt-score"><strong>{claimTrustScore}</strong><span>Trust / 100</span></div>
+                <div className="dt-score"><strong>{dataset?.trust_assessment.confidence ?? 92}</strong><span>Confidence / 100</span></div>
                 <p>Trust measures how strongly evidence supports this claim. Confidence measures how complete the assessment is. They answer different questions.</p>
               </div>
               <h3>What makes up the trust score</h3>
               <div className="dt-dimensions">
-                {dimensions.map((item) => (
+                {trustDimensions.map((item) => (
                   <div className="dt-dimension" key={item.label} title={item.note}>
                     <span>{item.label}<small>{item.note}</small></span>
                     <span>{item.weight * 100}%</span>
@@ -330,7 +583,7 @@ export default function DataTrust() {
                   </div>
                 ))}
               </div>
-              <p className="dt-method-note">Fixed demo rule: each rating × visible weight, rounded to a whole number. These starting weights are a rule of thumb, not calibrated clinical evidence.</p>
+              <p className="dt-method-note">Python calculates each rating × visible weight, rounded to a whole number. These starting weights are a rule of thumb, not calibrated clinical evidence.</p>
               <button type="button" className="dt-button" onClick={() => setShowEvidence((shown) => !shown)}>{showEvidence ? 'Hide source records' : 'Open source records and lineage'}</button>
             </article>
             <aside className="dt-panel dt-lineage">
@@ -410,6 +663,42 @@ export default function DataTrust() {
               </>
             )}
             <div className="dt-human-note">The assistant can surface and explain a local convention. You decide whether it should become the shared research definition.</div>
+            <div className="dt-definition-refinement">
+              <div className="dt-panel-heading">
+                <div><p className="dt-eyebrow">DEFINITION REFINEMENT · HUMAN APPROVAL REQUIRED</p><h3>Make tomorrow’s dataset easier to compare</h3></div>
+                <span className={`dt-status ${datasetRuleApproved ? 'dt-success' : 'dt-warning'}`}>{datasetRuleApproved ? 'ONCO-CRC-PROC-v2 approved' : 'Candidate · ONCO-CRC-PROC-v2'}</span>
+              </div>
+              <p>The discrepancy review finds an ambiguity: should a secondary bowel resection during another primary cancer operation count as a primary colorectal procedure?</p>
+              <label className="dt-rule-edit">Proposed shared definition
+                <textarea rows={3} value={sharedRuleText} disabled={datasetRuleApproved || datasetRerunning} onChange={(event) => setSharedRuleText(event.target.value)} />
+              </label>
+              <div className="dt-callout">Suggested clarification: “No — only primary colorectal resections.” Counts, agreement and case totals are Python-calculated; the assistant cannot apply this wording.</div>
+              {!datasetRuleApproved && <div className="dt-review-actions">
+                <button type="button" className="dt-button dt-primary" disabled={datasetRerunning || datasetLoading || !sharedRuleText.trim()} onClick={() => void approveDefinitionRefinement()}>
+                  {datasetRerunning ? <><span className="dt-spinner" /> Rerunning the synthetic dataset…</> : 'Approve v2 & rerun all hospitals'}
+                </button>
+                <button type="button" className="dt-button" onClick={() => setSharedRuleText('Count completed primary colorectal resections only. Do not count secondary resections performed during another primary operation.')}>Use suggested clarification</button>
+              </div>}
+              {datasetRerunning && <div className="dt-working" role="status"><span className="dt-spinner" /> Reclassifying synthetic records under the approved definition…</div>}
+              {datasetRuleApproved && dataset && <div className="dt-refinement-results">
+                <div><span className="dt-eyebrow">CROSS-HOSPITAL CLASSIFICATION AGREEMENT</span><strong>{dataset.definition_sensitivity.cross_hospital_agreement_before}% <span>→</span> {dataset.definition_sensitivity.cross_hospital_agreement_after}%</strong><small>500 synthetic classification checks</small></div>
+                <div><span className="dt-eyebrow">UNEXPLAINED CASES</span><strong>{dataset.definition_sensitivity.unexplained_before} <span>→</span> {dataset.definition_sensitivity.unexplained_after}</strong><small>after the definition is clarified</small></div>
+              </div>}
+              {(datasetRerunning || datasetRuleApproved) && <Backstage
+                key={datasetRuleApproved ? 'approved-v2' : 'rerun-v1'}
+                title="Behind the scenes · definition refinement"
+                stages={refinementStages}
+                running
+                holdLast
+                release={!datasetRerunning}
+                note="Only your approval advances the common definition. Version 1 remains available for reproducibility."
+              />}
+              {dataset && <div className="dt-version-history">
+                <span className="dt-eyebrow">DEFINITION HISTORY · REPRODUCIBLE ANALYSIS</span>
+                {dataset.definition_history.map((version) => <p key={version.version}><strong>{version.version}</strong> · {version.status} · {version.change} · {version.approved_by ?? 'Awaiting researcher approval'} · {version.date}</p>)}
+                {datasetRuleApproved && <button type="button" className="dt-button" onClick={() => void runPopulationAnalysis('inclusive', false)}>Rerun using ONCO-CRC-PROC-v1</button>}
+              </div>}
+            </div>
           </section>
         )}
 
@@ -417,7 +706,7 @@ export default function DataTrust() {
           <section className="dt-panel">
             <div className="dt-panel-heading">
               <div><p className="dt-eyebrow">RESEARCH IMPACT · SIMULATED AGGREGATES</p><h2>What changes when the evidence is uncertain?</h2></div>
-              <span className="dt-status dt-neutral">500 synthetic runs</span>
+              <span className="dt-status dt-neutral">{dataset?.uncertainty_analysis.simulations ?? 500} synthetic runs</span>
             </div>
             <p className="dt-panel-intro">A clean result can look convincing when every recorded number is treated as exact. This demo carries the source and definition uncertainty into the estimate instead of dropping the data.</p>
             <div className="dt-analysis-controls">
@@ -425,8 +714,8 @@ export default function DataTrust() {
               <button type="button" className="dt-button dt-primary" disabled={analysisLoading} onClick={runUncertaintyAnalysis}>{analysisLoading ? <><span className="dt-spinner" /> Running 500 plausible datasets…</> : 'Run uncertainty-aware analysis'}</button>
             </div>
             <div className="dt-distributions">
-              <div><p className="dt-eyebrow">HOSPITAL A · {ruleStatus === 'approved' ? 'SHARED RULE APPROVED' : 'RULE NOT APPLIED'}</p>{analysisCountsA.map(([count, probability]) => <div className="dt-probability" key={count}><span>{count} procedures</span><div><i style={{ width: `${probability * 100}%` }} /></div><strong>{probability * 100}%</strong></div>)}</div>
-              <div><p className="dt-eyebrow">HOSPITAL B · DISCRETE COUNT</p>{hospitalBCounts.map(([count, probability]) => <div className="dt-probability" key={count}><span>{count} procedures</span><div><i style={{ width: `${probability * 100}%` }} /></div><strong>{probability * 100}%</strong></div>)}</div>
+              <div><p className="dt-eyebrow">HOSPITAL A · {ruleStatus === 'approved' ? 'SHARED RULE APPROVED' : 'RULE NOT APPLIED'}</p>{(dataset?.uncertainty_analysis.hospital_a_distribution ?? []).map((point) => <div className="dt-probability" key={point.count}><span>{point.count} procedures</span><div><i style={{ width: `${point.probability_percent}%` }} /></div><strong>{point.probability_percent}%</strong></div>)}</div>
+              <div><p className="dt-eyebrow">HOSPITAL B · DISCRETE COUNT</p>{(dataset?.uncertainty_analysis.hospital_b_distribution ?? []).map((point) => <div className="dt-probability" key={point.count}><span>{point.count} procedures</span><div><i style={{ width: `${point.probability_percent}%` }} /></div><strong>{point.probability_percent}%</strong></div>)}</div>
               <p>Discrete synthetic counts, not a normal distribution. A's proposed definition changes the count distribution only after you approve it.</p>
             </div>
             {analysisStarted && <Backstage
