@@ -26,6 +26,7 @@ class Consultation(BaseModel):
     horizon: Literal["future", "six-months"] = "future"
     case_id: Literal["neuropathy", "hair-loss", "nausea"] = "neuropathy"
     priorities: Priorities = Field(default_factory=Priorities)
+    avoided_effects: list[Literal["hairLoss", "nausea", "handFoot"]] = Field(default_factory=list, max_length=3)
 
 
 def consultation_data(params: Consultation) -> dict:
@@ -51,6 +52,8 @@ def consultation_data(params: Consultation) -> dict:
         "country": country,
         "patient": patient,
         "priorities": weights,
+        "avoided_effects": list(dict.fromkeys(params.avoided_effects)),
+        "patient_characteristics": data["patient"]["characteristics"] if params.horizon == "future" else {},
         "priority_case": priority_case,
         "side_effect_reference": data["sideEffectReference"],
         "side_effects": data["sideEffects"],
@@ -59,13 +62,19 @@ def consultation_data(params: Consultation) -> dict:
             "prediction_model": "No model connected. Displayed probabilities are teaching placeholders.",
             "observational_examples": "Synthetic only; selection bias and unequal follow-up. Not causal evidence.",
         },
-        "comparable_patients": comparable if params.horizon == "future" else [],
+        "comparable_patients": [
+            {**item, "characteristics": data["comparableCharacteristics"][item["id"]]} for item in comparable
+        ]
+        if params.horizon == "future"
+        else [],
         "options": [
             {
                 "label": country["labels"][i],
                 "plain": option["plain"],
                 "benefit": option["benefit"],
                 "burden": option["burden"],
+                "trajectories": option["trajectories"] if params.horizon == "future" else {},
+                "avoidance_fit": option["avoidanceFit"],
             }
             for i, option in enumerate(data["options"])
         ],
@@ -95,6 +104,12 @@ async def explain(params: Consultation) -> AgentResult:
             "The side_effect_reference supports topic selection only: regimen-specific advice and frequencies "
             "are unverified. Never infer hair-loss or nausea likelihoods or compare regimen toxicity from "
             "invented fit scores. Distinguish neuropathy from hand-foot syndrome. "
+            "All provided trajectories are invented teaching samples, not measured incidence or validated "
+            "predictions. Side-effect severity uses weeks; survival/recurrence uses years. Extra avoidance "
+            "switches each add one preference point beyond ten slider points, not a medical contraindication. "
+            "Comparable-case selection uses age, stage and top slider priorities only; extra avoidance "
+            "concerns are not recorded in these cases. Explain matching, differing and unknown characteristics "
+            "without claiming they are matched on every field. "
             "Case-specific fit scores are invented assumptions, not "
             "personalised medical predictions; clinical placeholder probabilities stay fixed. Discuss lack "
             "of matching records when comparable_patients is empty. Do not relabel neuropathy cohorts. Fit is not "
@@ -126,6 +141,14 @@ async def explain(params: Consultation) -> AgentResult:
                         for key, value in context["priorities"].items()
                     )
                     + ". "
+                    + "Additional avoidance concerns: "
+                    + ", ".join(
+                        {"hairLoss": "Hair loss", "nausea": "Nausea and vomiting", "handFoot": "Hand–foot syndrome"}[
+                            key
+                        ]
+                        for key in context["avoided_effects"]
+                    )
+                    + ("None. " if not context["avoided_effects"] else ". ")
                     + "Preferences change fit, not clinical risk estimates. The joint decision remains yours."
                 ),
                 items=[

@@ -28,8 +28,18 @@ reasoning. Ten priority points are shared between treatment-related fatigue, can
 increasing one redistributes the remaining points proportionally between the others, with whole-point
 rounding; an empty pair splits the remainder evenly. Presets and reset use the same ten-point budget.
 Live bars beside the sliders demonstrate how fit changes immediately.
+Budget segments, label swatches and slider tracks share the same colour per priority in both themes.
+Additional hair-loss, nausea and hand–foot avoidance switches each add one preference point outside
+the ten slider points. Fit combines the slider sum with the selected invented avoidance scores,
+divides by ten plus switch count and scales to 100. This is not a contraindication or prediction.
+Switch changes clear assistant drafts and invalidate recorded decisions; case changes and reset clear switches.
 Three alternative synthetic colon cancer cases adapt the factors: neuropathy, hair loss or nausea
-concerns after surgery. The side-effect topic panel also explains fatigue and hand–foot syndrome.
+concerns after surgery. Side-effect definitions now expand within Compare options, not in a
+separate priorities panel. Outcome cards include simulated week-12 symptom severity; an outcome
+dropdown selects survival, recurrence, fatigue, neuropathy, hair loss, nausea or hand–foot plots.
+Survival/recurrence samples use years 1, 3 and 5; symptom samples use weeks 4, 12 and 24.
+Severity is an invented 0–10 illustration, not incidence or a validated scale. Zero chemotherapy
+effects do not exclude existing symptoms. Equal curves do not establish equal regimen risks.
 Topic selection uses the Bijwerkingen bij kanker side-effect index returned by web search;
 direct retrieval was unavailable. Short original definitions link to that index, not unverified deep links.
 Regimen-specific advice, frequencies and differences remain unverified. Hair-loss and nausea
@@ -37,7 +47,7 @@ fit assumptions are equal between the chemotherapy choices; this does not establ
 Labels and transparent
 invented option-fit scores change with the case; medical placeholder figures do not. Changing case
 resets priorities, draft, choice and note so the previous scenario is not accidentally recorded.
-Named snapshots preserve weights, factor labels, fit scores, option labels, country and case context.
+Named snapshots preserve weights, avoidance switches, factor labels, fit scores, option labels, country and case context.
 Multiple saved combinations sit beside the live combination; slider edits never mutate saved
 snapshots. Remove individual snapshots as needed. Snapshots persist only during the current visit,
 not after leaving/reloading; saving is not a treatment decision.
@@ -57,10 +67,14 @@ records filtered by age within five years, stage III and any tied highest-rated 
 means no matches in the compatible API; the UI always allocates ten points.
 Only the neuropathy case has compatible observational examples. Hair-loss and nausea cases
 explicitly show no compatible records rather than relabelling neuropathy examples.
+Each comparable record shows age distance and top-priority/stage selection matches, plus inspected
+diagnosis, sex, pTNM, MMR, ECOG and renal function alongside Eva's values, labelled Matches, Differs
+or Unknown. These additional synthetic characteristics are not selection filters; avoidance switches
+were not recorded in the cohort and are not claimed to match.
 
 ## Outputs
 Focused sections: worklist → visual outcomes → priorities → Patients like me → decision.
-Outcome bars and fatigue line plots replace dense comparison prose; explanations and sources expand
+Outcome bars and selectable line plots replace dense comparison prose; explanations and sources expand
 on demand. Generated explanation blocks and a local receipt of the joint decision or deferral. The
 learning-loop preview captures the selected option, preferences, context and evidence limitations.
 

@@ -4,6 +4,7 @@
   --cp-chrome-fg: #201e1d; --cp-banner: #eae9e9; --cp-accent: #ec3013; --cp-action: #dd2b0f; --cp-on-accent: #fff;
   --cp-accent-soft: #ffe0d9; --cp-success: #2f8a52; --cp-warning: #a76500;
   --cp-danger: #b42318; --cp-link: #ae1800;
+  --sdm-priority-0: #dd2b0f; --sdm-priority-1: #246e85; --sdm-priority-2: #605d5d;
 }
 .sdm104[data-theme="dark"] {
   --cp-bg: #201e1d; --cp-bg-elevated: #2d2b2b; --cp-surface: #201e1d; --cp-surface-soft: #2d2b2b;
@@ -11,6 +12,7 @@
   --cp-chrome-fg: #f3f2f2; --cp-banner: #2d2b2b; --cp-accent: #ff9783; --cp-action: #ff9783; --cp-on-accent: #201e1d;
   --cp-accent-soft: #4d170e; --cp-success: #72cf95; --cp-warning: #f5ba65;
   --cp-danger: #ff8a80; --cp-link: #ff9783;
+  --sdm-priority-0: #ff9783; --sdm-priority-1: #88c9de; --sdm-priority-2: #bab6b6;
 }
 .sdm104 .hx {
   --bg: var(--cp-bg); --bg-soft: var(--cp-bg-elevated); --surface: var(--cp-surface);
@@ -86,9 +88,9 @@
 .sdm-line { fill: none; stroke: var(--cp-accent); stroke-width: 2; }
 .sdm-budget { display: flex; height: 16px; gap: 2px; margin: 16px 0; }
 .sdm-budget span { flex-basis: 0; min-width: 0; }
-.sdm-budget-0 { background: var(--cp-accent); }
-.sdm-budget-1 { background: var(--cp-link); }
-.sdm-budget-2 { background: var(--cp-text-muted); }
+.sdm-budget-0 { background: var(--sdm-priority-0); }
+.sdm-budget-1 { background: var(--sdm-priority-1); }
+.sdm-budget-2 { background: var(--sdm-priority-2); }
 .sdm-match-count strong { font-size: 32px; color: var(--cp-accent); }
 .sdm-case { margin-top: 12px; }
 .sdm-case summary { cursor: pointer; }
@@ -113,6 +115,17 @@
 .sdm-priority label, .sdm-decision label { display: block; }
 .sdm-priority strong { float: right; }
 .sdm104 input[type="range"] { width: 100%; accent-color: var(--cp-accent); }
+.sdm-criterion-0 { --sdm-colour: var(--sdm-priority-0); }
+.sdm-criterion-1 { --sdm-colour: var(--sdm-priority-1); }
+.sdm-criterion-2 { --sdm-colour: var(--sdm-priority-2); }
+.sdm104 .sdm-priority input[type="range"] { accent-color: var(--sdm-colour); }
+.sdm-colour-key { display: inline-block; width: 12px; height: 12px; background: var(--sdm-colour); margin-right: 8px; }
+.sdm-avoidance { border: 1px solid var(--cp-border); margin: 12px 0; padding: 12px; }
+.sdm-avoidance label { display: block; }
+.sdm-characteristics { font-size: 12px; }
+.sdm-characteristics > div { border-top: 1px solid var(--cp-border); padding: 8px 0; }
+.sdm-characteristics dt { font-weight: 700; }
+.sdm-characteristics dd { margin: 4px 0 0; overflow-wrap: anywhere; }
 .sdm104 textarea { display: block; width: 100%; box-sizing: border-box; }
 .sdm104 caption { text-align: left; color: var(--cp-text-muted); padding: 8px 0; font-size: 12px; }
 @media (max-width: 1100px) { .sdm-columns { grid-template-columns: minmax(0, 1fr); } }

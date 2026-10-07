@@ -16,6 +16,7 @@ export const data = {
     details:
       'Synthetic record: ECOG 1; eGFR 72 mL/min; haemoglobin 12.1 g/dL; MMR proficient. Discuss concerns about chemotherapy-related fatigue and nerve symptoms.',
     minimal: 'Age 68; resected colon cancer; pT3N1a, M0; MMR proficient; MDT options recorded.',
+    characteristics: { Diagnosis: 'Resected colon cancer', Sex: 'Female', pTNM: 'pT3N1a M0', MMR: 'Proficient', ECOG: '1', 'Renal function': 'eGFR 72 mL/min' },
   },
   countries: [
     {
@@ -57,6 +58,8 @@ export const data = {
       survivalFit: 6,
       visits: 4,
       fatigue: [6, 4, 2],
+      trajectories: { survival: [96, 88, 80], recurrence: [3, 10, 18], fatigue: [6, 4, 2], neuropathy: [2, 4, 3], hairLoss: [2, 3, 1], nausea: [4, 3, 1], handFoot: [3, 4, 1] },
+      avoidanceFit: { hairLoss: 5, nausea: 6, handFoot: 5 },
     },
     {
       id: 'long',
@@ -71,6 +74,8 @@ export const data = {
       survivalFit: 9,
       visits: 12,
       fatigue: [7, 7, 4],
+      trajectories: { survival: [96, 89, 81], recurrence: [3, 9, 16], fatigue: [7, 7, 4], neuropathy: [3, 6, 5], hairLoss: [2, 3, 1], nausea: [4, 3, 1], handFoot: [3, 4, 1] },
+      avoidanceFit: { hairLoss: 5, nausea: 6, handFoot: 5 },
     },
     {
       id: 'none',
@@ -85,6 +90,8 @@ export const data = {
       survivalFit: 1,
       visits: 0,
       fatigue: [3, 2, 1],
+      trajectories: { survival: [94, 82, 72], recurrence: [5, 17, 28], fatigue: [3, 2, 1], neuropathy: [0, 0, 0], hairLoss: [0, 0, 0], nausea: [0, 0, 0], handFoot: [0, 0, 0] },
+      avoidanceFit: { hairLoss: 10, nausea: 10, handFoot: 10 },
     },
   ],
   sideEffectReference: {
@@ -131,6 +138,15 @@ export const data = {
     { id: 'NL-demo-2', site: 'Netherlands · synthetic site', age: 67, stage: 'III', priority: 'mobility', option: 'short', outcome: 'Walking reduced by tingling at 12 months' },
     { id: 'DE-demo-3', site: 'Germany · synthetic site', age: 48, stage: 'II', priority: 'quality', option: 'none', outcome: 'Excluded from this comparison by age and stage' },
   ],
+  comparableCharacteristics: {
+    'DE-demo-1': { Diagnosis: 'Resected colon cancer', Sex: 'Female', pTNM: 'pT3N1a M0', MMR: 'Proficient', ECOG: '1', 'Renal function': 'eGFR 80 mL/min' },
+    'IT-demo-1': { Diagnosis: 'Resected colon cancer', Sex: 'Male', pTNM: 'pT3N2a M0', MMR: 'Proficient', ECOG: '2', 'Renal function': 'eGFR 60 mL/min' },
+    'NL-demo-1': { Diagnosis: 'Resected colon cancer', Sex: 'Female', pTNM: 'pT3N1a M0', MMR: 'Proficient', ECOG: '1', 'Renal function': 'eGFR 72 mL/min' },
+    'DE-demo-2': { Diagnosis: 'Resected colon cancer', Sex: 'Male', pTNM: 'pT4N1a M0', MMR: 'Deficient', ECOG: '0', 'Renal function': 'eGFR 90 mL/min' },
+    'IT-demo-2': { Diagnosis: 'Resected colon cancer', Sex: 'Female', pTNM: 'pT3N1a M0', MMR: 'Proficient', ECOG: '1', 'Renal function': 'Not recorded' },
+    'NL-demo-2': { Diagnosis: 'Resected colon cancer', Sex: 'Female', pTNM: 'pT3N2a M0', MMR: 'Proficient', ECOG: '1', 'Renal function': 'eGFR 65 mL/min' },
+    'DE-demo-3': { Diagnosis: 'Resected colon cancer', Sex: 'Female', pTNM: 'pT3N0 M0', MMR: 'Deficient', ECOG: '0', 'Renal function': 'eGFR 95 mL/min' },
+  },
   coverage: [
     'Age',
     'pTNM',

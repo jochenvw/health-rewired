@@ -77,3 +77,26 @@ def test_case_specific_priorities_and_fallback(case_id, monkeypatch):
     assert "not a source for invented risks" in str(result)
     assert {effect["name"] for effect in context["side_effects"]} >= {"Hair loss", "Neuropathy"}
     assert client.post("/api/ideas/104/explain", json={"case_id": "unknown"}).status_code == 422
+
+
+def test_side_effect_preferences_and_comparable_characteristics(monkeypatch):
+    monkeypatch.setattr(settings, "copilot_token", None)
+    monkeypatch.setattr(settings, "copilot_use_logged_in_user", False)
+    context = consultation_data(Consultation(avoided_effects=["hairLoss", "nausea"]))
+    assert context["avoided_effects"] == ["hairLoss", "nausea"]
+    assert context["patient_characteristics"]["ECOG"] == "1"
+    assert all("characteristics" in item for item in context["comparable_patients"])
+    assert any(item["characteristics"]["Sex"] != "Female" for item in context["comparable_patients"])
+    assert context["options"][0]["trajectories"]["hairLoss"] == [2, 3, 1]
+    assert context["options"][2]["trajectories"]["nausea"] == [0, 0, 0]
+    for option in context["options"]:
+        for values in option["trajectories"].values():
+            assert len(values) == 3
+    minimal = consultation_data(Consultation(horizon="six-months"))
+    assert minimal["patient_characteristics"] == {}
+    assert all(option["trajectories"] == {} for option in minimal["options"])
+    client = TestClient(app)
+    response = client.post("/api/ideas/104/explain", json={"avoided_effects": ["hairLoss", "nausea"]})
+    assert response.status_code == 200
+    assert "Additional avoidance concerns: Hair loss, Nausea and vomiting" in response.json()["blocks"][0]["body"]
+    assert client.post("/api/ideas/104/explain", json={"avoided_effects": ["unknown"]}).status_code == 422
