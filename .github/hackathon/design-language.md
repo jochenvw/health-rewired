@@ -1,17 +1,16 @@
 # Health Rewired design language
 
-Adapted from the MDT Observatory design language. This is the shared visual and interaction
-foundation for hackathon prototypes. It complements the clinical storyline in
-[`purpose-and-learnings.md`](purpose-and-learnings.md): prototypes must still take the participant
-on a guided tour through one concrete scenario.
-
-The design should feel like a trusted institutional workstation: calm, dense, inspectable and
-operational. It is not a consumer dashboard, a marketing site or a generic collection of rounded
-cards.
+Adapted from the MDT Observatory design language. **This entire document is optional inspiration,
+not a requirement.** Nothing below is enforced by the critic or the build rules: use any part of
+it, all of it, or none of it — pick whatever look, palette, components, motion and interaction
+style best tell your idea's story for its audience.
 
 ## 1. Design signature
 
-The recognizable combination is:
+The recognizable combination below is the **default signature** for clinician/operator workstation
+ideas. Ideas with a different audience may depart from it (see above); keep the parts that still
+apply (semantic status colors, visible human control, layered disclosure) even when the chrome,
+palette or density change.
 
 1. **Dark institutional chrome** frames the product and establishes place, workstation and system
    state.
@@ -76,10 +75,17 @@ request details and technical telemetry belong in audit or diagnostic surfaces.
 
 ## 3. Foundations
 
+These foundations are the **shared default**, tuned for clinician/operator workstations. Treat them
+as a strong starting point to adapt, not a fixed spec to copy verbatim: an idea may introduce its
+own palette, type scale or spacing rhythm when its audience or content genuinely calls for it,
+provided the result stays internally consistent, accessible (contrast, focus states, text labels)
+and still follows the principles in section 2 (legible state, layered disclosure, inspectability).
+
 ### Typography
 
 Use system fonts so the application feels native to an enterprise workstation and has no web-font
-dependency.
+dependency. This is the default; an idea that is not an enterprise workstation (e.g. something
+patient-facing) may choose a different, still-accessible font stack.
 
 ```css
 --font-sans: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -101,7 +107,10 @@ Headings are sentence case. Uppercase is reserved for short operational labels, 
 ### Color tokens
 
 Use semantic tokens rather than literal colors. These tokens are the shared baseline for clinical
-and purpose-built workspaces.
+and purpose-built workspaces — reuse them whenever an idea fits the default institutional tone.
+Semantic colors (success, warning, danger, link) should keep their meaning across the app so status
+stays legible, but the exact palette, including the accent, may be re-themed per idea when the
+tone calls for it (e.g. a patient-facing or public-facing idea choosing a friendlier hue).
 
 | Token | Light | Dark | Purpose |
 |---|---:|---:|---|
@@ -280,8 +289,11 @@ the work.
 | Conditional pathway | Amber orientation edge and explicit eligibility conditions |
 | Human preferences | Softer centered composition and narrower maximum width |
 
-The reuse rule is: **vary the representation of the work, not the design-system fundamentals**.
-Orientation colors never imply success or approval.
+The reuse rule is: **vary the representation of the work to fit the idea and its audience**. Keep
+semantic meaning consistent (status colors never flip meaning, orientation colors never imply
+approval) and keep the result inspectable and accessible — beyond that, palette, grid and tone are
+free to adapt, including departing from the institutional-workstation look entirely when the
+audience genuinely isn't a clinician at a desk.
 
 ## 7. Content design
 
@@ -313,9 +325,11 @@ retrieval visible beside affected information.
 
 ## 8. Motion
 
-Motion is limited to new public activity. Never delay controls, state, errors or critical
-information for animation. Do not animate ordinary card entry or navigation. Disable non-essential
-motion under `prefers-reduced-motion: reduce`; pulse only genuinely active work.
+Motion should earn its place: use it to make real activity, state changes and staged progress
+(e.g. a "searching participating hospitals…" sequence) understandable, not as decoration. Never
+delay controls, state, errors or critical information for animation. Disable non-essential motion
+under `prefers-reduced-motion: reduce`; keep pulsing/looping animation limited to genuinely active
+work so it doesn't mislead the viewer.
 
 ## 9. Theme and accessibility
 
@@ -361,9 +375,10 @@ clear workspace orientation and visible human control.
 
 For every new idea:
 
-1. Use the semantic tokens, typography, spacing, radii and border hierarchy.
-2. Use `HospitalShell` for patient-level care, or build an issue-local shell with the same
-   foundations for research, network or operations work.
+1. Start from the semantic tokens, typography, spacing, radii and border hierarchy, and adapt
+   them when the idea's audience or tone genuinely calls for something different.
+2. Use `HospitalShell` for patient-level care if that fits, or build an issue-local shell —
+   institutional, consumer-friendly or otherwise — that fits the idea's audience.
 3. Establish institutional chrome, current-object context and a bounded task canvas.
 4. Use the core patterns: eyebrow, panel, actions, statuses, attention, activity, disclosure and
    inspection.

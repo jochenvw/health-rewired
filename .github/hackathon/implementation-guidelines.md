@@ -65,60 +65,26 @@ click through, react to, and iterate on with you. Speed to something visible bea
    (approve / edit / dismiss). Show "why" and sources where the agent makes claims.
 6. **Prototype disclaimer.** Keep the "Hackathon prototype – synthetic data – not for clinical use"
    notice visible.
-7. **Look credible in the participant's working world.** Match the visual language to the user and
-   task in the proposal instead of making every idea look like the same blue EHR.
-   - Follow [`design-language.md`](design-language.md) in every mode: dark institutional chrome,
-     cool neutral work surfaces, semantic `--cp-*` tokens, restrained accent, operational
-     typography, explicit status, inspectable detail and visible human control. Reuse the token
-     values rather than inventing an unrelated palette in each issue.
-   - **Visible theme choice.** Put separate, labelled `Light` and `Dark` buttons in the persistent
-     header or top-level controls. Show the selected theme with styling and `aria-pressed`; apply
-     it to the complete workspace. Do not use only an icon or ambiguous single toggle.
-   - For patient-level clinical workflows, default to `HospitalShell` from
-     `frontend/src/hospital/HospitalShell.tsx` (hospital app bar, patient banner, left navigation,
-     status bar) and its `Panel`, `DataTable`, `Tabs` and `Pill` pieces.
-   - For research networks, trial operations, federated learning or other cross-hospital work, a
-     purpose-built issue-local shell may fit better: for example a network canvas, evidence
-     workspace or operations command centre. Give it a distinct visual identity that supports the
-     concept. Do not modify shared `HospitalShell` components or other ideas to achieve it.
-   - In either mode, keep it deliberately functional, dense and data-rich – not a startup landing
-     page, generic dashboard template or decorative concept mock-up.
-   - Consistency does not mean identical layouts. Vary the representation of the work – grids,
-     structural edges, evidence views, maps or boards – while keeping the shared typography,
-     controls, semantic colors, spacing and interaction rules.
+7. **Design freely for the proposal's audience and story.** There is no required design system,
+   component library, theme mechanism or visual template. [`design-language.md`](design-language.md)
+   is optional inspiration (tokens, `HospitalShell`, `StoryGuide`/`Backstage`, etc.) you may reuse
+   in full, in part, or not at all — pick whatever look, palette, layout, components, motion and
+   interaction style best tell this idea's story. The only things that matter:
    - **Lots of fake data.** Fill worklists, results, notes and histories so the screen feels like a
-     real working day. Inspect `/sample-data` during UI generation: it includes a richer synthetic
-     patient set and a hospital directory that can add credible site context when useful. Use only
-     what fits the storyline; it is not required. Add inline synthetic rows (names, times, wards,
-     sites, cohorts or trial signals) freely.
-   - **Real-feeling interactions.** Clickable rows that open a chart, tabs, filters, acknowledge /
-     approve / file-to-chart buttons that change state. They do not need a backend – local state is
-     fine.
-   - The AI assistant appears as one part of that screen (a panel, tab or side pane), not as the
-     whole page. `frontend/src/ideas/starter/index.tsx` shows the clinical-shell pattern.
-   - **Tell the story of the vision** (see `purpose-and-learnings.md` §1). Turn the issue into one
-     concrete storyline and guide it with `StoryGuide` (`frontend/src/hospital/Story.tsx`) or an
-     equally clear issue-local step treatment. Show out-of-sight work – hospitals queried, data
-     matched, models trained, letters sent – with `Backstage` stages (spinners, counts, one-line
-     explanations). Integrate the guide and backstage states into the shared design language rather
-     than styling them as a separate tutorial overlay. Simulated timings and numbers are fine. End
-     on the payoff screen.
-   - **No doubt while waiting.** Every AI call or simulated process shows a spinner and a label
-     at once – in the clicked button and in the result area (`Working` with elapsed seconds, or a
-     running `Backstage` with `holdLast` until the AI answers). Never a frozen or empty screen.
-8. **Two horizons with one switch.** Follow [`six-month-horizon.md`](six-month-horizon.md): a
-   labelled `In six months` / `The future` control in the header, the same storyline in both,
-   steps outside the minimal dataset greyed out with a reason, a coverage panel based on
-   `/sample-data/minimal-mdt-dataset.json`, and what each hospital must do. Open on `The future`.
-   Keep it in the idea's own page; local state is enough.
-9. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
+     real working day. `/sample-data` has a richer synthetic patient set and a hospital directory
+     you can draw on if useful; use only what fits the storyline.
+   - **Real-feeling interactions.** Clicking things should do something – open a chart, switch a
+     tab, change a state. Local state is enough; no backend required for these.
+   - **The AI assistant is part of the screen, not the whole page** (a panel, tab or side pane),
+     powered by the Copilot SDK.
+8. **Demonstrable functionality over architecture.** No diagrams-as-deliverables, no speculative
    abstraction layers.
-10. **No new infrastructure.** No databases, queues, extra services or containers. One container.
+9. **No new infrastructure.** No databases, queues, extra services or containers. One container.
    File-based sample data is enough.
-11. **Keep the existing stack**: FastAPI + uv, React + TypeScript + Vite.
-12. **Must work without a Copilot token.** When the SDK is not configured, show a clear message and
+10. **Keep the existing stack**: FastAPI + uv, React + TypeScript + Vite.
+11. **Must work without a Copilot token.** When the SDK is not configured, show a clear message and
     a meaningful demo path (for example the deterministic fallback), not a crash.
-13. **Tests.** Add one small backend smoke test for new API or tool behaviour. Run
+12. **Tests.** Add one small backend smoke test for new API or tool behaviour. Run
     `npm run lint` and `npm test` from the repository root before finishing.
 
 ## Capability manifest (required)

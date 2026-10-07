@@ -24,27 +24,15 @@ This is not a code review. Ignore style, naming and minor bugs unless they break
 - The idea **does not have its own page** at `/#/idea/<N>` (it was added to the landing page or
   the starter agent instead), or that page does not show the idea's main screen immediately.
   Always material – ask for a fix.
-- The page **does not look credible for the participant's role**: a patient-level clinical
-  workflow ignores `HospitalShell` without reason; a research/network/operations idea is forced
-  into a generic blue EHR despite the proposal; or the result is a chat box, marketing page or
-  sparse dashboard with too little synthetic data to picture a real working day.
-- The page ignores [`design-language.md`](design-language.md): it invents an unrelated palette or
-  component style, lacks institutional chrome or current-object context, uses color decoratively,
-  hides status or uncertainty, or makes consequential output impossible to inspect. Distinct
-  issue-local workspaces are welcome; independent design systems are not.
-- The page does not provide separate, plainly labelled `Light` and `Dark` buttons in a persistent
-  top-level area, does not identify the active choice with `aria-pressed`, or leaves parts of the
-  walkthrough in the wrong theme.
-- The page **does not tell the story**: no guided steps (`StoryGuide`), the mechanism of the
-  vision stays invisible (no `Backstage` showing what happens behind the scenes), or a newcomer
-  cannot reach the payoff just by following the steps.
-- A wait on the AI or a simulated process shows **no visible activity** (no spinner / `Working`
-  / running `Backstage`), so a viewer could think it has hung.
-- The **six-month horizon** is missing or empty (see [`six-month-horizon.md`](six-month-horizon.md)):
-  no `In six months` / `The future` switch, the six-month view does not show which steps are not
-  possible yet, or it claims more than the minimal dataset supports.
 - The prototype disclaimer or the synthetic-data rule is missing.
 - The capability manifest is missing.
+
+Visual design, layout, palette, component choice, theming, motion and storytelling presentation
+are entirely up to the builder for each idea. `design-language.md` is optional inspiration, not a
+requirement — do not ask for another iteration because an idea looks different from `HospitalShell`,
+skips a `Light`/`Dark` toggle, doesn't use `StoryGuide`/`Backstage`, or takes any other visual
+approach. Only raise a UI point if it actually breaks the demo (e.g. the idea is genuinely
+unusable or unreadable), not for stylistic preference.
 
 ## Output
 

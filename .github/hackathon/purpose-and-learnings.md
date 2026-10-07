@@ -81,11 +81,9 @@ architecture.
 
 1. **Opens straight on the idea.** The link goes to `/#/idea/<N>`; the main screen is visible
    with no scrolling, setup or configuration. A sensible synthetic patient is pre-selected.
-2. **Looks credible for the work.** Patient-level clinical workflows should feel at home in
-   `HospitalShell`: app bar, patient banner, left navigation, dense tables and tabs. Research,
-   network and trial-operations ideas may need a distinct evidence workspace, European network
-   canvas or command centre. Familiarity still beats decoration, but do not make every concept a
-   variation of the same blue EHR. Never use a startup landing page or generic chat window.
+2. **Looks credible for the work.** Design is entirely up to the builder — `HospitalShell` and
+   [`design-language.md`](design-language.md) are optional starting points, not requirements. Pick
+   whatever visual approach best suits the idea and its audience.
 3. **Full of fake data.** Worklists, lab results, notes, histories, extra patients. An empty or
    sparse screen fails to convey a real clinic day. Inline synthetic rows are fine.
 4. **Things react when clicked.** Rows open charts, tabs switch, acknowledge / approve /
