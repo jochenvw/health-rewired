@@ -153,13 +153,14 @@ export default function SharedDecision() {
             {[{ label: 'Alive at five years', value: option.survival, tone: 'benefit' },
               { label: 'Recurrence within five years', value: option.recurrence, tone: 'burden' },
               { label: 'Chemotherapy-related nerve symptoms', value: option.neuropathy, tone: 'tradeoff' }].map((outcome) =>
-              <div className="sdm-outcome" key={outcome.label}><span>{outcome.label}</span>
-                <strong className={`sdm-value-chip ${outcome.tone}`}>{outcome.value} / 100</strong></div>)}
+              <div className={`sdm-outcome ${outcome.tone}`} key={outcome.label}><span>{outcome.label}</span><strong>{outcome.value} / 100</strong>
+                <meter min="0" max="100" value={outcome.value} aria-label={`${country.labels[i]}: ${outcome.label}, ${outcome.value} of 100, simulated`} /></div>)}
             <p><strong>{option.visits}</strong> chemotherapy infusion visits</p>
             <h4>Side effects at week 12 · invented severity</h4>
-            {outcomes.filter((item) => item.max === 10).map((effect) => <div className="sdm-outcome tradeoff" key={effect.key}>
-              <span>{effect.label}</span><strong className="sdm-value-chip tradeoff">{option.trajectories[effect.key][1]} / 10</strong>
-            </div>)}
+            <div className="sdm-side-effect-chips">{outcomes.filter((item) => item.max === 10).map((effect) => <div className="sdm-side-effect-chip" key={effect.key}>
+              <span className="sdm-chip-marker" aria-hidden="true" /><strong>{effect.label.replace('Chemotherapy-related ', '')}</strong>
+              <span className="sdm-severity-score">{option.trajectories[effect.key][1]} / 10</span>
+            </div>)}</div>
             {why(`${option.benefit} ${option.burden} Fixed invented figures, not personal predictions. No additional chemotherapy avoids chemotherapy toxicity, not existing symptoms or cancer risk; follow-up continues.`)}
           </section>)}</div>
         </Panel>
