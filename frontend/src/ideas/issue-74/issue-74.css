@@ -4389,3 +4389,186 @@
 .issue74-overview-rail .issue74-readiness {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* Review queue · compact verification table */
+.issue74 .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.issue74-queue-tile.is-active {
+  border-color: var(--p74-brand);
+  box-shadow: 0 0 0 2px var(--p74-info-soft);
+}
+
+.issue74 .issue74-queue-toolbar {
+  position: sticky;
+  z-index: 5;
+  top: 64px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--p74-line);
+  border-radius: var(--p74-r-card);
+  background: var(--p74-surface);
+  box-shadow: var(--p74-shadow);
+}
+
+.issue74 .issue74-queue-toolbar .p74-segmented button {
+  font-size: 12.5px;
+}
+
+.issue74-queue-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--p74-brand);
+  border-radius: 999px;
+  background: var(--p74-info-soft);
+  color: var(--p74-info-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.issue74-queue-undo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--p74-ok-line, var(--p74-line));
+  border-radius: var(--p74-r-sm);
+  background: var(--p74-ok-soft);
+  color: var(--p74-ok-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.issue74-queue-undo > span { flex: 1; }
+
+.issue74-queue-undo-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.issue74 .issue74-revert-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--p74-info-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.issue74-queue-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--p74-line);
+  border-radius: var(--p74-r-card);
+}
+
+.issue74-queue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.issue74-queue-table th {
+  position: sticky;
+  top: 0;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--p74-line);
+  background: var(--p74-surface-2);
+  color: var(--p74-text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.issue74-queue-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--p74-line);
+  vertical-align: middle;
+}
+
+.issue74-queue-table tbody tr:last-child td { border-bottom: 0; }
+.issue74-queue-table tbody tr:hover { background: var(--p74-surface-2); }
+.issue74-queue-table tbody tr.is-selected { background: var(--p74-info-soft); }
+.issue74-queue-table tbody tr.is-done .cell-item span { color: var(--p74-text-2); }
+
+.issue74-queue-table .cell-check {
+  width: 28px;
+  padding-right: 0;
+}
+
+.issue74-queue-table .cell-item {
+  max-width: 0;
+  width: 100%;
+}
+
+.issue74-queue-table .cell-item small {
+  display: block;
+  overflow: hidden;
+  color: var(--p74-text-3);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue74-queue-table .cell-item span {
+  display: block;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue74-queue-table td:not(.cell-item) { white-space: nowrap; }
+.issue74-queue-table .cell-action { text-align: right; }
+
+.issue74-queue-type {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--p74-surface-3);
+  color: var(--p74-text-2);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.issue74-queue-type.tone-crit { background: var(--p74-crit-soft); color: var(--p74-crit-text); }
+.issue74-queue-type.tone-warn { background: var(--p74-warn-soft); color: var(--p74-warn-text); }
+.issue74-queue-type.tone-info { background: var(--p74-info-soft); color: var(--p74-info-text); }
+
+.issue74 .hx-btn.sm {
+  min-height: 28px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+}
+
+.issue74-queue-table .issue74-evidence-state .mark-support { display: none; }
+
+@media (max-width: 900px) {
+  .issue74-queue-table th:nth-child(3),
+  .issue74-queue-table td:nth-child(3),
+  .issue74-queue-table th:nth-child(5),
+  .issue74-queue-table td:nth-child(5) { display: none; }
+}

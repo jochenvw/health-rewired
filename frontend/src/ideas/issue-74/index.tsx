@@ -24,6 +24,7 @@ type EvidenceReview = {
   outcome: 'verified' | 'gap-reviewed' | 'unverified-reviewed' | 'accepted-a' | 'accepted-b' | 'unresolved' | 'investigation';
   rationale: string;
   reviewedAt: string;
+  reverted?: boolean;
 };
 type SourceUpdate = {
   kind: 'correction' | 'addendum';
@@ -60,6 +61,7 @@ type EvidenceReviewContextValue = {
   reviews: Record<string, EvidenceReview>;
   reviewHistory: Record<string, EvidenceReview[]>;
   saveReview: (assertion: EvidenceAssertion, review: EvidenceReview) => void;
+  revertReview: (assertion: EvidenceAssertion) => void;
   sourceUpdates: Record<string, SourceUpdate[]>;
   saveSourceUpdate: (assertion: EvidenceAssertion, update: SourceUpdate) => void;
 };
@@ -161,6 +163,7 @@ function reviewKey(assertion: EvidenceAssertion) {
 }
 
 function reviewStatusLabel(review: EvidenceReview) {
+  if (review.reverted) return `Review reverted · back to open · ${review.reviewedAt.slice(0, 10)}`;
   const outcome = review.outcome === 'verified' ? 'Human-verified'
     : review.outcome === 'gap-reviewed' ? 'Gap reviewed · still missing'
       : review.outcome === 'unverified-reviewed' ? 'Review noted · still unverified'
@@ -504,16 +507,16 @@ function caseReviewItems(record: PatientRecord, horizon: Horizon, agentResult?: 
 function isPendingReview(assertion: EvidenceAssertion, reviews: Record<string, EvidenceReview>) {
   const outcome = reviews[reviewKey(assertion)]?.outcome;
   if (assertion.state === 'missing') return outcome !== 'gap-reviewed';
-  if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed';
+  if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed' && outcome !== 'verified';
   if (assertion.state === 'contradictory') return !outcome;
   return outcome !== 'verified';
 }
 
-function bulkOutcome(assertion: EvidenceAssertion): EvidenceReview['outcome'] {
+// What "Verify" records: a clinician-verified fact, or a confirmed gap. Conflicts are never verified in bulk.
+function verifyOutcome(assertion: EvidenceAssertion): EvidenceReview['outcome'] | undefined {
   return assertion.state === 'missing' ? 'gap-reviewed'
-    : assertion.state === 'unverified' ? 'unverified-reviewed'
-      : assertion.state === 'contradictory' ? 'unresolved'
-        : 'verified';
+    : assertion.state === 'contradictory' ? undefined
+      : 'verified';
 }
 
 function openIdentityCandidates(record: PatientRecord, horizon: Horizon, decisions: Record<string, IdentityDecision>) {
@@ -717,6 +720,10 @@ export default function TeamDomitian() {
     setNotice(message);
     if (status === 'challenged') setChallenge('');
   };
+  const revertDecision = () => {
+    updateDecision('prepared', 'Decision reverted. The preparation is back to draft and can be accepted, challenged or sent back again.');
+    if (view === 'ready') setView('case');
+  };
 
   const startAgentReview = async (target: PatientRecord) => {
     const patientId = target.id;
@@ -841,6 +848,12 @@ export default function TeamDomitian() {
         <div className="issue74-actions">
           <Pill tone="ok">Evidence package accepted for MDT review · no diagnosis or treatment approved</Pill>
           <button className="hx-btn" type="button" onClick={() => setView('ready')}>Open Ready for MDT summary</button>
+          <button className="hx-btn" type="button" onClick={revertDecision}>Revert decision</button>
+        </div>
+      ) : statuses[selectedId] === 'challenged' || statuses[selectedId] === 'returned' ? (
+        <div className="issue74-actions">
+          <Pill tone="warn">{statuses[selectedId] === 'challenged' ? 'Preparation challenged' : 'Preparation sent back for correction'}</Pill>
+          <button className="hx-btn" type="button" onClick={revertDecision}>Revert decision</button>
         </div>
       ) : (
         <div className="issue74-actions">
@@ -872,6 +885,13 @@ export default function TeamDomitian() {
           const key = reviewKey(assertion);
           setEvidenceReviews((current) => ({ ...current, [key]: review }));
           setEvidenceReviewHistory((current) => ({ ...current, [key]: [...(current[key] ?? []), review] }));
+        },
+        revertReview: (assertion) => {
+          const key = reviewKey(assertion);
+          const previous = evidenceReviews[key];
+          if (!previous) return;
+          setEvidenceReviews((current) => Object.fromEntries(Object.entries(current).filter(([itemKey]) => itemKey !== key)));
+          setEvidenceReviewHistory((current) => ({ ...current, [key]: [...(current[key] ?? []), { ...previous, rationale: 'Clinician reverted this review; the item is open again.', reviewedAt: new Date().toISOString(), reverted: true }] }));
         },
         sourceUpdates,
         saveSourceUpdate: (assertion, update) => setSourceUpdates((current) => ({
@@ -1027,6 +1047,7 @@ export default function TeamDomitian() {
                 decisions={identityDecisions}
                 agentResult={agentResults[selectedId]}
                 onBack={() => setView('case')}
+                onRevert={revertDecision}
                 onDrillDown={() => setView('evidence')}
                 onInspect={inspect}
               />}
@@ -1055,7 +1076,13 @@ export default function TeamDomitian() {
                   horizon={horizon}
                   decisions={identityDecisions}
                   onDecision={(id, decision) => {
-                    setIdentityDecisions((current) => ({ ...current, [`${record.id}:${id}`]: decision }));
+                    const decisionKey = `${record.id}:${id}`;
+                    if (!decision) {
+                      setIdentityDecisions((current) => Object.fromEntries(Object.entries(current).filter(([key]) => key !== decisionKey)));
+                      setNotice('Identity decision reverted. The record is held separate again until a clinician decides.');
+                      return;
+                    }
+                    setIdentityDecisions((current) => ({ ...current, [decisionKey]: decision }));
                     const message = decision === 'confirmed'
                       ? 'Human verified: this source can now be considered for this synthetic case.'
                       : decision === 'separate'
@@ -1227,6 +1254,9 @@ function VerificationProgress({ record, horizon, agentResult, onInspect, onOpenQ
     </Panel>
   );
 }
+type QueueFilter = 'open' | 'done' | 'all';
+const groupShort: Record<ReviewGroup, string> = { conflict: 'Conflict', gap: 'Gap', statement: 'AI statement', fact: 'Key fact', timeline: 'Timeline' };
+
 function BulkEvidenceReview({
   record,
   horizon,
@@ -1247,31 +1277,43 @@ function BulkEvidenceReview({
   const reviewContext = useContext(EvidenceReviewContext);
   const reviews = reviewContext?.reviews ?? {};
   const [selected, setSelected] = useState<Record<string, boolean>>({});
-  useEffect(() => setSelected({}), [record.id]);
+  const [filter, setFilter] = useState<QueueFilter>('open');
+  const [groupFilter, setGroupFilter] = useState<ReviewGroup | null>(null);
+  const [lastBatch, setLastBatch] = useState<ReviewItem[] | null>(null);
+  useEffect(() => { setSelected({}); setLastBatch(null); setGroupFilter(null); }, [record.id]);
 
   const items = caseReviewItems(record, horizon, agentResult);
-  const pending = items.filter(({ assertion }) => isPendingReview(assertion, reviews));
-  const completed = items.filter(({ assertion }) => !isPendingReview(assertion, reviews));
-  const selectedItems = pending.filter(({ assertion }) => selected[reviewKey(assertion)]);
+  const isOpen = ({ assertion }: ReviewItem) => isPendingReview(assertion, reviews);
+  const order = (item: ReviewItem) => reviewGroups.findIndex((group) => group.id === item.group);
+  const pending = items.filter(isOpen);
+  const completed = items.filter((item) => !isOpen(item));
+  const rows = (filter === 'open' ? pending : filter === 'done' ? completed : items)
+    .filter((item) => !groupFilter || item.group === groupFilter)
+    .sort((left, right) => Number(isOpen(right)) - Number(isOpen(left)) || order(left) - order(right));
+  const verifiable = rows.filter((item) => isOpen(item) && verifyOutcome(item.assertion));
+  const selectedItems = verifiable.filter(({ assertion }) => selected[reviewKey(assertion)]);
   const outstandingIdentities = openIdentityCandidates(record, horizon, decisions);
-  const setMany = (list: ReviewItem[], checked: boolean) => setSelected((current) => ({
-    ...current,
-    ...Object.fromEntries(list.map(({ assertion }) => [reviewKey(assertion), checked])),
-  }));
+  const scope = groupFilter ? reviewGroups.find((group) => group.id === groupFilter)?.label.toLowerCase() : 'open items';
 
-  const recordSelectedReviews = () => {
+  const verify = (list: ReviewItem[]) => {
     const reviewedAt = new Date().toISOString();
-    selectedItems.forEach(({ assertion }) => {
-      const rationale = assertion.state === 'missing'
-        ? 'Reviewed in the case review queue; the value remains missing.'
-        : assertion.state === 'unverified'
-          ? 'Reviewed in the case review queue; no exact source passage is attached.'
-          : assertion.state === 'contradictory'
-            ? 'Reviewed in the case review queue; source disagreement remains unresolved.'
-            : 'Source evidence reviewed and human-verified in the case review queue.';
-      reviewContext?.saveReview(assertion, { outcome: bulkOutcome(assertion), rationale, reviewedAt });
+    const recorded = list.filter(({ assertion }) => verifyOutcome(assertion));
+    recorded.forEach(({ assertion }) => {
+      const outcome = verifyOutcome(assertion)!;
+      reviewContext?.saveReview(assertion, {
+        outcome,
+        rationale: outcome === 'gap-reviewed'
+          ? 'Clinician confirmed the value is not in the available sources; it stays missing.'
+          : 'Clinician verified against the source records or by other means.',
+        reviewedAt,
+      });
     });
     setSelected({});
+    if (recorded.length) setLastBatch(recorded);
+  };
+  const undo = () => {
+    lastBatch?.forEach(({ assertion }) => reviewContext?.revertReview(assertion));
+    setLastBatch(null);
   };
 
   return (
@@ -1284,92 +1326,122 @@ function BulkEvidenceReview({
           const count = pending.filter((item) => item.group === group.id).length;
           const total = items.filter((item) => item.group === group.id).length;
           return (
-            <a key={group.id} href={`#issue74-queue-${group.id}`} className={`issue74-queue-tile tone-${group.tone}${count ? '' : ' is-zero'}`} onClick={(event) => { event.preventDefault(); document.getElementById(`issue74-queue-${group.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+            <button key={group.id} type="button" aria-pressed={groupFilter === group.id} className={`issue74-queue-tile tone-${group.tone}${count ? '' : ' is-zero'}${groupFilter === group.id ? ' is-active' : ''}`} onClick={() => setGroupFilter((current) => (current === group.id ? null : group.id))}>
               <span>{group.label}</span><strong>{count}</strong><small>{total ? `${total - count} of ${total} recorded` : 'None in this case'}</small>
-            </a>
+            </button>
           );
         })}
       </div>
       {agentPanel}
       <Panel
         title="Review queue"
-        eyebrow="Prioritised · source conflicts first"
+        eyebrow="Clinician verification · conflicts first"
         icon="queue"
-        actions={<Pill tone={pending.length ? 'warn' : 'ok'}>{pending.length ? `${pending.length} need review` : 'All review actions recorded'}</Pill>}
+        actions={<Pill tone={pending.length ? 'warn' : 'ok'}>{pending.length ? `${pending.length} open` : 'All recorded'}</Pill>}
       >
         <p className="issue74-review-queue-intro">
-          Tick what you have checked. One action records the correct review type for each item: source facts become human-verified, gaps stay missing and conflicts stay unresolved. It does not make a clinical decision.
+          <strong>Verify</strong> records that you checked the item against the source records or by other means: the highest-trust status in this view. Gaps are confirmed as missing; conflicts need an individual reconciliation. Every action can be reverted.
         </p>
         {outstandingIdentities.length > 0 && (
           <div className="issue74-review-queue-identity">
-            <div><strong>{outstandingIdentities.length} patient identity match{outstandingIdentities.length === 1 ? '' : 'es'} need an individual decision</strong><span>Identity cannot be confirmed or separated in bulk.</span></div>
+            <div><strong>{outstandingIdentities.length} identity match{outstandingIdentities.length === 1 ? '' : 'es'} need an individual decision</strong><span>Identity cannot be confirmed in bulk.</span></div>
             <button type="button" className="hx-btn" onClick={() => onNavigate('identity')}>Compare identities</button>
           </div>
         )}
-        <div className="issue74-review-queue-actions">
+        <div className="issue74-queue-toolbar">
           <label className="issue74-review-select-all">
             <input
               type="checkbox"
-              checked={pending.length > 0 && selectedItems.length === pending.length}
-              disabled={pending.length === 0}
-              onChange={(event) => setMany(pending, event.target.checked)}
+              checked={verifiable.length > 0 && selectedItems.length === verifiable.length}
+              ref={(input) => { if (input) input.indeterminate = selectedItems.length > 0 && selectedItems.length < verifiable.length; }}
+              disabled={verifiable.length === 0}
+              onChange={(event) => setSelected(event.target.checked ? Object.fromEntries(verifiable.map(({ assertion }) => [reviewKey(assertion), true])) : {})}
             />
-            Select all {pending.length} pending
+            Select all {verifiable.length}
           </label>
+          <Segmented<QueueFilter>
+            label="Show"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { id: 'open', label: `Open ${pending.length}` },
+              { id: 'done', label: `Recorded ${completed.length}` },
+              { id: 'all', label: 'All' },
+            ]}
+          />
+          {groupFilter && <button type="button" className="issue74-queue-chip" onClick={() => setGroupFilter(null)}>{reviewGroups.find((group) => group.id === groupFilter)?.label} <span aria-hidden="true">×</span><span className="sr-only">Clear type filter</span></button>}
           <span className="hx-spacer" />
-          <button type="button" className="hx-btn" onClick={() => setSelected({})} disabled={selectedItems.length === 0}>Clear</button>
-          <button type="button" className="hx-btn primary" onClick={recordSelectedReviews} disabled={selectedItems.length === 0}>
-            Record review for {selectedItems.length} selected
+          {selectedItems.length > 0 && <button type="button" className="hx-btn" onClick={() => verify(selectedItems)}>Verify {selectedItems.length} selected</button>}
+          <button type="button" className="hx-btn primary" disabled={verifiable.length === 0} onClick={() => verify(verifiable)}>
+            <Icon name="check" size={14} /> Verify all {verifiable.length}
           </button>
         </div>
-        {pending.length === 0 ? (
-          <div className="issue74-review-queue-empty" role="status"><strong>✓ No evidence review actions remain.</strong><span>Missing values and unresolved conflicts still remain visible in the case.</span></div>
-        ) : reviewGroups.map((group) => {
-          const list = pending.filter((item) => item.group === group.id);
-          if (!list.length) return null;
-          const allChecked = list.every(({ assertion }) => selected[reviewKey(assertion)]);
-          return (
-            <section key={group.id} id={`issue74-queue-${group.id}`} className={`issue74-queue-group tone-${group.tone}`} aria-label={group.label}>
-              <header>
-                <label>
-                  <input type="checkbox" checked={allChecked} onChange={(event) => setMany(list, event.target.checked)} aria-label={`Select all ${group.label.toLowerCase()}`} />
-                  <strong>{group.label}</strong><em>{list.length}</em>
-                </label>
-                <small>{group.action}</small>
-              </header>
-              <ul className="issue74-review-queue">
-                {list.map(({ label, assertion }) => {
+        {lastBatch && (
+          <div className="issue74-queue-undo" role="status">
+            <Icon name="check" size={14} />
+            <span>{lastBatch.length} item{lastBatch.length === 1 ? '' : 's'} recorded as clinician-verified{lastBatch.some(({ assertion }) => assertion.state === 'missing') ? ' (gaps confirmed missing)' : ''}</span>
+            <button type="button" className="issue74-revert-link" onClick={undo}>Undo</button>
+            <button type="button" className="issue74-queue-undo-close" aria-label="Dismiss" onClick={() => setLastBatch(null)}>×</button>
+          </div>
+        )}
+        {rows.length === 0 ? (
+          <div className="issue74-review-queue-empty" role="status">
+            <strong>{filter === 'done' ? 'Nothing recorded yet.' : `✓ No ${scope} left to review.`}</strong>
+            <span>Missing values and unresolved conflicts stay visible in the case.</span>
+          </div>
+        ) : (
+          <div className="issue74-queue-table-wrap">
+            <table className="issue74-queue-table">
+              <thead>
+                <tr>
+                  <th scope="col"><span className="sr-only">Select</span></th>
+                  <th scope="col">Item</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Source</th>
+                  <th scope="col"><span className="sr-only">Action</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((item) => {
+                  const { label, assertion, group } = item;
                   const key = reviewKey(assertion);
+                  const open = isOpen(item);
+                  const outcome = verifyOutcome(assertion);
+                  const tone = reviewGroups.find((entry) => entry.id === group)?.tone ?? 'neutral';
                   return (
-                    <li key={key} className={`review-queue-${assertion.state}${selected[key] ? ' is-selected' : ''}`}>
-                      <label className="issue74-review-queue-check">
-                        <input type="checkbox" checked={Boolean(selected[key])} onChange={(event) => setSelected((current) => ({ ...current, [key]: event.target.checked }))} />
-                        <span><small>{label}</small><strong>{assertion.statement}</strong></span>
-                      </label>
-                      <div className="issue74-review-queue-item">
-                        <EvidenceMarker state={assertion.state} assertion={assertion} />
+                    <tr key={key} className={`${open ? 'is-open' : 'is-done'}${selected[key] ? ' is-selected' : ''}`}>
+                      <td className="cell-check">
+                        {open && outcome && <input type="checkbox" aria-label={`Select ${label}`} checked={Boolean(selected[key])} onChange={(event) => setSelected((current) => ({ ...current, [key]: event.target.checked }))} />}
+                      </td>
+                      <td className="cell-item">
+                        {group !== 'statement' && !assertion.statement.startsWith(label) && <small>{label}</small>}
+                        <span title={assertion.statement}>{assertion.statement}</span>
+                      </td>
+                      <td><span className={`issue74-queue-type tone-${tone}`}>{groupShort[group]}</span></td>
+                      <td><EvidenceMarker state={assertion.state} assertion={assertion} /></td>
+                      <td>
                         <button type="button" className="issue74-evidence-link" onClick={() => onInspect(assertion)}>
-                          Inspect {assertion.sources.length} source{assertion.sources.length === 1 ? '' : 's'}
+                          {assertion.sources.length} source{assertion.sources.length === 1 ? '' : 's'}
                         </button>
-                      </div>
-                    </li>
+                      </td>
+                      <td className="cell-action">
+                        {!open ? (
+                          <button type="button" className="hx-btn sm" onClick={() => reviewContext?.revertReview(assertion)}>Revert</button>
+                        ) : outcome ? (
+                          <button type="button" className="hx-btn sm primary" onClick={() => verify([item])}>{outcome === 'gap-reviewed' ? 'Confirm missing' : 'Verify'}</button>
+                        ) : (
+                          <button type="button" className="hx-btn sm" onClick={() => onInspect(assertion)}>Reconcile</button>
+                        )}
+                      </td>
+                    </tr>
                   );
                 })}
-              </ul>
-            </section>
-          );
-        })}
-        {completed.length > 0 && (
-          <details className="issue74-queue-done">
-            <summary>Recorded reviews · {completed.length}</summary>
-            <ul>
-              {completed.map(({ label, assertion }) => (
-                <li key={reviewKey(assertion)}><EvidenceMarker state={assertion.state} assertion={assertion} /><span><small>{label}</small>{assertion.statement}</span><button type="button" className="issue74-evidence-link" onClick={() => onInspect(assertion)}>Inspect</button></li>
-              ))}
-            </ul>
-          </details>
+              </tbody>
+            </table>
+          </div>
         )}
-        <p className="issue74-muted">Bulk review records checks. It is not a shortcut to accepting a conflict, filling a gap, confirming an identity or deciding care. All evidence remains synthetic and source-linked.</p>
+        <p className="issue74-muted">Verification records a clinician check; it does not accept a conflict, fill a gap, confirm an identity or decide care. All evidence is synthetic and source-linked.</p>
       </Panel>
     </>
   );
@@ -1572,12 +1644,13 @@ function AgentReviewPanel({
   );
 }
 
-function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillDown, onInspect }: {
+function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillDown, onRevert, onInspect }: {
   record: PatientRecord;
   horizon: Horizon;
   decisions: Record<string, IdentityDecision>;
   agentResult?: AgentResult;
   onBack: () => void;
+  onRevert: () => void;
   onDrillDown: () => void;
   onInspect: (assertion: EvidenceAssertion) => void;
 }) {
@@ -1621,7 +1694,7 @@ function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillD
       ? [`Molecular source disagreement · ${conflictReview ? `review recorded · ${reviewStatusLabel(conflictReview)}` : 'not reconciled'}: neither result is selected.`]
       : []),
     ...openIdentity.map((candidate) => `Identity · ${candidate.hospital} · ${decisions[`${record.id}:${candidate.id}`] === 'investigating' ? 'investigation noted · ' : ''}match remains uncertain.`),
-    ...generatedAssertions.map((assertion) => `Unverified statement · ${reviews[reviewKey(assertion)] ? 'review noted · still unverified' : 'no exact source linked'}: ${assertion.statement}`),
+    ...generatedAssertions.filter((assertion) => reviews[reviewKey(assertion)]?.outcome !== 'verified').map((assertion) => `Unverified statement · ${reviews[reviewKey(assertion)] ? 'review noted · still unverified' : 'no exact source linked'}: ${assertion.statement}`),
     ...(conflictReconciled && sourceUpdate?.status !== 'submitted'
       ? [`Source feedback · ${sourceUpdate ? sourceUpdate.status === 'reviewed' ? 'proposal reviewed · simulated submission remains' : 'proposal needs review' : 'update has not been proposed'} · source record remains unchanged.`]
       : []),
@@ -1631,6 +1704,10 @@ function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillD
     ...resolvedIdentity.map((candidate) => `Identity · ${candidate.hospital}: ${decisions[`${record.id}:${candidate.id}`] === 'confirmed' ? 'confirmed as the same patient' : 'kept separate'}.`),
     ...resolvedEvidence.map((item) => `${item.label}: ${reviews[reviewKey(item.assertion)]?.outcome === 'accepted-a' ? 'Evidence A selected' : 'Evidence B selected'} for this preparation.`),
     ...confirmedEvidence.map((item) => `${item.label}: source check recorded.`),
+    ...(() => {
+      const verifiedStatements = generatedAssertions.filter((assertion) => reviews[reviewKey(assertion)]?.outcome === 'verified').length;
+      return verifiedStatements ? [`${verifiedStatements} assistant statement${verifiedStatements === 1 ? '' : 's'} verified by a clinician against the records.`] : [];
+    })(),
     ...(conflictReconciled ? [`MDT resolution reused: ${conflict?.sources[conflictReview?.outcome === 'accepted-a' ? 0 : 1].value ?? 'selected source result'} · source disagreement retained.`] : []),
     ...(sourceUpdate?.status === 'submitted'
       ? [`${sourceUpdate.kind === 'correction' ? 'Correction' : 'Addendum'} feedback recorded as a simulated submission · source record unchanged.`]
@@ -1700,6 +1777,7 @@ function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillD
       </details>
       <div className="issue74-ready-actions">
         <button className="hx-btn" type="button" onClick={onBack}>Back to case review</button>
+        <button className="hx-btn" type="button" onClick={onRevert}>Revert ready for MDT</button>
         <button className="hx-btn primary" type="button" onClick={onDrillDown}>Open evidence and gaps</button>
       </div>
     </section>
@@ -1715,7 +1793,7 @@ function IdentityPanel({
   record: PatientRecord;
   horizon: Horizon;
   decisions: Record<string, IdentityDecision>;
-  onDecision: (id: string, decision: IdentityDecision) => void;
+  onDecision: (id: string, decision: IdentityDecision | null) => void;
 }) {
   const candidates = identityCandidates(record);
   const verified = candidates.filter((candidate) => candidate.state === 'verified').length;
@@ -1768,6 +1846,7 @@ function IdentityPanel({
                 </div>
               )}
               {decision === 'separate' && <p className="identity-decision">Kept separate · not added to this timeline</p>}
+              {decision && <button className="issue74-revert-link" type="button" onClick={() => onDecision(candidate.id, null)}>Revert identity decision</button>}
               {decision === 'investigating' && <p className="identity-decision">Investigation noted · remains separate until verified</p>}
               {candidate.state !== 'review' && !decision && <p className="identity-decision">{candidate.state === 'mismatch' ? 'Not linked to this patient' : candidate.state === 'probable' ? 'Held separate until a clinician confirms' : 'Included in the synthetic verified set'}</p>}
             </article>
@@ -1882,9 +1961,12 @@ function EvidenceReviewControls({ assertion }: { assertion: EvidenceAssertion })
         </>
       ) : assertion.state === 'unverified' ? (
         <>
-          <p>No exact source passage is attached. This review will not mark the generated statement as verified.</p>
-          <label>Review rationale (optional)<textarea value={rationale} onChange={(event) => setRationale(event.target.value)} rows={2} placeholder="Record what you checked or what remains uncertain" /></label>
-          <button type="button" className="hx-btn" onClick={() => save('unverified-reviewed')}>Record review · source remains unverified</button>
+          <p>No exact source passage is attached. Verify only if you checked it against the source records or by other means; otherwise record that it stays unverified.</p>
+          <label>Review rationale (optional)<textarea value={rationale} onChange={(event) => setRationale(event.target.value)} rows={2} placeholder="Record what you checked, for example: confirmed in the hospital record" /></label>
+          <div className="issue74-review-actions">
+            <button type="button" className="hx-btn primary" onClick={() => save('verified')}>Verify · I checked this statement</button>
+            <button type="button" className="hx-btn" onClick={() => save('unverified-reviewed')}>Keep unverified</button>
+          </div>
         </>
       ) : (
         <>
@@ -1906,6 +1988,7 @@ function EvidenceReviewControls({ assertion }: { assertion: EvidenceAssertion })
                 currentReview.outcome === 'unresolved' ? 'Conflict kept unresolved' : 'Further investigation recorded'}
           {' · '}{new Date(currentReview.reviewedAt).toLocaleString()}
           {currentReview.rationale && <> · Rationale: {currentReview.rationale}</>}
+          {' '}<button type="button" className="issue74-revert-link" onClick={() => reviewContext?.revertReview(assertion)}>Revert</button>
         </p>
       )}
     </section>
