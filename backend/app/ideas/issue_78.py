@@ -1,13 +1,14 @@
 """Synthetic trial screening, never an eligibility decision or treatment recommendation."""
 
+import asyncio
 import json
 import operator
 from datetime import date
 from typing import Literal
 
 from copilot import define_tool
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 
 from app import sample_data
 from app.agent.models import AgentRequest, AgentResult
@@ -21,6 +22,7 @@ DATA = "issue-78-trial-matching.json"
 
 class ScreeningRequest(BaseModel):
     horizon: Horizon = "future"
+    trial_ids: list[str] = Field(default_factory=list, max_length=4)
 
 
 def screening(horizon: Horizon) -> dict:
@@ -73,7 +75,9 @@ def screening(horizon: Horizon) -> dict:
                 status = "Unknown"
             else:
                 expected = criterion["expected"]
-                matches = {"eq": operator.eq, "gte": operator.ge, "lte": operator.le}[criterion["op"]](value, expected)
+                matches = {"eq": operator.eq, "gte": operator.ge, "lte": operator.le, "lt": operator.lt}[
+                    criterion["op"]
+                ](value, expected)
                 status = "Match" if matches else "Conflict"
             criteria.append(
                 {
@@ -85,19 +89,41 @@ def screening(horizon: Horizon) -> dict:
                 }
             )
         counts = {status: sum(c["status"] == status for c in criteria) for status in ("Match", "Conflict", "Unknown")}
+        gaps = [c for c in criteria if c["status"] == "Unknown"]
+        enquiry = (
+            f"Draft screening enquiry — {data['patient']['name']} ({data['patient']['id']}) / {trial['title']}.\n"
+            f"Recorded diagnosis: {data['patient']['diagnosis']}. "
+            "Please review the full protocol before considering enrolment. "
+            + ("Outstanding evidence: " + "; ".join(c["text"] for c in gaps) + ". " if gaps else "")
+            + "Please confirm current recruitment, complete eligibility, risks, alternatives and patient preference. "
+            "Eligibility is not confirmed. No orders or referrals have been sent."
+        )
         trials.append(
             {
                 **trial,
                 "criteria": criteria,
                 "counts": counts,
-                "assessment": "Conflict identified" if counts["Conflict"] else "Potential match · checks outstanding",
+                "assessment": (
+                    "Conflict identified"
+                    if counts["Conflict"]
+                    else "Potential match · checks outstanding"
+                    if counts["Unknown"]
+                    else "Recorded criteria supported · trial-team confirmation required"
+                ),
+                "enquiry_note": enquiry,
+                "proposed_orders": [f"Proposed evidence request: {c['text']}" for c in gaps],
             }
         )
+    candidates = sorted(
+        [t for t in trials if not t["counts"]["Conflict"] and t["status"] == "Recruiting"],
+        key=lambda t: t["scope"] != "local",
+    )[:4]
     return {
         "patient": data["patient"],
         "snapshot_date": data["snapshot_date"],
         "facts": facts,
-        "trials": trials,
+        "trials": candidates,
+        "excluded_count": sum(bool(t["counts"]["Conflict"]) for t in trials),
         "coverage": coverage,
         "horizon": horizon,
         "notice": "Synthetic screening only. Not confirmed eligibility or a treatment recommendation.",
@@ -112,32 +138,56 @@ def context(horizon: Horizon = "future"):
 @router.post("/review")
 async def review(request: ScreeningRequest):
     assessment = screening(request.horizon)
+    if request.trial_ids:
+        allowed = {trial["id"] for trial in assessment["trials"]}
+        if not set(request.trial_ids) <= allowed:
+            raise HTTPException(status_code=422, detail="Select only current conflict-free screening candidates.")
+        assessment["trials"] = [t for t in assessment["trials"] if t["id"] in request.trial_ids]
 
     @define_tool(description="Read the synthetic patient evidence and trial criterion comparisons for this horizon.")
     async def inspect_trial_screening(params: ScreeningRequest) -> dict:
         return assessment
 
-    return await run_agent(
-        AgentRequest(
-            task="Review potential trial matches and missing evidence", patient_id="TM-078", role="Oncologist"
-        ),
-        system_prompt=(
-            "You support synthetic oncology trial screening. Call inspect_trial_screening, then render_ui "
-            "with evidence and proposed checks. Cite the supplied protocol and record sources. "
-            "Match means only that one criterion is supported, never confirmed eligibility. "
-            "Keep conflicts and unknowns explicit; never recommend treatment or referral. "
-            "Do not read other patients or use other sample data. All referral decisions belong to the oncologist."
-        ),
-        prompt=f"Review this {request.horizon} assessment: {json.dumps(assessment)}",
-        extra_tools=[inspect_trial_screening],
-        fallback_builder=lambda _request, note: demo_review(assessment, note),
-    )
+    try:
+        result = await asyncio.wait_for(
+            run_agent(
+                AgentRequest(
+                    task="Review potential trial matches and missing evidence", patient_id="TM-078", role="Oncologist"
+                ),
+                system_prompt=(
+                    "You support synthetic oncology trial screening. Call inspect_trial_screening, then render_ui "
+                    "with a concise prior-phase evidence comparison, subgroup findings and limitations. "
+                    "All results are invented synthetic examples, not publications. Current studies are ongoing. "
+                    "Cite the supplied protocol and record sources. "
+                    "Match means only that one criterion is supported, never confirmed eligibility. "
+                    "Keep conflicts and unknowns explicit; never recommend treatment or referral. "
+                    "Do not read other patients or use other sample data. "
+                    "All referral decisions belong to the oncologist. "
+                    "For EACH candidate render an actions block with title EXACTLY its trial id "
+                    "and body an enquiry note "
+                    "for the trial team. Include outstanding evidence and proposed checks; no actual orders, sends, "
+                    "enrolment, patient-specific treatment recommendations or invented clinical history."
+                ),
+                prompt=f"Review this {request.horizon} assessment: {json.dumps(assessment)}",
+                extra_tools=[inspect_trial_screening],
+                fallback_builder=lambda _request, note: demo_review(assessment, note),
+            ),
+            timeout=40,
+        )
+    except TimeoutError:
+        result = demo_review(assessment, "Assistant review timed out. Editable synthetic demo drafts remain available.")
+    notes = {t["id"]: t["enquiry_note"] for t in assessment["trials"]}
+    if result.mode == "copilot":
+        for block in result.blocks:
+            if block.type == "actions" and block.title in notes and block.body:
+                notes[block.title] = block.body
+    return {**result.model_dump(), "enquiry_notes": notes}
 
 
 def demo_review(assessment: dict, note: str) -> AgentResult:
     return AgentResult(
         mode="fallback",
-        headline="Potential local match — renal function still needed",
+        headline="Screening candidates — evidence and enquiry drafts ready for clinician review",
         note=note,
         blocks=[
             *[
@@ -158,11 +208,30 @@ def demo_review(assessment: dict, note: str) -> AgentResult:
                 for candidate in assessment["trials"]
             ],
             UIBlock(
+                type="evidence",
+                title="Prior-phase comparison · invented examples, not clinical evidence",
+                body="Do not compare response percentages as if these were head-to-head studies. "
+                "Subgroups are small; all recruiting current phases have no results.",
+                items=[
+                    UIItem(
+                        label=f"{candidate['title']} · phase {evidence['phase']}",
+                        detail=f"{evidence['population']}: {evidence['result']} {evidence['limitation']}",
+                        source=evidence["source"],
+                    )
+                    for candidate in assessment["trials"]
+                    for evidence in candidate["evidence_track"]
+                ],
+            ),
+            UIBlock(
                 type="actions",
                 title="For the oncologist to consider",
                 body="Obtain current renal function; verify performance status "
                 "and the full protocol with the trial team. "
                 "No tests ordered, referrals sent or treatments recommended.",
             ),
+            *[
+                UIBlock(type="actions", title=candidate["id"], body=candidate["enquiry_note"])
+                for candidate in assessment["trials"]
+            ],
         ],
     )

@@ -25,6 +25,12 @@
     {
       "id": "LOCAL-078-A", "title": "PATHWAY-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
       "description": "Fictional experimental targeted-therapy study after oxaliplatin-based treatment.",
+      "priority_reason": "Shown first because it is local and the recorded KRAS G12D and prior FOLFOX match its screening criteria; not a recommendation or evidence ranking.",
+      "patient_pack": "You have received FOLFOX chemotherapy. This fictional study tests an experimental treatment aimed at a change called KRAS G12D in the cancer. We do not yet know whether it helps more than usual care. Earlier small studies cannot predict what will happen to you. The trial team would explain visits, blood tests, possible side effects, alternatives and your right to stop. Kidney function and other checks are still needed. Please take time to read, ask questions and discuss your preferences before deciding; receiving this pack does not enrol you.",
+      "evidence_track": [
+        {"phase": "I", "population": "Previously treated KRAS G12D colorectal cancer", "sample_size": 24, "result": "Illustrative response: 6/24 overall; 4/12 in the prior-FOLFOX subgroup.", "limitation": "Invented single-arm safety cohort; very small subgroup, no comparator or survival benefit established.", "source": "Synthetic evidence dossier LOCAL-078-A §Phase I; not a publication"},
+        {"phase": "II", "population": "Current recruiting KRAS G12D cohort", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "Earlier responses do not establish efficacy or individual benefit.", "source": "Synthetic protocol LOCAL-078-A §Current study"}
+      ],
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "Age ≥18 years", "field": "age", "op": "gte", "expected": 18},
         {"id": "I2", "kind": "Inclusion", "text": "Colorectal adenocarcinoma", "field": "pathology", "op": "eq", "expected": "adenocarcinoma"},
@@ -33,7 +39,8 @@
         {"id": "I5", "kind": "Inclusion", "text": "ECOG ≤1", "field": "ecog", "op": "lte", "expected": 1},
         {"id": "I6", "kind": "Inclusion", "text": "Neutrophils ≥1.5 × 10⁹/L within 14 days", "field": "anc", "op": "gte", "expected": 1.5, "max_age_days": 14},
         {"id": "I7", "kind": "Inclusion", "text": "eGFR ≥50 mL/min/1.73 m² within 14 days", "field": "renal", "op": "gte", "expected": 50, "max_age_days": 14},
-        {"id": "I8", "kind": "Inclusion", "text": "Measurable disease on CT report within 28 days", "field": "imaging", "op": "eq", "expected": true, "max_age_days": 28}
+        {"id": "I8", "kind": "Inclusion", "text": "Measurable disease on CT report within 28 days", "field": "imaging", "op": "eq", "expected": true, "max_age_days": 28},
+        {"id": "I9", "kind": "Inclusion", "text": "Age <75 years (this fictional protocol only)", "field": "age", "op": "lt", "expected": 75}
       ]
     },
     {
@@ -55,9 +62,34 @@
     {
       "id": "NETWORK-078-D", "title": "EU-PATHWAY-CRC", "site": "Fictional European partner network", "scope": "network", "phase": "I/II", "status": "Recruiting",
       "description": "Future-only simulated partner-site study; no live registry or hospital query.",
+      "priority_reason": "Simulated partner option with a matching KRAS G12D result; renal function remains unknown.",
+      "patient_pack": "This fictional early-phase partner study explores an experimental treatment for KRAS G12D colorectal cancer. Early studies focus on dose and safety; benefit is uncertain. Travel, extra visits, blood tests, risks and alternatives would need discussion with the trial team. Kidney function must be checked first. This pack does not enrol you, and you may decline.",
+      "evidence_track": [
+        {"phase": "I", "population": "KRAS G12D solid tumours, including colorectal cancer", "sample_size": 18, "result": "Illustrative response: 3/18 overall; 1/8 colorectal patients.", "limitation": "Invented dose-escalation cohort; mixed tumour types; too small for reliable subgroup conclusions.", "source": "Synthetic evidence dossier NETWORK-078-D §Phase I; not a publication"},
+        {"phase": "I/II", "population": "Current partner expansion cohort", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "No phase III evidence available; not comparable head-to-head with local studies.", "source": "Synthetic protocol NETWORK-078-D §Current study"}
+      ],
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "KRAS G12D mutation", "field": "ras", "op": "eq", "expected": "G12D"},
         {"id": "I2", "kind": "Inclusion", "text": "eGFR ≥60 mL/min/1.73 m² within 14 days", "field": "renal", "op": "gte", "expected": 60, "max_age_days": 14}
+      ]
+    },
+    {
+      "id": "LOCAL-078-E", "title": "RECOVER-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "III", "status": "Recruiting",
+      "description": "Fictional experimental combination study after FOLFOX in microsatellite-stable colorectal cancer.",
+      "priority_reason": "Second local option: recorded MSS and prior FOLFOX support screening, but current kidney function and performance status must be verified.",
+      "patient_pack": "After FOLFOX chemotherapy, this fictional study compares an experimental combination with usual care. Earlier studies suggested some cancers shrank, but we do not know whether the new treatment is better or helps people live longer. Treatment assignment would be by chance. Extra appointments and side effects are possible. Ask the trial team about visits, risks, alternatives and your right to withdraw. Kidney function and performance status need checking. You can read this now and discuss it next week; no enrolment has taken place.",
+      "evidence_track": [
+        {"phase": "I", "population": "Previously treated colorectal cancer", "sample_size": 30, "result": "Illustrative response: 5/30 overall; 3/18 with prior oxaliplatin.", "limitation": "Invented single-arm dose-finding study; not designed to compare benefit.", "source": "Synthetic evidence dossier LOCAL-078-E §Phase I; not a publication"},
+        {"phase": "II", "population": "MSS colorectal cancer after FOLFOX", "sample_size": 80, "result": "Illustrative response: 16/80 overall; 9/40 with ECOG 0 and 7/40 with ECOG 1.", "limitation": "Invented non-randomised cohort; subgroup differences could be chance; no proven survival benefit.", "source": "Synthetic evidence dossier LOCAL-078-E §Phase II; not a publication"},
+        {"phase": "III", "population": "Current randomised comparison", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "Earlier studies are not proof of superiority; no head-to-head comparison with PATHWAY-CRC.", "source": "Synthetic protocol LOCAL-078-E §Current study"}
+      ],
+      "criteria": [
+        {"id": "I1", "kind": "Inclusion", "text": "Age ≥18 years", "field": "age", "op": "gte", "expected": 18},
+        {"id": "I2", "kind": "Inclusion", "text": "Colorectal adenocarcinoma", "field": "pathology", "op": "eq", "expected": "adenocarcinoma"},
+        {"id": "I3", "kind": "Inclusion", "text": "Microsatellite-stable tumour", "field": "msi", "op": "eq", "expected": "MSS"},
+        {"id": "I4", "kind": "Inclusion", "text": "Prior FOLFOX", "field": "therapy", "op": "eq", "expected": "FOLFOX"},
+        {"id": "I5", "kind": "Inclusion", "text": "ECOG ≤1", "field": "ecog", "op": "lte", "expected": 1},
+        {"id": "I6", "kind": "Inclusion", "text": "eGFR ≥60 mL/min/1.73 m² within 14 days", "field": "renal", "op": "gte", "expected": 60, "max_age_days": 14}
       ]
     }
   ]

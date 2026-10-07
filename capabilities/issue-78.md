@@ -19,25 +19,29 @@ Help oncologists notice relevant trials without leaving the patient chart, and s
 An oncologist reviewing a colorectal patient after FOLFOX; a trial coordinator receiving a clinician-reviewed enquiry.
 
 ## Capability
-A proactive local signal opens a criterion-by-criterion comparison of fictional recruiting trials. Supported criteria, conflicts and unknowns remain separate, with record and protocol sources.
+One page opens with the patient context and two local screening candidates, with no tabs or duplicate navigation. Known protocol conflicts are filtered automatically. Up to four candidates can be compared using criterion evidence, outstanding checks and a clearly labelled synthetic prior-phase/subgroup evidence track. Candidates with gaps remain potential matches, never confirmed eligible.
 
 ## Agent behaviour
-The shared Copilot SDK runner inspects the horizon-specific assessment and chooses evidence and action blocks for clinician review. An issue-specific deterministic fallback keeps the same workflow usable without credentials. Neither mode confirms eligibility or recommends treatment.
+The shared Copilot SDK runner reviews the selected horizon-specific candidates, summarises earlier-phase findings and limitations, and drafts an enquiry for each trial. Editable deterministic drafts are available immediately without waiting for AI. A bounded review timeout and issue-specific fallback keep the consultation usable without credentials or when the SDK stalls. Neither mode confirms eligibility or recommends treatment.
 
 ## Inputs
-One synthetic patient, four fictional protocols, dated laboratory and report evidence, the minimal colorectal MDT dataset, and clinician notes.
+One synthetic patient, five fictional protocols, invented earlier-phase evidence and subgroup outcomes, dated laboratory and report evidence, the minimal colorectal MDT dataset, and clinician notes. Current recruiting phases have no reported outcomes.
 
 ## Outputs
-Evidence tables, an assistant review, missing-evidence checklists and an editable local screening enquiry draft. Nothing is ordered, sent or filed.
+Evidence comparison, editable screening enquiry and proposed evidence/order checklist, plain-language patient information packs and local approval receipts. All sending is simulated; nothing is actually ordered, sent or filed.
 
 ## Human decisions
-The oncologist reviews evidence and uncertainty, then explicitly approves a discussion draft, prepares missing-data checks, or dismisses a candidate. Identified conflicts block enquiry approval.
+The oncologist chooses one candidate or none, reviews an inline prefilled request, then explicitly approves a local screening request or patient-pack sharing simulation. A request is not enrolment or consent. Auto-send is unavailable in this prototype; manual approval remains mandatory. Dismissal and missing-evidence review remain on the same page.
 
 ## Dependencies
-HospitalShell, StoryGuide, Backstage, the shared SDK runner, existing UI blocks and file-based sample data. No new services or libraries.
+HospitalShell with issue-local single-page presentation, a compact guided storyline, Backstage, the shared SDK runner, existing UI blocks and file-based sample data. No new services or libraries.
 
 ## Major assumptions
 All protocols, recruitment statuses and clinical evidence are fictional, assessed against the fixed synthetic snapshot date. Criteria are illustrative, not complete protocols. Experimental options are study descriptions, not patient-specific treatment recommendations.
+
+Prior-phase counts and subgroup responses are invented demonstration data, not published findings. Different cohorts cannot be ranked by response rates as if they were head-to-head trials. Candidate order prioritises local access and recorded criterion compatibility, not predicted benefit. Age <75 is specific to one fictional protocol, not a universal restriction; current renal function is missing and must be checked.
+
+The story simulates an EHR launch with an already identified patient. SMART on FHIR is a possible future integration pattern, not a implemented connection. Patient packs describe only recorded history (FOLFOX), uncertainty, risks, alternatives and time for questions; they do not invent surgery or radiation.
 
 In six months, only a local catalogue and mapped minimal-dataset fields are used. Clinic-note performance status and history remain unknown. Molecular and CT findings assume the fictional hospital has started structuring those reports; likely sources are hackathon assumptions. Hospitals must map units and dates, structure reports and maintain a reviewed catalogue.
 
