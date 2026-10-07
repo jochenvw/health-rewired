@@ -651,7 +651,15 @@ export default function TeamDomitian() {
         {view !== 'worklist' && (
           record ? (
             <>
-              {view === 'ready' && <ReadyForMDT record={record} horizon={horizon} onBack={() => setView('case')} onDrillDown={() => setView('evidence')} />}
+              {view === 'ready' && <ReadyForMDT
+                record={record}
+                horizon={horizon}
+                decisions={identityDecisions}
+                agentResult={agentResults[selectedId]}
+                onBack={() => setView('case')}
+                onDrillDown={() => setView('evidence')}
+                onInspect={(assertion) => setEvidenceDrawer(assertion)}
+              />}
               {view === 'identity' && (
                 <IdentityPanel
                   record={record}
@@ -863,35 +871,27 @@ function AttentionPanel({
     : [];
   const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
   const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
-  const conflictReconciled = conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b';
   const allGaps = missingEvidenceItems(record, horizon);
   const pendingGaps = allGaps.filter((item) => reviews[reviewKey(item.assertion)]?.outcome !== 'gap-reviewed');
-  const reviewedGapCount = allGaps.length - pendingGaps.length;
   const generatedAssertions = agentResult?.blocks.flatMap((block) => [
     ...(block.body ? [generatedAssertion(record, block.body)] : []),
     ...block.items.map((item) => generatedAssertion(record, [item.label, item.detail].filter(Boolean).join(' · '))),
   ]) ?? [];
   const pendingGenerated = generatedAssertions.filter((assertion) => reviews[reviewKey(assertion)]?.outcome !== 'unverified-reviewed');
   const needsAttention = identityItems.length + pendingGaps.length + pendingGenerated.length + (conflict && !conflictReview ? 1 : 0);
+  const pendingEvidence = pendingGaps.length + pendingGenerated.length;
   return (
     <Panel
       title="Needs your attention"
       actions={<Pill tone={needsAttention ? 'warn' : 'ok'}>{needsAttention ? `${needsAttention} reviews to complete` : 'All review actions recorded'}</Pill>}
     >
-      <p className="issue74-attention-intro">Outstanding review actions · acknowledged gaps and recorded dispositions stay visible as unresolved where appropriate.</p>
+      <p className="issue74-attention-intro">Up to three review items are shown; counts reflect individual actions within a group. Recording a review removes its action from this queue, while unresolved evidence stays visible in the case.</p>
       <div className="issue74-attention-list">
-        {conflict && (
-          <div className={`attention-conflict${conflictReconciled ? ' attention-reconciled' : conflictReview ? ' attention-reviewed' : ''}`}>
-            <span className="issue74-attention-symbol" aria-hidden="true">{conflictReconciled ? '✓' : conflictReview ? '○' : '!'}</span>
-            <div><strong>{conflictReconciled ? 'Preparation reconciled · source disagreement retained' : conflictReview ? 'Conflict review recorded · evidence remains unresolved' : 'Molecular sources disagree · review required'}</strong><span>{conflictReconciled ? `${conflictReview.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B'} selected for this preparation. ${reviewStatusLabel(conflictReview)}` : conflictReview ? `${reviewStatusLabel(conflictReview)} · neither result is selected.` : 'Neither result has been selected. Compare both source passages.'}</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => onInspect(conflict)}>{conflictReview ? 'Inspect both sources' : 'Review conflict'} <span aria-hidden="true">→</span></button>
-          </div>
-        )}
-        {allGaps.length > 0 && (
-          <div className={`attention-gap${pendingGaps.length ? '' : ' attention-reviewed'}`}>
-            <span className="issue74-attention-symbol" aria-hidden="true">{pendingGaps.length ? '–' : '○'}</span>
-            <div><strong>{pendingGaps.length ? `${pendingGaps.length} evidence gap${pendingGaps.length === 1 ? '' : 's'} need review` : `${allGaps.length} evidence gap${allGaps.length === 1 ? '' : 's'} reviewed · still missing`}</strong><span>{(pendingGaps.length ? pendingGaps : allGaps).slice(0, 2).map((item) => item.label).join(' · ')}{(pendingGaps.length ? pendingGaps : allGaps).length > 2 ? ` · +${(pendingGaps.length ? pendingGaps : allGaps).length - 2} more` : ''}{reviewedGapCount > 0 && pendingGaps.length > 0 ? ` · ${reviewedGapCount} already reviewed but still missing` : ''}. Missing values are not inferred.</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => pendingGaps.length ? onInspect(pendingGaps[0].assertion) : onNavigate('completeness')}>{pendingGaps.length ? 'Review next gap' : 'Open completeness'} <span aria-hidden="true">→</span></button>
+        {conflict && !conflictReview && (
+          <div className="attention-conflict">
+            <span className="issue74-attention-symbol" aria-hidden="true">!</span>
+            <div><strong>Molecular sources disagree</strong><span>Neither result is selected. Compare both source passages.</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => onInspect(conflict)}>Review conflict <span aria-hidden="true">→</span></button>
           </div>
         )}
         {identityItems.length > 0 && (
@@ -901,11 +901,11 @@ function AttentionPanel({
             <button type="button" className="issue74-attention-action" onClick={() => onNavigate('identity')}>Compare identities <span aria-hidden="true">→</span></button>
           </div>
         )}
-        {generatedAssertions.length > 0 && (
-          <div className={`attention-unverified${pendingGenerated.length ? '' : ' attention-reviewed'}`}>
-            <span className="issue74-attention-symbol" aria-hidden="true">{pendingGenerated.length ? '?' : '○'}</span>
-            <div><strong>{pendingGenerated.length ? `${pendingGenerated.length} generated item${pendingGenerated.length === 1 ? '' : 's'} need source review` : `${generatedAssertions.length} generated item${generatedAssertions.length === 1 ? '' : 's'} reviewed · still unverified`}</strong><span>{pendingGenerated.length ? 'These statements have no exact linked passage and remain unverified.' : 'Review was recorded, but no exact source passage was attached.'}</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => pendingGenerated.length ? onInspect(pendingGenerated[0]) : onNavigate('evidence')}>{pendingGenerated.length ? 'Review next item' : 'Inspect evidence'} <span aria-hidden="true">→</span></button>
+        {pendingEvidence > 0 && (
+          <div className="attention-gap">
+            <span className="issue74-attention-symbol" aria-hidden="true">–</span>
+            <div><strong>{pendingEvidence} evidence item{pendingEvidence === 1 ? '' : 's'} need review</strong><span>{pendingGaps.length > 0 && `${pendingGaps.length} gap${pendingGaps.length === 1 ? '' : 's'} · `}{pendingGenerated.length > 0 && `${pendingGenerated.length} unverified statement${pendingGenerated.length === 1 ? '' : 's'} · `}Missing values are never inferred.</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => pendingGaps.length ? onInspect(pendingGaps[0].assertion) : onInspect(pendingGenerated[0])}>{pendingGaps.length ? 'Review next gap' : 'Review next statement'} <span aria-hidden="true">→</span></button>
           </div>
         )}
         {needsAttention === 0 && (
@@ -919,17 +919,71 @@ function AttentionPanel({
   );
 }
 
-function ReadyForMDT({ record, horizon, onBack, onDrillDown }: { record: PatientRecord; horizon: Horizon; onBack: () => void; onDrillDown: () => void }) {
+function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillDown, onInspect }: {
+  record: PatientRecord;
+  horizon: Horizon;
+  decisions: Record<string, IdentityDecision>;
+  agentResult?: AgentResult;
+  onBack: () => void;
+  onDrillDown: () => void;
+  onInspect: (assertion: EvidenceAssertion) => void;
+}) {
   const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
   const slot = scheduled.find((patient) => patient.id === record.id);
   const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
   const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
   const conflictReconciled = conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b';
   const completeness = completenessItems(record, horizon);
-  const missingItems = missingEvidenceItems(record, horizon);
-  const openItems = missingItems.length
-    + completeness.filter((item) => item.state === 'conflicting' && !conflictReconciled).length
-    + (conflict && !conflictReconciled && !completeness.some((item) => item.state === 'conflicting') ? 1 : 0);
+  const generatedAssertions = agentResult?.blocks.flatMap((block) => [
+    ...(block.body ? [generatedAssertion(record, block.body)] : []),
+    ...block.items.map((item) => generatedAssertion(record, [item.label, item.detail].filter(Boolean).join(' · '))),
+  ]) ?? [];
+  const identityCandidatesForRecord = horizon === 'future' ? identityCandidates(record) : [];
+  const resolvedIdentity = identityCandidatesForRecord.filter(({ id }) => {
+    const decision = decisions[`${record.id}:${id}`];
+    return decision === 'confirmed' || decision === 'separate';
+  });
+  const openIdentity = identityCandidatesForRecord.filter(({ id, state }) => {
+    const decision = decisions[`${record.id}:${id}`];
+    return (state === 'review' || state === 'probable') && decision !== 'confirmed' && decision !== 'separate';
+  });
+  const isReconciled = (item: CompletenessItem) => {
+    const outcome = reviews[reviewKey(item.assertion)]?.outcome;
+    return outcome === 'accepted-a' || outcome === 'accepted-b';
+  };
+  const resolvedEvidence = completeness.filter((item) => isReconciled(item));
+  const openEvidence = completeness.filter((item) => item.state !== 'present' && !isReconciled(item));
+  const openItems = [
+    ...openEvidence.map((item) => {
+      const review = reviews[reviewKey(item.assertion)];
+      const status = item.state === 'conflicting'
+        ? review ? `Conflict review recorded · ${reviewStatusLabel(review)}` : 'Conflicting sources'
+        : review ? 'Review recorded · still missing' : 'Missing';
+      return `${item.label} · ${status}: ${item.detail}`;
+    }),
+    ...(conflict && !conflictReconciled && !openEvidence.some((item) => item.state === 'conflicting')
+      ? [`Molecular source disagreement · ${conflictReview ? `review recorded · ${reviewStatusLabel(conflictReview)}` : 'not reconciled'}: neither result is selected.`]
+      : []),
+    ...openIdentity.map((candidate) => `Identity · ${candidate.hospital} · ${decisions[`${record.id}:${candidate.id}`] === 'investigating' ? 'investigation noted · ' : ''}match remains uncertain.`),
+    ...generatedAssertions.map((assertion) => `Unverified statement · ${reviews[reviewKey(assertion)] ? 'review noted · still unverified' : 'no exact source linked'}: ${assertion.statement}`),
+  ];
+  const confirmedEvidence = completeness.filter((item) => reviews[reviewKey(item.assertion)]?.outcome === 'verified');
+  const resolvedItems = [
+    ...resolvedIdentity.map((candidate) => `Identity · ${candidate.hospital}: ${decisions[`${record.id}:${candidate.id}`] === 'confirmed' ? 'confirmed as the same patient' : 'kept separate'}.`),
+    ...resolvedEvidence.map((item) => `${item.label}: ${reviews[reviewKey(item.assertion)]?.outcome === 'accepted-a' ? 'Evidence A selected' : 'Evidence B selected'} for this preparation.`),
+    ...confirmedEvidence.map((item) => `${item.label}: source check recorded.`),
+  ];
+  const treatments = record.treatments.map((treatment) => `${treatment.regimen} · ${treatment.status}`).join('; ') || 'No treatment recorded';
+  const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
+  const currentState = record.current_status ?? 'See latest record entry';
+  const question = clinicalQuestion(record);
+  const provenance: { label: string; assertion: EvidenceAssertion }[] = [
+    { label: 'Diagnosis', assertion: evidenceFor(record, 'Disease', record.diagnosis.primary) },
+    { label: 'Stage and current state', assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${currentState}`) },
+    { label: 'Treatment history', assertion: evidenceFor(record, 'Treatments so far', treatments) },
+    { label: 'What changed', assertion: evidenceFor(record, 'What changed', recentChange) },
+    { label: 'MDT question', assertion: evidenceFor(record, 'Question for the MDT', question) },
+  ];
   return (
     <section className="issue74-ready" aria-labelledby="issue74-ready-title">
       <div className="issue74-ready-banner">
@@ -937,24 +991,53 @@ function ReadyForMDT({ record, horizon, onBack, onDrillDown }: { record: Patient
         <div>
           <span className="issue74-eyebrow">PREPARATION STATUS · HUMAN REVIEW RECORDED</span>
           <h1 id="issue74-ready-title">Ready for MDT review</h1>
-          <p>This evidence package is ready for the team to discuss. It is not a diagnosis or treatment decision.</p>
+          <p>Prepared for discussion · clinical interpretation and decisions remain with the MDT.</p>
         </div>
         <Pill tone="ok">Accepted for review</Pill>
       </div>
-      <div className="issue74-ready-facts">
+      <div className="issue74-ready-patient">
         <div><span className="issue74-eyebrow">PATIENT</span><strong>{record.name}</strong><span>{record.id} · age {record.age}</span></div>
         <div><span className="issue74-eyebrow">MDT SLOT</span><strong>{slot?.time ?? 'Scheduled'}</strong><span>Colorectal MDT · tomorrow</span></div>
-        <div><span className="issue74-eyebrow">CASE</span><strong>{record.diagnosis.primary}</strong><span>Stage {record.diagnosis.stage} · {record.treatments.length} recorded treatment{record.treatments.length === 1 ? '' : 's'}</span></div>
       </div>
-      <div className="issue74-ready-question">
-        <span className="issue74-eyebrow">QUESTION FOR THE MDT</span>
-        <strong>{clinicalQuestion(record)}</strong>
-        <span>{openItems ? `${openItems} evidence item${openItems === 1 ? '' : 's'} remain open and visible for discussion.` : 'No open item was flagged by this synthetic completeness check.'}</span>
+      <section className="issue74-ready-summary" aria-label="Patient at a glance">
+        <h2>Patient at a glance</h2>
+        <div className="issue74-ready-facts">
+          <div><span className="issue74-eyebrow">DIAGNOSIS</span><strong>{record.diagnosis.primary}</strong></div>
+          <div><span className="issue74-eyebrow">STAGE · CURRENT STATE</span><strong>{record.diagnosis.stage} · {currentState}</strong></div>
+          <div><span className="issue74-eyebrow">TREATMENT HISTORY</span><strong>{treatments}</strong></div>
+          <div><span className="issue74-eyebrow">WHAT CHANGED</span><strong>{recentChange}</strong></div>
+        </div>
+        <div className="issue74-ready-question">
+          <span className="issue74-eyebrow">QUESTION FOR THE MDT</span>
+          <strong>{question}</strong>
+        </div>
+      </section>
+      <div className="issue74-ready-outcomes">
+        <section className="issue74-ready-resolved" aria-labelledby="issue74-ready-resolved-title">
+          <h2 id="issue74-ready-resolved-title">Resolved during preparation</h2>
+          {resolvedItems.length > 0
+            ? <ul>{resolvedItems.map((item) => <li key={item}><span aria-hidden="true">✓</span>{item}</li>)}</ul>
+            : <p>No identity match or evidence conflict was resolved during this preparation.</p>}
+        </section>
+        <section className={`issue74-ready-open${openItems.length ? ' has-open-items' : ''}`} aria-labelledby="issue74-ready-open-title">
+          <h2 id="issue74-ready-open-title">{openItems.length ? `Still open · ${openItems.length}` : 'Still open · none flagged'}</h2>
+          {openItems.length > 0
+            ? <ul>{openItems.map((item) => <li key={item}>{item}</li>)}</ul>
+            : <p>No missing, ambiguous or unresolved evidence is flagged by this synthetic check.</p>}
+          <p className="issue74-ready-caveat">Recorded review does not make missing or uncertain evidence clinically resolved.</p>
+        </section>
       </div>
-      {conflictReconciled && <p className="issue74-ready-reconciled"><strong>✓ Reconciled for this preparation:</strong> {conflictReview.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B'} is selected. The original source disagreement remains available for review.</p>}
+      <details className="issue74-ready-provenance">
+        <summary>Inspect source evidence</summary>
+        <div>
+          {provenance.map(({ label, assertion }) => (
+            <div key={label}><strong>{label}</strong><EvidenceLink assertion={assertion} onInspect={onInspect} /></div>
+          ))}
+        </div>
+      </details>
       <div className="issue74-ready-actions">
         <button className="hx-btn" type="button" onClick={onBack}>Back to case review</button>
-        <button className="hx-btn primary" type="button" onClick={onDrillDown}>Drill down into evidence & gaps</button>
+        <button className="hx-btn primary" type="button" onClick={onDrillDown}>Open evidence and gaps</button>
       </div>
     </section>
   );
