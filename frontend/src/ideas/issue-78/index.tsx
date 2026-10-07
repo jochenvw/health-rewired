@@ -319,7 +319,9 @@ export default function TrialMatching() {
                   ? result.mode === 'copilot' ? 'AI-generated synthetic draft — editable; verify every statement.' : 'Deterministic demo draft — editable.'
                   : 'Prefilled deterministic demo draft — editable; not an AI refresh result.'}</p>
                 <label className="tm78-notes">Enquiry to the trial coordinator (synthetic only)
-                  <textarea rows={6} value={notes} onChange={(event) => { setNotes(event.target.value); setReceipt(null); setConfirmation(null); }} /></label>
+                  <textarea rows={6} value={notes} onChange={(event) => {
+                    cancelReview(); setNotes(event.target.value); setReceipt(null); setConfirmation(null);
+                  }} /></label>
                 <details><summary>Missing evidence to resolve before any actual screening</summary>
                   <ul>{gaps.map((criterion) => <li key={criterion.id}>{criterion.text} — {criterion.evidence}</li>)}</ul>
                   <p>The trial team must verify the full protocol, current results and patient preference.</p></details>
@@ -327,6 +329,7 @@ export default function TrialMatching() {
                 <p className="tm78-muted">Select proposed checks for the local draft. These are not orders and do not establish eligibility.</p>
                 {chosen.proposed_orders?.map((order) => <label key={order} className="tm78-choice">
                   <input type="checkbox" checked={orders.includes(order)} onChange={() => {
+                    cancelReview();
                     setOrders((items) => items.includes(order) ? items.filter((item) => item !== order) : [...items, order]);
                     setReceipt(null); setConfirmation(null);
                   }} />{order}</label>)}
