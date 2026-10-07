@@ -13,7 +13,7 @@ export const meta: IdeaMeta = {
   tagline: 'Compare treatment trade-offs with the patient, explain the evidence and decide together.',
 };
 const steps: StoryStep[] = [
-  { id: 'worklist', title: 'Post-MDT worklist', explain: 'Open Eva’s consultation: three choices after surgery.' },
+  { id: 'worklist', title: 'Post-MDT worklist', explain: 'Select a synthetic patient and open their consultation: three choices after surgery.' },
   { id: 'options', title: 'Compare options', explain: 'Explore outcomes and treatment burden. All figures are invented.' },
   { id: 'priorities', title: 'What matters to you?', explain: 'Share ten priority points. More for one means less for the others.' },
   { id: 'patients', title: 'Patients like me', explain: 'Explore synthetic cases with similar age, stage and priorities.' },
@@ -26,6 +26,7 @@ const stages = [
 ];
 type Country = 'Germany' | 'Italy' | 'Netherlands';
 type CaseId = typeof data.priorityCases[number]['id'];
+const patients = [data.patient, ...data.otherPatients];
 const outcomes = [
   { key: 'survival', label: 'Alive', max: 100, unit: 'of 100', times: ['1y', '3y', '5y'] },
   { key: 'recurrence', label: 'Cancer recurrence', max: 100, unit: 'of 100', times: ['1y', '3y', '5y'] },
@@ -40,6 +41,7 @@ type Snapshot = {
   id: number; name: string; caseTitle: string; context: string; country: string;
   labels: Record<keyof Priorities, string>; weights: Priorities; scores: number[]; optionLabels: string[];
   avoided: Avoidance[];
+  patientId: string;
 };
 
 export default function SharedDecision() {
@@ -67,25 +69,32 @@ export default function SharedDecision() {
   const snapshotId = useRef(0);
   const country = data.countries.find((item) => item.name === countryName)!;
   const priorityCase = data.priorityCases.find((item) => item.id === caseId)!;
+  const patient = patients.find((item) => item.id === priorityCase.patientId)!;
   const caseCriteria = criteria.map((item) => ({ ...item, label: priorityCase.labels[item.key] }));
   const scores = preferenceScores(weights, priorityCase.scores, avoided, data.options.map((option) => option.avoidanceFit));
   const outcome = outcomes.find((item) => item.key === outcomeKey)!;
   const avoidanceLabels = (keys: readonly Avoidance[]) => avoidanceControls.filter((item) => keys.includes(item.key)).map((item) => item.label).join(', ') || 'None';
   const bestFits = country.labels.filter((_, i) => scores[i] === Math.max(...scores));
   const topPriorities = caseCriteria.filter((item) => weights[item.key] === Math.max(...Object.values(weights)));
-  const comparable = data.comparablePatients.filter((patient) => caseId === 'neuropathy' && Math.abs(patient.age - data.patient.age) <= 5 &&
-    patient.stage === 'III' && topPriorities.some((item) => item.key === patient.priority));
+  const comparable = data.comparablePatients.filter((record) => caseId === 'neuropathy' && Math.abs(record.age - patient.age) <= 5 &&
+    record.stage === 'III' && topPriorities.some((item) => item.key === record.priority));
   const invalidateDecision = () => { setReceipt(''); setConfirmed(false); setConsent(false); setContributed(false); };
   const resetDraft = () => { setResult(null); setError(''); setStarted(false); invalidateDecision(); };
   const changeWeights = (next: Priorities) => { setWeights(next); resetDraft(); };
   const changeCase = (next: CaseId) => {
     setCaseId(next); setWeights(initialPriorities); setAvoided([]); setChoice('undecided');
+    setSnapshotName('');
     setNotes(data.priorityCases.find((item) => item.id === next)!.note); resetDraft();
+  };
+  const selectPatient = (id: string) => {
+    const next = data.priorityCases.find((item) => item.patientId === id)!;
+    if (next.id !== caseId) changeCase(next.id);
   };
   const saveSnapshot = () => {
     const id = ++snapshotId.current;
     setSnapshots((saved) => [...saved, {
-      id, name: snapshotName.trim() || `Combination ${id}`, caseTitle: priorityCase.title, context: priorityCase.context,
+      id, name: snapshotName.trim() || `Combination ${id}`, patientId: patient.id,
+      caseTitle: `${patient.name} · ${priorityCase.title}`, context: `${patient.minimal} ${patient.details} ${priorityCase.context}`,
       country: countryName, labels: { ...priorityCase.labels }, weights: { ...weights }, scores: [...scores],
       optionLabels: [...country.labels], avoided: [...avoided],
     }]);
@@ -95,7 +104,7 @@ export default function SharedDecision() {
     setBusy(true); setStarted(true); setRuns((n) => n + 1); setError(''); setResult(null);
     try {
       setResult(await request<AgentResult>('/api/ideas/104/explain', {
-        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', case_id: caseId, priorities: weights, avoided_effects: avoided }),
+        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', patient_id: patient.id, priorities: weights, avoided_effects: avoided }),
       }));
     } catch { setError('Assistant unavailable. The synthetic comparisons and term definitions remain available.'); }
     finally { setBusy(false); }
@@ -115,25 +124,25 @@ export default function SharedDecision() {
     <div className="sdm-disclaimer">Hackathon prototype – synthetic data – not for clinical use</div>
     <HospitalShell module="Post-MDT shared decision making" active={step} onNav={setStep}
       nav={steps.map((item) => ({ id: item.id, label: item.title }))}
-      patient={{ ...data.patient, ward: 'Colorectal consultation · Room 2' }}
-      guide={<StoryGuide steps={steps} current={step} onGo={setStep} nextLabel={step === 'worklist' ? 'Open Eva’s consultation' : undefined} />}
+      patient={{ ...patient, ward: 'Colorectal consultation · Room 2' }}
+      guide={<StoryGuide steps={steps} current={step} onGo={setStep} nextLabel={step === 'worklist' ? `Open ${patient.name}’s consultation` : undefined} />}
       toolbar={<><label>Country <select value={countryName} disabled={busy} onChange={(event) => { setCountry(event.target.value as Country); resetDraft(); }}>
         {data.countries.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
-        <label>Case example <select aria-label="Case example" value={caseId} disabled={busy} onChange={(event) => changeCase(event.target.value as CaseId)}>
-          {data.priorityCases.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label><span className="hx-spacer" />
+        <label>Patient <select aria-label="Patient" value={patient.id} disabled={busy} onChange={(event) => selectPatient(event.target.value)}>
+          {patients.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.age} · {data.priorityCases.find((profile) => profile.patientId === item.id)!.title}</option>)}</select></label><span className="hx-spacer" />
         {['light', 'dark'].map((value) => <button key={value} className="hx-btn" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === 'light' ? 'Light' : 'Dark'}</button>)}</>}>
       <div id="sdm-task" tabIndex={-1}><h1>{steps.find((item) => item.id === step)?.title}</h1>
         <div className="sdm-attention"><Pill tone="warn">Human review required</Pill> Synthetic estimates · no validated prediction model</div>
-        <small>{priorityCase.context} Case examples change discussion factors and invented fit assumptions, not medical probabilities.</small>
+        <small>{patient.details} {priorityCase.context} Each patient has a fixed synthetic record. Shared teaching outcome figures are not personalised to these patients.</small>
       </div>
       {step === 'worklist' && <>
         <Panel title="Colorectal clinic · post-MDT"><div className="sdm-scroll"><table className="hx-table"><caption>Synthetic consultations</caption>
           <thead><tr><th>Time</th><th>Patient</th><th>MDT outcome</th><th>Action</th></tr></thead><tbody>
-            <tr><td>09:30</td><td>Eva Sommer · 68</td><td>Stage III · discuss three choices</td><td><button className="hx-btn primary" onClick={() => setStep('options')}>Open consultation</button></td></tr>
-            <tr><td>10:00</td><td>Leon Fischer · 72</td><td>Stage II</td><td>Awaiting pathology</td></tr>
-            <tr><td>10:30</td><td>Marta Klein · 61</td><td>Stage III</td><td>Nurse toxicity review</td></tr>
+            {patients.map((item, i) => <tr key={item.id}><td>{['09:30', '10:00', '10:30'][i]}</td><td>{item.name} · {item.age}</td>
+              <td>{item.diagnosis}<small>{data.priorityCases.find((profile) => profile.patientId === item.id)!.title}</small></td>
+              <td><button className="hx-btn primary" disabled={busy} onClick={() => { selectPatient(item.id); setStep('options'); }}>Open {item.name}</button></td></tr>)}
           </tbody></table></div></Panel>
-        <Panel title="Eva’s MDT outcome"><p>{data.patient.mdt}</p>{why(`${data.patient.minimal} ${priorityCase.context}`)}</Panel>
+        <Panel title={`${patient.name} · MDT outcome`}><p>{patient.mdt}</p>{why(`${patient.minimal} ${priorityCase.context}`)}</Panel>
       </>}
       {step === 'options' && <>
         <Panel title="Clinical outcomes · invented scenario">
@@ -200,9 +209,9 @@ export default function SharedDecision() {
         <Panel title="Compare saved combinations">
           <div className="sdm-assistant-controls"><label>Snapshot name <input value={snapshotName} maxLength={80} onChange={(event) => setSnapshotName(event.target.value)} placeholder="e.g. Side effects first" /></label>
             <button className="hx-btn primary" onClick={saveSnapshot}>Save current combination</button></div>
-          <small>Saved snapshots stay unchanged as sliders move. Local to this visit; different case examples use different fit assumptions.</small>
+          <small>Saved snapshots stay unchanged as sliders move. Local to this visit; each is labelled with its patient. Different patients use different fit assumptions; cross-patient snapshots are not personal outcome comparisons.</small>
           <div className="sdm-snapshots">
-            <section className="sdm-snapshot"><h4>Current combination</h4><small>{priorityCase.title} · {countryName}</small>
+            <section className="sdm-snapshot"><h4>Current combination</h4><small>{patient.name} · {priorityCase.title} · {countryName}</small>
               {caseCriteria.map((item) => <p key={item.key}>{item.label}: <strong>{weights[item.key]} / 10</strong></p>)}<p>Additional concerns: {avoidanceLabels(avoided)}</p>{fitPlot}
             </section>
             {snapshots.map((snapshot) => <section className="sdm-snapshot" key={snapshot.id} aria-label={`Snapshot ${snapshot.name}`}>
@@ -214,24 +223,24 @@ export default function SharedDecision() {
                   <progress max="100" value={snapshot.scores[i]} aria-label={`${snapshot.name}: ${label} saved preference fit`} /></div>)}
                 <small>Closest fit: {snapshot.optionLabels.filter((_, i) => snapshot.scores[i] === Math.max(...snapshot.scores)).join(' / ')}</small>
               </div>
-              <details className="sdm-why"><summary>Saved context</summary><p>{snapshot.context}</p><p>Synthetic preference fit only. No treatment decision was recorded by saving this snapshot.</p></details>
+              <details className="sdm-why"><summary>Saved context</summary><p>Patient: {snapshot.patientId}</p><p>{snapshot.context}</p><p>Synthetic preference fit only. No treatment decision was recorded by saving this snapshot.</p></details>
               <button className="hx-btn" onClick={() => setSnapshots((saved) => saved.filter((item) => item.id !== snapshot.id))}>Remove {snapshot.name}</button>
             </section>)}
           </div>
           {!snapshots.length && <p>Save one combination, change the sliders, then save another to compare side by side.</p>}
         </Panel></>}
       {step === 'patients' && <Panel title="Patients like me · synthetic European examples">
-        <p>{comparable.length} matches · age 63–73 · stage III · {topPriorities.map((item) => item.label).join(' / ')}</p>
+        <p>{comparable.length} matches for {patient.name} · age {patient.age - 5}–{patient.age + 5} · stage III · {topPriorities.map((item) => item.label).join(' / ')}</p>
         {caseId !== 'neuropathy' && <p>No synthetic records capture hair-loss or nausea priorities. Neuropathy examples are not relabelled as matches.</p>}
         <small>Selection uses age within five years, stage III and top slider priorities only. Other characteristics are shown for inspection, not used to select matches. Additional avoidance switches were not recorded in these examples.</small>
         <div className="sdm-option-cards">{data.options.map((option, i) => <section key={option.id}><h3>{country.labels[i]}</h3>
           <div className="sdm-match-count"><strong>{comparable.filter((patient) => patient.option === option.id).length}</strong> synthetic cases</div>
-          {comparable.filter((patient) => patient.option === option.id).map((patient) => <details className="sdm-case" key={patient.id}><summary>{patient.age} years · {patient.site.split(' · ')[0]}</summary>
-            <p>{patient.outcome}</p><small>{patient.id} · {caseCriteria.find((item) => item.key === patient.priority)?.label}</small>
-            <p><strong>Selection matches:</strong> Stage III; age {patient.age} vs Eva {data.patient.age} ({Math.abs(patient.age - data.patient.age)} years apart); shared top slider priority.</p>
-            <dl className="sdm-characteristics">{Object.entries(data.comparableCharacteristics[patient.id]).map(([key, value]) => {
-              const current = data.patient.characteristics[key as keyof typeof data.patient.characteristics];
-              return <div key={key}><dt>{key} · {value === 'Not recorded' ? 'Unknown' : value === current ? 'Matches' : 'Differs'}</dt><dd>Case: {value} · Eva: {current}</dd></div>;
+          {comparable.filter((record) => record.option === option.id).map((record) => <details className="sdm-case" key={record.id}><summary>{record.age} years · {record.site.split(' · ')[0]}</summary>
+            <p>{record.outcome}</p><small>{record.id} · {caseCriteria.find((item) => item.key === record.priority)?.label}</small>
+            <p><strong>Selection matches:</strong> Stage III; age {record.age} vs {patient.name} {patient.age} ({Math.abs(record.age - patient.age)} years apart); shared top slider priority.</p>
+            <dl className="sdm-characteristics">{Object.entries(data.comparableCharacteristics[record.id]).map(([key, value]) => {
+              const current = patient.characteristics[key as keyof typeof patient.characteristics];
+              return <div key={key}><dt>{key} · {value === 'Not recorded' ? 'Unknown' : value === current ? 'Matches' : 'Differs'}</dt><dd>Case: {value} · {patient.name}: {current}</dd></div>;
             })}</dl>
           </details>)}
         </section>)}</div>
@@ -243,7 +252,7 @@ export default function SharedDecision() {
           {data.options.map((option, i) => <option key={option.id} value={option.id}>{country.labels[i]}</option>)}</select></label>
         <label>Priorities and next steps<textarea rows={3} value={notes} onChange={(event) => { setNotes(event.target.value); invalidateDecision(); }} /></label>
         <label><input type="checkbox" checked={confirmed} onChange={(event) => { invalidateDecision(); setConfirmed(event.target.checked); }} /> Patient and clinician reviewed options and uncertainty together.</label>
-        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · Eva · ${priorityCase.title}. ${notes} Priorities: ${caseCriteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Additional concerns: ${avoidanceLabels(avoided)}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
+        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · ${patient.name} (${patient.id}) · ${priorityCase.title}. ${notes} Priorities: ${caseCriteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Additional concerns: ${avoidanceLabels(avoided)}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
         {receipt && <div className="sdm-attention" role="status"><strong>Conversation recorded ✓</strong><p>{receipt}</p><small>Local only · not persisted · no EHR write-back</small>
           <label><input type="checkbox" checked={consent} disabled={contributed} onChange={(event) => setConsent(event.target.checked)} /> Agree to a synthetic learning-loop preview.</label>
           <button className="hx-btn" disabled={!consent || contributed} onClick={() => setContributed(true)}>Contribute to learning loop · simulate</button>

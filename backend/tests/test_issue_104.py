@@ -100,3 +100,36 @@ def test_side_effect_preferences_and_comparable_characteristics(monkeypatch):
     assert response.status_code == 200
     assert "Additional avoidance concerns: Hair loss, Nausea and vomiting" in response.json()["blocks"][0]["body"]
     assert client.post("/api/ideas/104/explain", json={"avoided_effects": ["unknown"]}).status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("patient_id", "name", "age", "case_id", "ecog"),
+    [
+        ("SDM-104", "Eva Sommer", 68, "neuropathy", "1"),
+        ("SDM-104-2", "Marta Klein", 61, "hair-loss", "0"),
+        ("SDM-104-3", "Leon Fischer", 72, "nausea", "1"),
+    ],
+)
+def test_distinct_fixed_patient_records(patient_id, name, age, case_id, ecog, monkeypatch):
+    monkeypatch.setattr(settings, "copilot_token", None)
+    monkeypatch.setattr(settings, "copilot_use_logged_in_user", False)
+    original = sample_data.read("issue-104.json")
+    context = consultation_data(Consultation(patient_id=patient_id))
+    assert context["patient_identity"]["id"] == patient_id
+    assert context["patient_identity"]["name"] == name
+    assert context["patient_identity"]["age"] == age
+    assert context["patient_characteristics"]["ECOG"] == ecog
+    assert context["priority_case"]["id"] == case_id
+    assert consultation_data(Consultation(case_id=case_id)) == context
+    if patient_id != "SDM-104":
+        assert "Eva" not in context["patient"]
+        assert context["comparable_patients"] == []
+    assert (
+        consultation_data(Consultation(patient_id=patient_id, priorities={"quality": 10}))["patient_identity"]
+        == context["patient_identity"]
+    )
+    assert sample_data.read("issue-104.json") == original
+    client = TestClient(app)
+    result = client.post("/api/ideas/104/explain", json={"patient_id": patient_id}).json()
+    assert f"Patient: {name} ({patient_id})" in result["blocks"][0]["body"]
+    assert client.post("/api/ideas/104/explain", json={"patient_id": "unknown"}).status_code == 422

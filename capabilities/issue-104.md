@@ -33,8 +33,13 @@ Additional hair-loss, nausea and hand–foot avoidance switches each add one pre
 the ten slider points. Fit combines the slider sum with the selected invented avoidance scores,
 divides by ten plus switch count and scales to 100. This is not a contraindication or prediction.
 Switch changes clear assistant drafts and invalidate recorded decisions; case changes and reset clear switches.
-Three alternative synthetic colon cancer cases adapt the factors: neuropathy, hair loss or nausea
-concerns after surgery. Side-effect definitions now expand within Compare options, not in a
+Three distinct synthetic colon cancer patients have fixed records and concerns: Eva Sommer (68,
+neuropathy), Marta Klein (61, hair loss) and Leon Fischer (72, nausea). Select a patient directly
+from the Patient dropdown or open their worklist row; selecting a concern no longer changes Eva.
+Each record has its own identity, staging, fitness, renal function, MDT summary and discussion factors.
+The banner, walkthrough, comparison context, assistant and decision receipt use the selected patient.
+The shared outcome placeholders remain unchanged across patients and are not personalised predictions.
+Side-effect definitions now expand within Compare options, not in a
 separate priorities panel. Outcome cards include simulated week-12 symptom severity; an outcome
 dropdown selects survival, recurrence, fatigue, neuropathy, hair loss, nausea or hand–foot plots.
 Survival/recurrence samples use years 1, 3 and 5; symptom samples use weeks 4, 12 and 24.
@@ -45,9 +50,11 @@ direct retrieval was unavailable. Short original definitions link to that index,
 Regimen-specific advice, frequencies and differences remain unverified. Hair-loss and nausea
 fit assumptions are equal between the chemotherapy choices; this does not establish equal clinical risk.
 Labels and transparent
-invented option-fit scores change with the case; medical placeholder figures do not. Changing case
+invented option-fit scores follow the patient's fixed concern; medical placeholder figures do not. Changing patient
 resets priorities, draft, choice and note so the previous scenario is not accidentally recorded.
-Named snapshots preserve weights, avoidance switches, factor labels, fit scores, option labels, country and case context.
+Named snapshots preserve patient ID/name and fixed record context, weights, avoidance switches, factor labels,
+fit scores, option labels and country. Saved snapshots remain explicitly patient-labelled when switching;
+cross-patient snapshots are not personal outcome comparisons.
 Multiple saved combinations sit beside the live combination; slider edits never mutate saved
 snapshots. Remove individual snapshots as needed. Snapshots persist only during the current visit,
 not after leaving/reloading; saving is not a treatment decision.
@@ -61,14 +68,16 @@ blocks. Without credentials, an issue-specific deterministic explanation keeps t
 Neither mode retrieves full guidelines, calculates a validated personal risk or chooses treatment.
 
 ## Inputs
-A synthetic 68-year-old stage III colon cancer scenario, unverified teaching summaries, source
-links, patient priorities, case example and selected country. “Patients like me” uses invented European
+Three synthetic stage III colon cancer records, unverified teaching summaries, source
+links, patient priorities, selected patient and country. The API accepts validated `patient_id`;
+legacy `case_id` requests map to the corresponding fixed patient record. When supplied, patient ID
+determines the profile. “Patients like me” uses invented European
 records filtered by age within five years, stage III and any tied highest-rated priority. No priorities
 means no matches in the compatible API; the UI always allocates ten points.
-Only the neuropathy case has compatible observational examples. Hair-loss and nausea cases
+Only Eva's neuropathy profile has compatible observational examples. Marta and Leon
 explicitly show no compatible records rather than relabelling neuropathy examples.
 Each comparable record shows age distance and top-priority/stage selection matches, plus inspected
-diagnosis, sex, pTNM, MMR, ECOG and renal function alongside Eva's values, labelled Matches, Differs
+diagnosis, sex, pTNM, MMR, ECOG and renal function alongside the selected patient's values, labelled Matches, Differs
 or Unknown. These additional synthetic characteristics are not selection filters; avoidance switches
 were not recorded in the cohort and are not claimed to match.
 

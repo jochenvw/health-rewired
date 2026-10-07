@@ -25,6 +25,7 @@ class Consultation(BaseModel):
     country: Literal["Germany", "Italy", "Netherlands"] = "Germany"
     horizon: Literal["future", "six-months"] = "future"
     case_id: Literal["neuropathy", "hair-loss", "nausea"] = "neuropathy"
+    patient_id: Literal["SDM-104", "SDM-104-2", "SDM-104-3"] | None = None
     priorities: Priorities = Field(default_factory=Priorities)
     avoided_effects: list[Literal["hairLoss", "nausea", "handFoot"]] = Field(default_factory=list, max_length=3)
 
@@ -32,17 +33,24 @@ class Consultation(BaseModel):
 def consultation_data(params: Consultation) -> dict:
     data = sample_data.read("issue-104.json")
     country = next(item for item in data["countries"] if item["name"] == params.country)
-    priority_case = next(item for item in data["priorityCases"] if item["id"] == params.case_id)
-    patient = data["patient"]["minimal"]
+    priority_case = next(
+        item
+        for item in data["priorityCases"]
+        if (item["patientId"] == params.patient_id if params.patient_id else item["id"] == params.case_id)
+    )
+    patient_record = next(
+        item for item in [data["patient"], *data["otherPatients"]] if item["id"] == priority_case["patientId"]
+    )
+    patient = f"{patient_record['name']} ({patient_record['id']}). " + patient_record["minimal"]
     if params.horizon == "future":
-        patient += " " + data["patient"]["details"] + " " + priority_case["context"]
+        patient += " " + patient_record["details"] + " " + priority_case["context"]
     weights = params.priorities.model_dump()
     top_weight = max(weights.values())
     comparable = [
         item
         for item in data["comparablePatients"]
-        if params.case_id == "neuropathy"
-        and abs(item["age"] - data["patient"]["age"]) <= 5
+        if priority_case["id"] == "neuropathy"
+        and abs(item["age"] - patient_record["age"]) <= 5
         and item["stage"] == "III"
         and top_weight > 0
         and weights[item["priority"]] == top_weight
@@ -51,9 +59,11 @@ def consultation_data(params: Consultation) -> dict:
         "notice": data["notice"],
         "country": country,
         "patient": patient,
+        "patient_identity": {key: patient_record[key] for key in ("id", "name", "age", "sex", "diagnosis")},
+        "mdt": patient_record["mdt"],
         "priorities": weights,
         "avoided_effects": list(dict.fromkeys(params.avoided_effects)),
-        "patient_characteristics": data["patient"]["characteristics"] if params.horizon == "future" else {},
+        "patient_characteristics": patient_record["characteristics"] if params.horizon == "future" else {},
         "priority_case": priority_case,
         "side_effect_reference": data["sideEffectReference"],
         "side_effects": data["sideEffects"],
@@ -101,6 +111,9 @@ async def explain(params: Consultation) -> AgentResult:
             "Separate patient values from guideline/trial evidence, unconnected prediction models and "
             "synthetic observational examples. Discuss the provided priorities without treating fit as "
             "a clinical probability. Use the selected cancer side-effect priority_case labels and context. "
+            "Use only the selected patient's identity and fixed characteristics. Do not substitute Eva for "
+            "another patient or treat patient selection as editing one person's record. Shared outcome "
+            "figures are teaching placeholders, not patient-specific predictions or MDT recommendations. "
             "The side_effect_reference supports topic selection only: regimen-specific advice and frequencies "
             "are unverified. Never infer hair-loss or nausea likelihoods or compare regimen toxicity from "
             "invented fit scores. Distinguish neuropathy from hand-foot syndrome. "
@@ -134,7 +147,8 @@ async def explain(params: Consultation) -> AgentResult:
                 body=(
                     context["terms"]["Adjuvant therapy"]
                     + " No additional chemotherapy remains a choice to discuss, with follow-up and supportive care."
-                    + f" Case example: {context['priority_case']['title']}. "
+                    + f" Patient: {context['patient_identity']['name']} ({context['patient_identity']['id']}). "
+                    + f"Discussion: {context['priority_case']['title']}. "
                     + "Your priorities (0–10): "
                     + ", ".join(
                         f"{context['priority_case']['labels'][key]} {value}"
