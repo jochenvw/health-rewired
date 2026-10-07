@@ -68,6 +68,8 @@ export const api = {
   colonCase: <T,>() => request<T>('/api/ideas/81/case'),
   prepareColon: <T,>(body: unknown) =>
     request<T>('/api/ideas/81/prepare', { method: 'POST', body: JSON.stringify(body) }),
+  discussColon: <T,>(body: unknown) =>
+    request<T>('/api/ideas/81/discuss', { method: 'POST', body: JSON.stringify(body) }),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
 };

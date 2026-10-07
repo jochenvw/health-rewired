@@ -4,6 +4,7 @@ import { RenderBlock } from '../../blocks/registry';
 import { HospitalShell, Panel, Pill, type BannerPatient } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, Working, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
+import PatientDiscussion, { dimensions, initialPriorities, type Discussion } from './PatientDiscussion';
 import './style.css';
 
 export const meta: IdeaMeta = {
@@ -30,12 +31,13 @@ type Preparation = {
   agent: AgentResult;
 };
 type Horizon = 'future' | 'six-months';
-type Step = 'worklist' | 'review' | 'compare' | 'summary' | 'filed';
+type Step = 'worklist' | 'review' | 'compare' | 'discussion' | 'summary' | 'filed';
 
 const story: StoryStep[] = [
   { id: 'worklist', title: 'Open the patient', explain: 'Elena is awaiting her first colon cancer MDT. Ask the assistant to read her synthetic record.' },
   { id: 'review', title: 'Review the facts', explain: 'Check the extracted facts and their sources. Correct them before matching any recommendations.' },
   { id: 'compare', title: 'Compare guidelines', explain: 'Compare three illustrative pathways. Pending results and patient preferences stay visible.' },
+  { id: 'discussion', title: 'Discuss patient priorities', explain: 'Explore the visual trade-offs together. Only the patient and clinician can decide what matters and which options are acceptable.' },
   { id: 'summary', title: 'Approve the summary', explain: 'Choose what to bring to the MDT. Uncertainty travels with the recommendations.' },
   { id: 'filed', title: 'Ready for the MDT', explain: 'Your approved preparation is saved in this demo only. The MDT still makes the treatment decision.' },
 ];
@@ -43,6 +45,11 @@ const stages = [
   { label: 'Read the patient record', detail: 'CSV lab export, FHIR-style staging and a Word-letter text export', ms: 400 },
   { label: 'Separate known facts from pending results', detail: 'No assumption of a negative CT or normal MMR result', ms: 500 },
   { label: 'Prepare a source-linked draft', detail: 'Illustrative guideline examples only; physician review required', ms: 500 },
+];
+const discussionStages = [
+  { label: 'Read the confirmed patient context', detail: 'Reviewed facts only; missing results are never invented', ms: 400 },
+  { label: 'Build the illustrative option grid', detail: 'Fictional visual-aid numbers, not a validated personal risk model', ms: 500 },
+  { label: 'Explain the choices in plain language', detail: 'Sources, limitations and uncertainty remain inspectable', ms: 500 },
 ];
 const options: Record<string, { value: string; label: string }[]> = {
   stage: [{ value: 'pending', label: 'CT staging pending' }, { value: 'localized', label: 'Localized / no distant metastases confirmed' }, { value: 'metastatic', label: 'Distant metastases confirmed' }],
@@ -63,6 +70,11 @@ export default function ColonPreparation() {
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [discussion, setDiscussion] = useState<Discussion | null>(null);
+  const [priorities, setPriorities] = useState(initialPriorities);
+  const [preference, setPreference] = useState('');
+  const [discussionNote, setDiscussionNote] = useState('');
+  const [discussionConfirmed, setDiscussionConfirmed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -84,6 +96,15 @@ export default function ColonPreparation() {
     setNote('');
     setError('');
     setRun(0);
+    clearDiscussion();
+  }
+
+  function clearDiscussion() {
+    setDiscussion(null);
+    setPriorities(initialPriorities());
+    setPreference('');
+    setDiscussionNote('');
+    setDiscussionConfirmed(false);
   }
 
   async function prepare(confirm: boolean) {
@@ -101,6 +122,7 @@ export default function ColonPreparation() {
       setFacts(data.facts);
       setResult(data);
       if (confirm) {
+        clearDiscussion();
         setSelected(data.recommendations.map((item) => item.id));
         setStep('compare');
       } else {
@@ -113,23 +135,44 @@ export default function ColonPreparation() {
     }
   }
 
+  async function openDiscussion() {
+    if (busy || !result || !selected.length || step === 'review') return;
+    setError('');
+    setStep('discussion');
+    if (discussion) return;
+    setBusy(true);
+    setRun((n) => n + 1);
+    try {
+      setDiscussion(await api.discussColon<Discussion>({ horizon, facts }));
+    } catch {
+      setError('The discussion visual aid could not be loaded. Your reviewed facts are preserved; try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function go(id: string) {
     if (busy) return;
     if (id === 'worklist') { reset(); return; }
     if (id === 'review') {
       if (!facts.length) void prepare(false);
-      else { setStep('review'); setSelected([]); }
+      else { setStep('review'); setSelected([]); clearDiscussion(); }
       return;
     }
     if (id === 'compare') {
       if (step === 'review') void prepare(true);
-      else if (result && ['compare', 'summary', 'filed'].includes(step)) setStep('compare');
+      else if (result && ['compare', 'discussion', 'summary', 'filed'].includes(step)) setStep('compare');
       else setError('Prepare and confirm the patient facts first.');
       return;
     }
-    if (id === 'summary' && result && step !== 'review' && selected.length) setStep('summary');
-    else if (id === 'filed' && step === 'summary' && selected.length) setStep('filed');
-    else setError('Review the facts and select at least one recommendation before approving the summary.');
+    if (id === 'discussion') {
+      if (result && step !== 'review' && selected.length) void openDiscussion();
+      else setError('Confirm the facts and select at least one guideline point before discussing patient priorities.');
+      return;
+    }
+    if (id === 'summary' && result && step !== 'review' && selected.length && discussionConfirmed) setStep('summary');
+    else if (id === 'filed' && step === 'summary' && selected.length && discussionConfirmed) setStep('filed');
+    else setError('Review the facts, select guideline points and confirm the patient discussion before approving the summary.');
   }
 
   function editFact(key: string, value: string) {
@@ -141,7 +184,7 @@ export default function ColonPreparation() {
 
   const chosen = result?.recommendations.filter((item) => selected.includes(item.id)) ?? [];
   const nextLabel = step === 'worklist' ? 'Prepare guideline recommendations' : step === 'review' ? 'Confirm facts & compare' :
-    step === 'compare' ? 'Review MDT summary' : 'Approve for MDT';
+    step === 'compare' ? 'Discuss patient priorities' : step === 'discussion' ? 'Review MDT summary' : 'Approve for MDT';
   const allergy = facts.find((fact) => fact.key === 'allergy');
   const patient = record ? {
     ...record.patient,
@@ -171,6 +214,7 @@ export default function ColonPreparation() {
           { id: 'worklist', label: 'MDT preparation list', badge: 4 },
           { id: 'review', label: 'Extracted patient facts', badge: facts.length || undefined },
           { id: 'compare', label: 'Guideline comparison' },
+          { id: 'discussion', label: 'Patient priorities & options' },
           { id: 'summary', label: 'MDT summary' },
         ]}
         active={step === 'filed' ? 'summary' : step}
@@ -184,7 +228,7 @@ export default function ColonPreparation() {
       >
         <div id="c81-task" tabIndex={-1}>
           {error && <div className="c81-attention" role="alert">{error} {!record && <button className="hx-btn" onClick={() => setLoadAttempt((n) => n + 1)}>Reload record</button>}</div>}
-          {busy && <Backstage key={run} stages={stages} running holdLast release={false} note="Activity timings are simulated. Copilot SDK is used when configured; otherwise a deterministic demo is shown." />}
+          {busy && <Backstage key={run} stages={step === 'discussion' ? discussionStages : stages} running holdLast release={false} note="Activity timings are simulated. Copilot SDK is used when configured; otherwise a deterministic demo is shown." />}
           {!record && !error && <Working label="Loading the synthetic patient record" />}
           {step === 'worklist' && record && <>
             <div className="c81-heading"><div><span className="c81-eyebrow">TOMORROW'S TUMOUR BOARD · 08:30</span><h1>Prepare the patient, not the whole guideline</h1><p>One record. Three sources. Clear questions for the MDT.</p></div><Pill tone="warn">CT + MMR pending</Pill></div>
@@ -246,8 +290,20 @@ export default function ColonPreparation() {
               {result.agent.note && <p>{result.agent.note}</p>}
               {result.agent.blocks.map((block, i) => <RenderBlock key={i} block={block} />)}
             </details>
-            <button className="hx-btn primary" disabled={!selected.length} onClick={() => go('summary')}>Review MDT summary · {selected.length} selected</button>
+            <button className="hx-btn primary" disabled={busy || !selected.length} onClick={() => go('discussion')}>Discuss patient priorities · {selected.length} selected</button>
           </>}
+          {step === 'discussion' && !discussion && !busy && <Panel title="Patient discussion visual aid"><p>Load the source-linked, synthetic option grid using the facts you confirmed.</p><button className="hx-btn primary" onClick={() => void openDiscussion()}>Load patient discussion</button></Panel>}
+          {step === 'discussion' && discussion && <PatientDiscussion
+            data={discussion}
+            priorities={priorities}
+            onPriorities={(value) => { setPriorities(value); setDiscussionConfirmed(false); }}
+            preference={preference}
+            onPreference={(value) => { setPreference(value); setDiscussionConfirmed(false); }}
+            discussionNote={discussionNote}
+            onNote={(value) => { setDiscussionNote(value); setDiscussionConfirmed(false); }}
+            onConfirm={() => { setDiscussionConfirmed(true); setError(''); setStep('summary'); }}
+            references={result?.recommendations ?? []}
+          />}
           {(step === 'summary' || step === 'filed') && result && <>
             <div className="c81-heading"><div><span className="c81-eyebrow">{step === 'filed' ? 'APPROVED PREPARATION · DEMO ONLY' : 'FINAL HUMAN CHECK'}</span><h1>{step === 'filed' ? 'Ready for the MDT' : 'Your MDT preparation summary'}</h1><p>Elena Fischer · C-081 · primary colon cancer · {horizon === 'future' ? 'The future' : 'In six months'}</p></div>{step === 'filed' && <Pill tone="ok">Approved locally ✓</Pill>}</div>
             {step === 'filed' && <div className="c81-receipt" role="status">Saved in this walkthrough only, not written to a hospital record. No treatment has been ordered. Restarting or reloading clears the demo.</div>}
@@ -260,8 +316,15 @@ export default function ColonPreparation() {
               <label htmlFor="c81-note">Physician note for the MDT</label>
               <textarea id="c81-note" rows={3} disabled={step === 'filed'} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional: what should the MDT decide?" />
             </Panel>
+            {discussion && <Panel title="Patient priorities and provisional preference · discussion confirmed">
+              <dl className="c81-facts">{dimensions.map((dimension) => <div key={dimension.key}><dt>{dimension.label}</dt><dd>{priorities[dimension.key]} / 10 importance</dd></div>)}</dl>
+              <p><strong>Provisional preference: </strong>{discussion.options.find((option) => option.id === preference)?.title ?? 'No preference yet — keep the question open'}.</p>
+              <p><strong>Patient discussion note: </strong>{discussionNote || 'No additional note recorded.'}</p>
+              <p>{discussion.eligibility}</p>
+              <details><summary>Discussion: reasoning and evidence limitations</summary><p>{discussion.limitation}</p><p>The sliders express values; they do not change risk estimates or establish consent. No treatment is selected by the system.</p>{discussion.evidence.map((item) => <p key={item.label}><strong>{item.label}: </strong>{item.detail}</p>)}</details>
+            </Panel>}
             <div className="c81-two"><Findings title="Still unresolved · do not lose these questions" items={result.missing} /><Findings title="Conflicts requiring human judgment" items={result.conflicts} /></div>
-            {step === 'summary' && <div className="c81-actions"><button className="hx-btn" onClick={() => setStep('compare')}>Edit selected points</button><button className="hx-btn primary" disabled={!selected.length} onClick={() => go('filed')}>Approve for MDT · save demo summary</button></div>}
+            {step === 'summary' && <div className="c81-actions"><button className="hx-btn" onClick={() => setStep('compare')}>Edit selected points</button><button className="hx-btn" onClick={() => go('discussion')}>Revisit patient priorities</button><button className="hx-btn primary" disabled={!selected.length || !discussionConfirmed} onClick={() => go('filed')}>Approve for MDT · save demo summary</button></div>}
           </>}
           {horizon === 'six-months' && record && <Panel title="What this needs from the minimal dataset">
             <p>Coverage is based on the colorectal minimal dataset. Likely source is a hackathon assumption, not a measurement.</p>
