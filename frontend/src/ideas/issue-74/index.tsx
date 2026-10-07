@@ -25,6 +25,19 @@ type EvidenceReview = {
   rationale: string;
   reviewedAt: string;
 };
+type SourceUpdate = {
+  kind: 'correction' | 'addendum';
+  reviewOutcome: 'accepted-a' | 'accepted-b';
+  source: EvidenceSource;
+  originalValue: string;
+  reviewedValue: string;
+  decision: string;
+  context: string;
+  status: 'proposed' | 'reviewed' | 'submitted';
+  proposedAt: string;
+  reviewedAt?: string;
+  submittedAt?: string;
+};
 
 type EvidenceSource = {
   title: string;
@@ -32,6 +45,7 @@ type EvidenceSource = {
   date: string;
   type: string;
   excerpt: string;
+  value?: string;
 };
 
 type EvidenceAssertion = {
@@ -44,7 +58,10 @@ type EvidenceAssertion = {
 
 type EvidenceReviewContextValue = {
   reviews: Record<string, EvidenceReview>;
+  reviewHistory: Record<string, EvidenceReview[]>;
   saveReview: (assertion: EvidenceAssertion, review: EvidenceReview) => void;
+  sourceUpdates: Record<string, SourceUpdate[]>;
+  saveSourceUpdate: (assertion: EvidenceAssertion, update: SourceUpdate) => void;
 };
 
 const EvidenceReviewContext = createContext<EvidenceReviewContextValue | null>(null);
@@ -159,6 +176,28 @@ function loadEvidenceReviews(): Record<string, EvidenceReview> {
     const stored: unknown = JSON.parse(window.localStorage.getItem('issue74-evidence-reviews') ?? '{}');
     return stored && typeof stored === 'object' && !Array.isArray(stored)
       ? stored as Record<string, EvidenceReview>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function loadEvidenceReviewHistory(): Record<string, EvidenceReview[]> {
+  try {
+    const stored: unknown = JSON.parse(window.localStorage.getItem('issue74-evidence-review-history') ?? '{}');
+    return stored && typeof stored === 'object' && !Array.isArray(stored)
+      ? stored as Record<string, EvidenceReview[]>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function loadSourceUpdates(): Record<string, SourceUpdate[]> {
+  try {
+    const stored: unknown = JSON.parse(window.localStorage.getItem('issue74-source-updates') ?? '{}');
+    return stored && typeof stored === 'object' && !Array.isArray(stored)
+      ? stored as Record<string, SourceUpdate[]>
       : {};
   } catch {
     return {};
@@ -377,6 +416,8 @@ export default function TeamDomitian() {
   const [recoveryStates, setRecoveryStates] = useState<Record<string, RecoveryState>>({});
   const [cohortQuestions, setCohortQuestions] = useState<Record<string, string>>({});
   const [evidenceReviews, setEvidenceReviews] = useState<Record<string, EvidenceReview>>(loadEvidenceReviews);
+  const [evidenceReviewHistory, setEvidenceReviewHistory] = useState<Record<string, EvidenceReview[]>>(loadEvidenceReviewHistory);
+  const [sourceUpdates, setSourceUpdates] = useState<Record<string, SourceUpdate[]>>(loadSourceUpdates);
   const [evidenceDrawer, setEvidenceDrawer] = useState<EvidenceAssertion | null>(null);
   const [datasetGroups, setDatasetGroups] = useState<{ group: string; elements: { name: string; likely_source: string }[] }[]>([]);
 
@@ -387,6 +428,22 @@ export default function TeamDomitian() {
       setNotice('Evidence review is recorded for this session, but browser storage is unavailable for later MDT preparations.');
     }
   }, [evidenceReviews]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('issue74-evidence-review-history', JSON.stringify(evidenceReviewHistory));
+    } catch {
+      setNotice('MDT review history is available for this session, but browser storage is unavailable for later preparations.');
+    }
+  }, [evidenceReviewHistory]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('issue74-source-updates', JSON.stringify(sourceUpdates));
+    } catch {
+      setNotice('Source update history is available for this session, but browser storage is unavailable for later MDT preparations.');
+    }
+  }, [sourceUpdates]);
 
   useEffect(() => {
     let active = true;
@@ -517,7 +574,17 @@ export default function TeamDomitian() {
       <a className="issue74-skip-link" href="#issue74-main">Skip to case work</a>
       <EvidenceReviewContext.Provider value={{
         reviews: evidenceReviews,
-        saveReview: (assertion, review) => setEvidenceReviews((current) => ({ ...current, [reviewKey(assertion)]: review })),
+        reviewHistory: evidenceReviewHistory,
+        saveReview: (assertion, review) => {
+          const key = reviewKey(assertion);
+          setEvidenceReviews((current) => ({ ...current, [key]: review }));
+          setEvidenceReviewHistory((current) => ({ ...current, [key]: [...(current[key] ?? []), review] }));
+        },
+        sourceUpdates,
+        saveSourceUpdate: (assertion, update) => setSourceUpdates((current) => ({
+          ...current,
+          [reviewKey(assertion)]: [...(current[reviewKey(assertion)] ?? []), update],
+        })),
       }}>
       <div className="issue74-controls">
         <div>
@@ -755,7 +822,7 @@ function statusLabel(status: CaseStatus) {
   })[status];
 }
 
-function EvidenceMarker({ state }: { state: EvidenceState }) {
+function EvidenceMarker({ state, assertion }: { state: EvidenceState; assertion?: EvidenceAssertion }) {
   const symbols: Record<EvidenceState, string> = {
     corroborated: '✓',
     'single-source': '○',
@@ -763,9 +830,18 @@ function EvidenceMarker({ state }: { state: EvidenceState }) {
     contradictory: '!',
     missing: '–',
   };
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const review = assertion ? reviews[reviewKey(assertion)] : undefined;
+  const status = review?.outcome === 'verified' ? 'Human-verified'
+    : review?.outcome === 'gap-reviewed' ? 'Reviewed · still missing'
+      : review?.outcome === 'unverified-reviewed' ? 'Reviewed · still unverified'
+        : review?.outcome === 'accepted-a' || review?.outcome === 'accepted-b' ? 'Resolved for this case · source disagreement retained'
+          : review?.outcome === 'unresolved' ? 'Reviewed · still unresolved'
+            : review?.outcome === 'investigation' ? 'Investigation noted · unresolved'
+              : evidenceLabels[state];
   return (
-    <span className={`issue74-evidence-state state-${state}`} title={evidenceDescriptions[state]} aria-label={`${evidenceLabels[state]}: ${evidenceDescriptions[state]}`}>
-      <span aria-hidden="true">{symbols[state]}</span> {evidenceLabels[state]}
+    <span className={`issue74-evidence-state state-${state}${review ? ' has-review' : ''}`} title={`${status}: ${evidenceDescriptions[state]}`} aria-label={`${status}: ${evidenceDescriptions[state]}`}>
+      <span aria-hidden="true">{symbols[state]}</span> {status}
     </span>
   );
 }
@@ -786,7 +862,8 @@ function EvidenceLink({ assertion, onInspect, label }: { assertion: EvidenceAsse
 }
 
 function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onInspect: (assertion: EvidenceAssertion) => void }) {
-  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const reviewContext = useContext(EvidenceReviewContext);
+  const reviews = reviewContext?.reviews ?? {};
   const assertions = [
     evidenceFor(record, 'Disease', record.diagnosis.primary),
     evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`),
@@ -797,6 +874,8 @@ function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onIns
   const contradictionCount = record.id === 'P-003' ? 1 : 0;
   const conflict = record.id === 'P-003' ? conflictFor(record) : undefined;
   const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
+  const sourceUpdate = conflict ? reviewContext?.sourceUpdates[reviewKey(conflict)] : undefined;
+  const currentSourceUpdate = sourceUpdate?.filter((item) => item.reviewOutcome === conflictReview?.outcome).at(-1);
   const missingCount = (record.id === 'P-010' ? 1 : 0) + (record.diagnosis.primary.toLowerCase().includes('metast') && !Object.keys(record.diagnosis.biomarkers).some((key) => /ras|kras/i.test(key)) ? 1 : 0);
   const counts = [
     { state: 'corroborated' as const, count: assertions.filter((item) => item.state === 'corroborated').length },
@@ -818,7 +897,7 @@ function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onIns
           {assertions.map((assertion) => (
             <div key={assertion.statement} className="issue74-assertion-row">
               <strong>{assertion.statement}</strong>
-              <EvidenceMarker state={assertion.state} />
+              <EvidenceMarker state={assertion.state} assertion={assertion} />
               <span className="issue74-fact-evidence"><EvidenceLink assertion={assertion} onInspect={onInspect} /></span>
             </div>
           ))}
@@ -835,9 +914,9 @@ function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onIns
       </details>
       {record.id === 'P-003' && (
         <div className={`issue74-conflict-summary${conflictReview ? ' conflict-reviewed' : ''}${conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b' ? ' conflict-reconciled' : ''}`}>
-          <EvidenceMarker state="contradictory" />
+          <EvidenceMarker state="contradictory" assertion={conflict} />
           <span>{conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b'
-            ? `${conflictReview.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B'} selected · source disagreement remains visible.`
+            ? `Previously reviewed result reused: ${conflict?.sources[conflictReview.outcome === 'accepted-a' ? 0 : 1].value ?? 'selected source result'}. Source disagreement is retained; ${currentSourceUpdate?.kind ?? 'source feedback'} ${currentSourceUpdate?.status ?? 'not yet proposed'}.`
             : conflictReview ? `Review recorded · conflict remains unresolved · ${reviewStatusLabel(conflictReview)}.`
               : 'Conflicting molecular evidence · both sources need review; neither is selected.'}</span>
           <EvidenceLink assertion={conflictFor(record)} onInspect={onInspect} label={conflictReview ? 'Inspect review ↗' : 'Review conflict ↗'} />
@@ -862,7 +941,8 @@ function AttentionPanel({
   onNavigate: (view: View) => void;
   onInspect: (assertion: EvidenceAssertion) => void;
 }) {
-  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const reviewContext = useContext(EvidenceReviewContext);
+  const reviews = reviewContext?.reviews ?? {};
   const identityItems = horizon === 'future'
     ? identityCandidates(record).filter((candidate) => {
         const decision = decisions[`${record.id}:${candidate.id}`];
@@ -928,11 +1008,14 @@ function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillD
   onDrillDown: () => void;
   onInspect: (assertion: EvidenceAssertion) => void;
 }) {
-  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const reviewContext = useContext(EvidenceReviewContext);
+  const reviews = reviewContext?.reviews ?? {};
   const slot = scheduled.find((patient) => patient.id === record.id);
   const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
   const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
   const conflictReconciled = conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b';
+  const storedSourceUpdates = conflict ? reviewContext?.sourceUpdates[reviewKey(conflict)] : undefined;
+  const sourceUpdate = storedSourceUpdates?.filter((item) => item.reviewOutcome === conflictReview?.outcome).at(-1);
   const completeness = completenessItems(record, horizon);
   const generatedAssertions = agentResult?.blocks.flatMap((block) => [
     ...(block.body ? [generatedAssertion(record, block.body)] : []),
@@ -966,12 +1049,19 @@ function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillD
       : []),
     ...openIdentity.map((candidate) => `Identity · ${candidate.hospital} · ${decisions[`${record.id}:${candidate.id}`] === 'investigating' ? 'investigation noted · ' : ''}match remains uncertain.`),
     ...generatedAssertions.map((assertion) => `Unverified statement · ${reviews[reviewKey(assertion)] ? 'review noted · still unverified' : 'no exact source linked'}: ${assertion.statement}`),
+    ...(conflictReconciled && sourceUpdate?.status !== 'submitted'
+      ? [`Source feedback · ${sourceUpdate ? sourceUpdate.status === 'reviewed' ? 'proposal reviewed · simulated submission remains' : 'proposal needs review' : 'update has not been proposed'} · source record remains unchanged.`]
+      : []),
   ];
   const confirmedEvidence = completeness.filter((item) => reviews[reviewKey(item.assertion)]?.outcome === 'verified');
   const resolvedItems = [
     ...resolvedIdentity.map((candidate) => `Identity · ${candidate.hospital}: ${decisions[`${record.id}:${candidate.id}`] === 'confirmed' ? 'confirmed as the same patient' : 'kept separate'}.`),
     ...resolvedEvidence.map((item) => `${item.label}: ${reviews[reviewKey(item.assertion)]?.outcome === 'accepted-a' ? 'Evidence A selected' : 'Evidence B selected'} for this preparation.`),
     ...confirmedEvidence.map((item) => `${item.label}: source check recorded.`),
+    ...(conflictReconciled ? [`MDT resolution reused: ${conflict?.sources[conflictReview?.outcome === 'accepted-a' ? 0 : 1].value ?? 'selected source result'} · source disagreement retained.`] : []),
+    ...(sourceUpdate?.status === 'submitted'
+      ? [`${sourceUpdate.kind === 'correction' ? 'Correction' : 'Addendum'} feedback recorded as a simulated submission · source record unchanged.`]
+      : []),
   ];
   const treatments = record.treatments.map((treatment) => `${treatment.regimen} · ${treatment.status}`).join('; ') || 'No treatment recorded';
   const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
@@ -1156,7 +1246,7 @@ function EvidenceDrawer({ assertion, onClose }: { assertion: EvidenceAssertion; 
           <button ref={closeButton} type="button" className="hx-btn" aria-label="Close evidence drawer" onClick={onClose}>Close</button>
         </header>
         <h3>{assertion.statement}</h3>
-        <EvidenceMarker state={assertion.state} />
+        <EvidenceMarker state={assertion.state} assertion={assertion} />
         <p>{assertion.explanation}</p>
         <div className="issue74-source-tabs" aria-label="Evidence sources">
           {assertion.sources.map((item, index) => <button type="button" key={`${item.title}-${item.hospital}`} aria-pressed={index === sourceIndex} onClick={() => setSourceIndex(index)}>{index + 1}. {item.title}</button>)}
@@ -1230,6 +1320,9 @@ function EvidenceReviewControls({ assertion }: { assertion: EvidenceAssertion })
           <button type="button" className="hx-btn primary" onClick={() => save('verified')}>{currentReview?.outcome === 'verified' ? 'Update verification record' : 'Mark evidence as human-verified'}</button>
         </>
       )}
+      {(currentReview?.outcome === 'accepted-a' || currentReview?.outcome === 'accepted-b') && (
+        <SourceRecordUpdate assertion={assertion} review={currentReview} />
+      )}
       {currentReview && (
         <p className={`issue74-review-receipt review-outcome-${currentReview.outcome}`} role="status">
           {currentReview.outcome === 'verified' ? 'Human-verified evidence' :
@@ -1246,6 +1339,110 @@ function EvidenceReviewControls({ assertion }: { assertion: EvidenceAssertion })
   );
 }
 
+function SourceRecordUpdate({ assertion, review }: { assertion: EvidenceAssertion; review: EvidenceReview }) {
+  const reviewContext = useContext(EvidenceReviewContext);
+  const key = reviewKey(assertion);
+  const savedUpdate = reviewContext?.sourceUpdates[key]?.filter((item) => item.reviewOutcome === review.outcome).at(-1);
+  const acceptedIndex = review.outcome === 'accepted-a' ? 0 : 1;
+  const sourceIndex = acceptedIndex === 0 ? 1 : 0;
+  const acceptedSource = assertion.sources[acceptedIndex];
+  const source = assertion.sources[sourceIndex];
+  const [kind, setKind] = useState<SourceUpdate['kind']>(savedUpdate?.kind ?? 'correction');
+  const [reviewedValue, setReviewedValue] = useState(savedUpdate?.reviewedValue ?? acceptedSource.value ?? acceptedSource.excerpt);
+  const [decision, setDecision] = useState(savedUpdate?.decision ?? `${acceptedSource.value ?? acceptedSource.excerpt} selected for this preparation.`);
+  const [context, setContext] = useState(savedUpdate?.context ?? review.rationale);
+
+  useEffect(() => {
+    setKind(savedUpdate?.kind ?? 'correction');
+    setReviewedValue(savedUpdate?.reviewedValue ?? acceptedSource.value ?? acceptedSource.excerpt);
+    setDecision(savedUpdate?.decision ?? `${acceptedSource.value ?? acceptedSource.excerpt} selected for this preparation.`);
+    setContext(savedUpdate?.context ?? review.rationale);
+  }, [key, review.outcome, savedUpdate?.proposedAt]);
+
+  const status = savedUpdate?.status ?? 'proposed';
+  const locked = status !== 'proposed';
+  const saveUpdate = (nextStatus: SourceUpdate['status']) => {
+    const now = new Date().toISOString();
+    reviewContext?.saveSourceUpdate(assertion, {
+      kind,
+      reviewOutcome: review.outcome as 'accepted-a' | 'accepted-b',
+      source,
+      originalValue: source.value ?? source.excerpt,
+      reviewedValue: reviewedValue.trim(),
+      decision: decision.trim(),
+      context: context.trim(),
+      status: nextStatus,
+      proposedAt: nextStatus === 'proposed' ? now : savedUpdate?.proposedAt ?? now,
+      reviewedAt: nextStatus === 'reviewed' ? now : nextStatus === 'submitted' ? savedUpdate?.reviewedAt : undefined,
+      submittedAt: nextStatus === 'submitted' ? now : undefined,
+    });
+  };
+
+  return (
+    <section className="issue74-source-update" aria-labelledby="issue74-source-update-title">
+      <header>
+        <div><span className="issue74-eyebrow">MDT DECISION · SOURCE FEEDBACK</span><h4 id="issue74-source-update-title">Update source record</h4></div>
+        <Pill tone={status === 'submitted' ? 'ok' : status === 'reviewed' ? 'info' : 'warn'}>
+          {status === 'submitted' ? 'Submission simulated' : status === 'reviewed' ? 'Proposal reviewed' : 'Update proposed'}
+        </Pill>
+      </header>
+      <p className="issue74-source-update-boundary">Prototype only · no EHR/EMR is connected and no source record is changed.</p>
+      <label>
+        Update type
+        <select value={kind} disabled={locked} onChange={(event) => setKind(event.target.value as SourceUpdate['kind'])}>
+          <option value="correction">Correction · source value was incorrect</option>
+          <option value="addendum">Addendum · preserve earlier context</option>
+        </select>
+      </label>
+      <div className="issue74-source-update-values">
+        <div className={kind === 'correction' ? 'superseded' : 'historical'}>
+          <span className="issue74-eyebrow">ORIGINAL SOURCE VALUE · {kind === 'correction' ? 'SUPERSEDED IN THIS MDT REVIEW' : 'RETAINED AS HISTORICAL'}</span>
+          <strong>{source.value ?? source.excerpt}</strong>
+          <small>{source.title} · {source.hospital} · {source.date}</small>
+        </div>
+        <div className="current">
+          <span className="issue74-eyebrow">MDT-REVIEWED VALUE / CONTEXT</span>
+          <input aria-label="MDT-reviewed value or addendum" value={reviewedValue} disabled={locked} onChange={(event) => setReviewedValue(event.target.value)} />
+          <small>{kind === 'correction' ? 'Proposed corrected value · source remains unchanged until an actual integrated workflow accepts it.' : 'Proposed addendum · original observation remains in the clinical history.'}</small>
+        </div>
+      </div>
+      <label>
+        MDT decision
+        <input value={decision} disabled={locked} onChange={(event) => setDecision(event.target.value)} />
+      </label>
+      <label>
+        MDT context and reason · required
+        <textarea value={context} disabled={locked} onChange={(event) => setContext(event.target.value)} rows={2} placeholder="Why did the MDT reach this conclusion? Include relevant clinical context." />
+      </label>
+      <div className="issue74-source-update-provenance">
+        <strong>Provenance</strong>
+        <span>Original source: {source.title} · {source.hospital} · {source.date}</span>
+        <span>Resolution: {review.outcome === 'accepted-a' ? 'Evidence A selected' : 'Evidence B selected'} · {review.reviewedAt.slice(0, 10)}</span>
+        <span>MDT rationale: {context || 'Not yet entered'}</span>
+      </div>
+      {status !== 'proposed' && (
+        <p className="issue74-source-update-receipt" role="status">
+          {status === 'submitted'
+            ? `Simulated submission recorded ${savedUpdate?.submittedAt ? new Date(savedUpdate.submittedAt).toLocaleString() : ''}. The original source record is unchanged.`
+            : `Proposal reviewed ${savedUpdate?.reviewedAt ? new Date(savedUpdate.reviewedAt).toLocaleString() : ''}.`}
+        </p>
+      )}
+      <div className="issue74-review-actions">
+        {status === 'proposed' ? (
+          <button type="button" className="hx-btn primary" disabled={!reviewedValue.trim() || !decision.trim() || !context.trim()} onClick={() => saveUpdate('reviewed')}>Review proposed update</button>
+        ) : status === 'reviewed' ? (
+          <>
+            <button type="button" className="hx-btn primary" onClick={() => saveUpdate('submitted')}>Simulate submit to source system</button>
+            <button type="button" className="hx-btn" onClick={() => saveUpdate('proposed')}>Edit proposal</button>
+          </>
+        ) : (
+          <button type="button" className="hx-btn" onClick={() => saveUpdate('proposed')}>Revise proposal</button>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function AssistantEvidence({ record, result, onInspect }: { record: PatientRecord; result: AgentResult; onInspect: (assertion: EvidenceAssertion) => void }) {
   return (
     <div className="issue74-agent-blocks">
@@ -1256,7 +1453,7 @@ function AssistantEvidence({ record, result, onInspect }: { record: PatientRecor
             <div className="issue74-agent-item">
               <div><strong>{block.body}</strong></div>
               <div className="issue74-fact-evidence">
-                <EvidenceMarker state="unverified" />
+                <EvidenceMarker state="unverified" assertion={generatedAssertion(record, block.body)} />
                 <EvidenceLink assertion={generatedAssertion(record, block.body)} onInspect={onInspect} label="Check source ↗" />
               </div>
             </div>
@@ -1266,7 +1463,7 @@ function AssistantEvidence({ record, result, onInspect }: { record: PatientRecor
             return (
               <div className="issue74-agent-item" key={`${item.label}-${itemIndex}`}>
                 <div><strong>[{blockIndex + itemIndex + 1}] {item.label}</strong>{item.detail && <span>{item.detail}</span>}</div>
-                <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} /><EvidenceLink assertion={assertion} onInspect={onInspect} label="Inspect source context ↗" /></div>
+                <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} label="Inspect source context ↗" /></div>
               </div>
             );
           })}
@@ -1280,6 +1477,12 @@ function AtAGlance({ record, agentResult, specialty, horizon, onInspect }: { rec
   const treatments = record.treatments.map((treatment) => `${treatment.regimen} · ${treatment.status}`).join('; ') || 'No treatment recorded';
   const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
   const context = mdtContext(record.id);
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const molecularConflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
+  const molecularReview = molecularConflict ? reviews[reviewKey(molecularConflict)] : undefined;
+  const molecularResolution = molecularReview?.outcome === 'accepted-a' || molecularReview?.outcome === 'accepted-b'
+    ? molecularConflict?.sources[molecularReview.outcome === 'accepted-a' ? 0 : 1]
+    : undefined;
   return (
     <>
       <Panel title="Patient at a glance" actions={<Pill tone={agentResult?.mode === 'copilot' ? 'ok' : agentResult ? 'neutral' : 'warn'}>{agentResult ? (agentResult.mode === 'copilot' ? 'Copilot reviewed' : 'Demo mode · synthetic record') : 'Preparation not started'}</Pill>}>
@@ -1303,8 +1506,14 @@ function AtAGlance({ record, agentResult, specialty, horizon, onInspect }: { rec
       <Panel title="Other case context · source linked">
         <div className="issue74-extra-facts">
           {Object.entries(record.diagnosis.biomarkers).map(([key, value]) => (
-            <Fact key={key} label={`Biomarker · ${key}`} value={value} assertion={evidenceFor(record, `Biomarker · ${key}`, `${key}: ${value}`)} onInspect={onInspect} />
+            <Fact key={key} label={`${molecularResolution && /ras|kras|braf/i.test(key) ? 'Original source biomarker' : 'Biomarker'} · ${key}`} value={value} assertion={evidenceFor(record, `Biomarker · ${key}`, `${key}: ${value}`)} onInspect={onInspect} />
           ))}
+          {molecularResolution && molecularConflict && <Fact
+            label="MDT-reviewed molecular result · reused"
+            value={`${molecularResolution.value} · ${molecularReview ? reviewStatusLabel(molecularReview) : 'previously reviewed'}`}
+            assertion={molecularConflict}
+            onInspect={onInspect}
+          />}
           {record.imaging?.slice(-1).map((scan) => <Fact key="imaging" label="Imaging finding" value={`${scan.modality} · ${scan.date}: ${scan.result}`} assertion={evidenceFor(record, 'Imaging finding', scan.result)} onInspect={onInspect} />)}
           {record.comorbidities.length > 0 && <Fact label="Relevant comorbidities" value={record.comorbidities.join('; ')} assertion={evidenceFor(record, 'Comorbidity', record.comorbidities.join('; '))} onInspect={onInspect} />}
         </div>
@@ -1329,7 +1538,7 @@ function Fact({ label, value, assertion, onInspect }: { label: string; value: st
     <div className="issue74-fact">
       <span className="issue74-fact-label">{label}</span>
       <strong>{value}</strong>
-      <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div>
+      <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div>
     </div>
   );
 }
@@ -1338,15 +1547,15 @@ function SpecialtyFocus({ record, specialty, onInspect }: { record: PatientRecor
   if (specialty === 'Radiology') {
     const scan = record.imaging?.at(-1);
     const assertion = scan ? evidenceFor(record, 'Imaging finding', scan.result) : missingAssertion(record, 'Imaging report');
-    return <div><p>{scan ? `${scan.modality} · ${scan.date}: ${scan.result}` : 'No imaging report is present in the retrieved record.'} <strong>Direct review of images remains a human task.</strong></p><EvidenceMarker state={assertion.state} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
+    return <div><p>{scan ? `${scan.modality} · ${scan.date}: ${scan.result}` : 'No imaging report is present in the retrieved record.'} <strong>Direct review of images remains a human task.</strong></p><EvidenceMarker state={assertion.state} assertion={assertion} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
   }
   if (specialty === 'Pathology') {
     const biomarkers = Object.entries(record.diagnosis.biomarkers).map(([name, value]) => `${name}: ${value}`).join(' · ');
     const assertion = evidenceFor(record, 'Biomarker', biomarkers || 'No biomarker result recorded');
-    return <div><p>{record.diagnosis.primary}{record.diagnosis.grade ? ` · grade ${record.diagnosis.grade}` : ''}. Biomarkers recorded: {biomarkers || 'none found'}.</p><EvidenceMarker state={assertion.state} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
+    return <div><p>{record.diagnosis.primary}{record.diagnosis.grade ? ` · grade ${record.diagnosis.grade}` : ''}. Biomarkers recorded: {biomarkers || 'none found'}.</p><EvidenceMarker state={assertion.state} assertion={assertion} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
   }
   const assertion = evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ECOG ${record.ecog}`);
-  return <div><p>{record.diagnosis.stage} · ECOG {record.ecog}. {record.treatments.at(-1)?.regimen ?? 'No treatment recorded'}; MDT question: {clinicalQuestion(record)}</p><EvidenceMarker state={assertion.state} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
+  return <div><p>{record.diagnosis.stage} · ECOG {record.ecog}. {record.treatments.at(-1)?.regimen ?? 'No treatment recorded'}; MDT question: {clinicalQuestion(record)}</p><EvidenceMarker state={assertion.state} assertion={assertion} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
 }
 
 function SpecialtyPanel({ record, specialty, onInspect }: { record: PatientRecord; specialty: Specialty; onInspect: (assertion: EvidenceAssertion) => void }) {
@@ -1359,8 +1568,22 @@ function SpecialtyPanel({ record, specialty, onInspect }: { record: PatientRecor
 }
 
 function TimelinePanel({ record, timeline, onInspect }: { record: PatientRecord; timeline: PatientRecord['timeline']; onInspect: (assertion: EvidenceAssertion) => void }) {
+  const reviewContext = useContext(EvidenceReviewContext);
+  const conflict = record.id === 'P-003' ? conflictFor(record) : undefined;
+  const review = conflict ? reviewContext?.reviews[reviewKey(conflict)] : undefined;
+  const reviewHistory = conflict
+    ? reviewContext?.reviewHistory[reviewKey(conflict)] ?? (review ? [review] : [])
+    : [];
+  const storedUpdates = conflict ? reviewContext?.sourceUpdates[reviewKey(conflict)] : undefined;
+  const updateVersions = [...new Map((storedUpdates ?? []).map((item) => [`${item.reviewOutcome}-${item.proposedAt}`, item])).values()]
+    .sort((a, b) => a.proposedAt.localeCompare(b.proposedAt));
+  const sourceUpdate = updateVersions.filter((item) => item.reviewOutcome === review?.outcome).at(-1) ?? updateVersions.at(-1);
+  const sourceUpdateIsEarlierResolution = Boolean(sourceUpdate && sourceUpdate.reviewOutcome !== review?.outcome);
+  const originalRecords = [...new Map(updateVersions.map((item) => [`${item.source.title}-${item.originalValue}`, item])).values()];
+  const updateEventCount = updateVersions.reduce((count, update) => count + 1 + (update.reviewedAt ? 1 : 0) + (update.submittedAt ? 1 : 0), 0);
+  const totalEvents = timeline.length + originalRecords.length + updateEventCount + reviewHistory.length;
   return (
-    <Panel title="Longitudinal clinical timeline" actions={<Pill tone="info">{timeline.length} dated events</Pill>}>
+    <Panel title="Longitudinal clinical timeline" actions={<Pill tone="info">{totalEvents} dated events</Pill>}>
       <p className="issue74-intro">Each event shows when it happened, the source that supports it, its evidence state and human-review status. Open the source for its passage.</p>
       <ol className="issue74-timeline">
         {timeline.map((event) => {
@@ -1392,12 +1615,68 @@ function TimelinePanel({ record, timeline, onInspect }: { record: PatientRecord;
               <div>
                 <strong>{event.event}</strong>
                 <small className="issue74-timeline-source">{assertion.sources[0]?.hospital} · {assertion.sources[0]?.title}</small>
-                <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div>
+                <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div>
               </div>
             </li>
           );
         })}
       </ol>
+      {reviewHistory.length > 0 && conflict && (
+        <section className="issue74-timeline-update" aria-labelledby="issue74-review-history-title">
+          <header>
+            <div><span className="issue74-eyebrow">PERSISTED MDT CONTEXT · SYNTHETIC CASE</span><h3 id="issue74-review-history-title">Resolution history</h3></div>
+            <Pill tone="info">{reviewHistory.length} review{reviewHistory.length === 1 ? '' : 's'}</Pill>
+          </header>
+          <ol>
+            {reviewHistory.map((item, index) => {
+              const chosenIndex = item.outcome === 'accepted-a' ? 0 : item.outcome === 'accepted-b' ? 1 : undefined;
+              const result = chosenIndex === undefined ? reviewStatusLabel(item) : `${conflict.sources[chosenIndex].value} selected · ${reviewStatusLabel(item)}`;
+              return (
+                <li key={`${item.reviewedAt}-${index}`}>
+                  <time>{new Date(item.reviewedAt).toLocaleDateString()}</time>
+                  <div><strong>{result}</strong><span>{item.rationale || 'No additional rationale recorded.'}</span><small>{chosenIndex === undefined ? 'Conflict remains unresolved' : `Based on ${conflict.sources[chosenIndex].title} · ${conflict.sources[chosenIndex].hospital}`}</small></div>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="issue74-fact-evidence"><span>Original disagreement remains available</span><EvidenceLink assertion={conflict} onInspect={onInspect} label="Inspect source evidence ↗" /></div>
+        </section>
+      )}
+      {sourceUpdate && conflict && (
+        <section className={`issue74-timeline-update ${sourceUpdate.status === 'submitted' ? 'update-submitted' : ''}`} aria-labelledby="issue74-timeline-update-title">
+          <header>
+            <div><span className="issue74-eyebrow">APPENDED DATA-QUALITY HISTORY</span><h3 id="issue74-timeline-update-title">MDT review · source feedback</h3></div>
+            <Pill tone={sourceUpdateIsEarlierResolution ? 'neutral' : sourceUpdate.status === 'submitted' ? 'ok' : 'info'}>{sourceUpdateIsEarlierResolution ? 'Earlier resolution' : sourceUpdate.status === 'submitted' ? 'Submission simulated' : sourceUpdate.status === 'reviewed' ? 'Proposal reviewed' : 'Update proposed'}</Pill>
+          </header>
+          <ol>
+            {originalRecords.map((update, index) => {
+              const latestForSource = updateVersions.filter((item) => item.source.title === update.source.title && item.originalValue === update.originalValue).at(-1) ?? update;
+              return <li key={`source-${index}`}>
+                <time>{update.source.date}</time>
+                <div><strong>{update.source.title} · original observation</strong><span>{update.originalValue}</span><small>{latestForSource.kind === 'correction' ? `SUPERSEDED BY → ${latestForSource.reviewedValue} · SOURCE RECORD UNCHANGED` : `INTERPRETED BY LATER MDT ADDENDUM → ${latestForSource.reviewedValue} · ORIGINAL RETAINED`}</small></div>
+              </li>;
+            })}
+            {updateVersions.flatMap((update, index) => [
+              <li key={`proposal-${index}`}>
+                <time>{new Date(update.proposedAt).toLocaleDateString()}</time>
+                <div><strong>{update.kind === 'correction' ? 'Correction proposed' : 'MDT addendum proposed'} · {update.reviewedValue}</strong><span>{update.status === 'submitted' ? 'Append-only proposal retained in history.' : 'Not written to the source system.'}</span><small>{update.kind === 'correction' ? 'MDT-REVIEWED VALUE · source unchanged' : 'MDT-REVIEWED INTERPRETATION · original observation retained'}</small></div>
+              </li>,
+              ...(update.reviewedAt ? [<li key={`review-${index}`}>
+                <time>{new Date(update.reviewedAt).toLocaleDateString()}</time>
+                <div><strong>MDT resolution reviewed · {update.decision}</strong><span>{update.context}</span><small>Based on {review?.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B'} · synthetic session</small></div>
+              </li>] : []),
+              ...(update.submittedAt ? [<li key={`submission-${index}`}>
+                <time>{new Date(update.submittedAt).toLocaleDateString()}</time>
+                <div><strong>Source-system submission simulated</strong><span>The source system was not changed.</span><small>Prototype interaction only</small></div>
+              </li>] : []),
+            ])}
+          </ol>
+          <div className="issue74-fact-evidence">
+            <span>Provenance chain · {sourceUpdate.source.hospital} · {sourceUpdate.source.title}</span>
+            <EvidenceLink assertion={conflict} onInspect={onInspect} label="Inspect original sources ↗" />
+          </div>
+        </section>
+      )}
       {record.id === 'P-010' && <ItalianReport record={record} onInspect={onInspect} />}
     </Panel>
   );
@@ -1472,8 +1751,8 @@ function conflictFor(record: PatientRecord): EvidenceAssertion {
     state: 'contradictory',
     explanation: 'Two clearly labelled synthetic source excerpts disagree. Neither result is selected or reconciled; clinical review is required.',
     sources: [
-      { title: 'Pathology molecular addendum · Evidence A', hospital: 'Utrecht University Medical Center', date: record.diagnosis.date, type: 'Synthetic pathology report', excerpt: `${actual} detected in the synthetic pathology addendum.` },
-      { title: 'Outside referral letter · Evidence B', hospital: 'Milan Cancer Centre', date: record.diagnosis.date, type: 'Synthetic referral · intentionally conflicting demo value', excerpt: 'The referral letter lists KRAS wild type. This conflicts with the pathology addendum. Both source records remain available for clinician review.' },
+      { title: 'Pathology molecular addendum · Evidence A', hospital: 'Utrecht University Medical Center', date: record.diagnosis.date, type: 'Synthetic pathology report', excerpt: `${actual} detected in the synthetic pathology addendum.`, value: actual },
+      { title: 'Outside referral letter · Evidence B', hospital: 'Milan Cancer Centre', date: record.diagnosis.date, type: 'Synthetic referral · intentionally conflicting demo value', excerpt: 'The referral letter lists KRAS wild type. This conflicts with the pathology addendum. Both source records remain available for clinician review.', value: 'KRAS wild type' },
     ],
   };
 }
@@ -1485,7 +1764,7 @@ function ConflictCard({ record, onInspect }: { record: PatientRecord; onInspect:
   const selectedLabel = review?.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B';
   return (
     <div className={`issue74-conflict${selected ? ' conflict-reconciled' : ''}`}>
-      <div className="issue74-conflict-heading"><EvidenceMarker state="contradictory" /><strong>{selected ? `${selectedLabel} selected for this preparation · source disagreement retained` : 'Conflicting molecular evidence · clinical review required'}</strong></div>
+      <div className="issue74-conflict-heading"><EvidenceMarker state="contradictory" assertion={assertion} /><strong>{selected ? `${selectedLabel} selected for this preparation · source disagreement retained` : 'Conflicting molecular evidence · clinical review required'}</strong></div>
       <div className="issue74-conflict-values">
         {assertion.sources.map((source, index) => <div key={source.title}><span>Evidence {index === 0 ? 'A' : 'B'} · {source.hospital} · {source.date}</span><strong>{source.excerpt}</strong><small>{source.title}</small></div>)}
       </div>
@@ -1513,13 +1792,13 @@ function EvidencePanel({ record, agentResult, horizon, onInspect }: { record: Pa
     <>
       <Panel title="Evidence gathered" actions={<Pill tone="info">{source.format}</Pill>}>
         <dl className="issue74-evidence-facts"><dt>Source institution</dt><dd>{source.label}</dd>
-          {facts.map((fact) => <div className="issue74-evidence-fact-row" key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}<span className="issue74-fact-evidence"><EvidenceMarker state={fact.assertion.state} /><EvidenceLink assertion={fact.assertion} onInspect={onInspect} /></span></dd></div>)}
+          {facts.map((fact) => <div className="issue74-evidence-fact-row" key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}<span className="issue74-fact-evidence"><EvidenceMarker state={fact.assertion.state} assertion={fact.assertion} /><EvidenceLink assertion={fact.assertion} onInspect={onInspect} /></span></dd></div>)}
         </dl>
         {record.id === 'P-010' && horizon === 'future' && <ItalianReport record={record} onInspect={onInspect} />}
       </Panel>
       <Panel title="Missing or unresolved" actions={<Pill tone={missingCount ? 'warn' : 'ok'}>{missingCount ? `${missingCount} open` : 'No gap recorded'}</Pill>}>
-        {evidenceGaps.length ? <ul className="issue74-gaps">{evidenceGaps.map(({ label, assertion }) => <li key={label}><EvidenceMarker state="missing" /><span>{label}</span><EvidenceLink assertion={assertion} onInspect={onInspect} label="Review gap" /></li>)}</ul> : <p>No open questions are recorded in this synthetic file.</p>}
-        {record.id === 'P-010' && <p><EvidenceMarker state="missing" /> Direct review of the MRI images. Resectability is not stated in the source report. <EvidenceLink assertion={resectabilityAssertion} onInspect={onInspect} label="Review gap" /></p>}
+        {evidenceGaps.length ? <ul className="issue74-gaps">{evidenceGaps.map(({ label, assertion }) => <li key={label}><EvidenceMarker state="missing" assertion={assertion} /><span>{label}</span><EvidenceLink assertion={assertion} onInspect={onInspect} label="Review gap" /></li>)}</ul> : <p>No open questions are recorded in this synthetic file.</p>}
+        {record.id === 'P-010' && <p><EvidenceMarker state="missing" assertion={resectabilityAssertion} /> Direct review of the MRI images. Resectability is not stated in the source report. <EvidenceLink assertion={resectabilityAssertion} onInspect={onInspect} label="Review gap" /></p>}
         {record.id === 'P-003' && <ConflictCard record={record} onInspect={onInspect} />}
       </Panel>
       {agentResult && (
