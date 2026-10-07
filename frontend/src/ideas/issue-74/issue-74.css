@@ -660,6 +660,109 @@
   gap: 8px;
 }
 
+.issue74-agent-review-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-link);
+  background: var(--cp-surface-soft);
+}
+
+.issue74-agent-review-action > div {
+  display: grid;
+  gap: 4px;
+}
+
+.issue74-agent-review-action span {
+  max-width: 68ch;
+  color: var(--cp-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.issue74-agent-review-result {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-surface);
+}
+
+.issue74-agent-review-result > header,
+.issue74-agent-review-result > header > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.issue74-agent-review-result > header > div {
+  justify-content: flex-start;
+}
+
+.issue74-agent-review-result > header > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.issue74-agent-review-result > ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issue74-agent-review-result > ul > li {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid #b77900;
+  background: var(--cp-surface-soft);
+}
+
+.issue74-agent-review-result > ul > li.proposal-confirmed {
+  border-left-color: #16803c;
+  background: #edf8f0;
+}
+
+.issue74-agent-proposal-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.issue74-agent-proposal-heading > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.issue74-agent-review-result p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.issue74-agent-proposal-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.issue74-agent-review-result small {
+  color: var(--cp-text-muted);
+  line-height: 1.4;
+}
+
 .issue74-fact {
   display: grid;
   gap: 5px;
@@ -2076,6 +2179,18 @@
 .issue74[data-theme="dark"] .issue74-ready {
   background: var(--cp-surface);
   color: var(--cp-text);
+}
+
+.issue74[data-theme="dark"] .issue74-agent-review-action,
+.issue74[data-theme="dark"] .issue74-agent-review-result,
+.issue74[data-theme="dark"] .issue74-agent-review-result > ul > li {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text);
+}
+
+.issue74[data-theme="dark"] .issue74-agent-review-result > ul > li.proposal-confirmed {
+  border-left-color: #70d995;
+  background: #183c29;
 }
 
 .issue74[data-theme="dark"] .issue74-ready-resolved,

@@ -4,8 +4,8 @@ title: "MDT cases, ready to review"
 users: [oncologist, MDT coordinator, radiologist, pathologist]
 capabilities: [agentic-workflows, structured-extraction, retrieval-and-evidence-grounding, cross-hospital-identity-matching, human-identity-reconciliation, evidence-corroboration-and-conflict-review, claim-level-provenance, human-evidence-verification, persistent-evidence-review, patient-completeness-assessment, missing-evidence-retrieval, population-derived-next-question-guidance, role-specific-agents, human-in-the-loop]
 ui_surfaces: ["#/idea/74: MDT worklist, identity comparison and review, patient-at-a-glance with MDT context, provenance-linked timeline, evidence readiness and labels, source drawer, conflict reconciliation, persistent verification, completeness and retrieval workflow, future-only synthetic cohort guidance"]
-api_endpoints: ["POST /api/agent/run", "GET /api/sample-data/patients/{id}.json"]
-agent_tools: ["list_sample_data", "get_patient", "render_ui"]
+api_endpoints: ["POST /api/agent/run", "POST /api/ideas/74/evidence-review", "GET /api/sample-data/patients/{id}.json"]
+agent_tools: ["list_sample_data", "get_patient", "submit_evidence_review", "render_ui"]
 data: ["sample-data/patients/P-003.json", "sample-data/patients/P-004.json", "sample-data/patients/P-005.json", "sample-data/patients/P-010.json", "sample-data/minimal-mdt-dataset.json"]
 depends_on: []
 ---
@@ -22,7 +22,7 @@ The MDT coordinator and oncologist prepare the colorectal tumour board; radiolog
 Prepare all four or one scheduled patient, compare synthetic cross-hospital identity attributes before linking records, and keep uncertain matches separate for clinician review. Normalize evidence into a dated timeline, distinguish source provenance from how sources support or contradict one another, and retain human verification with the evidence and its source set across later preparations. Assess whether the available record covers the current MDT question and search synthetic sources before calling a fact unavailable. Conflicts and missing facts remain open until a clinician records a review outcome. Future-only population patterns are questions to consider—not patient facts or decisions.
 
 ## Agent behaviour
-The GitHub Copilot SDK reads each synthetic patient record through the shared tools and returns generative UI blocks. A deterministic demo remains available without a Copilot token.
+The GitHub Copilot SDK reads each synthetic patient record through the shared tools and returns generative UI blocks. A targeted Patient-at-a-glance review skill compares selected claims with their linked source passages and returns review or conflict-reconciliation proposals; it never records a review or changes source data. A clinician confirms or keeps each proposal for manual review. A deterministic demo remains available without a Copilot token.
 
 ## Inputs
 Synthetic patient JSON files and the minimal colorectal tumour-board dataset. One Italian outside-hospital MRI PDF is represented by a clearly labelled simulated source card.

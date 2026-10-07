@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { api, type AgentResult, type PatientRecord } from '../../api';
+import { api, type AgentResult, type EvidenceReviewProposal, type EvidenceReviewSkillResult, type PatientRecord } from '../../api';
 import { DataTable, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
@@ -83,6 +83,12 @@ const scheduled = [
   { id: 'P-004', time: '08:45', source: 'Connected · structured record + imaging report' },
   { id: 'P-005', time: '09:00', source: 'Connected · structured record + clinic note' },
   { id: 'P-010', time: '09:15', source: 'Outside hospital · Italian MRI PDF' },
+];
+
+const evidenceReviewStages: Stage[] = [
+  { label: 'Checking the synthetic patient record', detail: 'The Copilot SDK reads only this case’s synthetic record', ms: 700 },
+  { label: 'Comparing summary claims with source passages', detail: 'Each assertion stays linked to its supplied evidence', ms: 900 },
+  { label: 'Preparing review or reconciliation proposals', detail: 'No review is recorded until a clinician confirms', ms: 700 },
 ];
 
 const story: StoryStep[] = [
@@ -1666,12 +1672,69 @@ function AtAGlance({ record, agentResult, specialty, horizon, onInspect }: { rec
   const treatments = record.treatments.map((treatment) => `${treatment.regimen} · ${treatment.status}`).join('; ') || 'No treatment recorded';
   const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
   const context = mdtContext(record.id);
-  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const reviewContext = useContext(EvidenceReviewContext);
+  const reviews = reviewContext?.reviews ?? {};
+  const [reviewRunning, setReviewRunning] = useState(false);
+  const [reviewFinished, setReviewFinished] = useState(false);
+  const [reviewSkillResult, setReviewSkillResult] = useState<EvidenceReviewSkillResult | null>(null);
+  const [reviewSkillError, setReviewSkillError] = useState('');
+  const [dismissedProposals, setDismissedProposals] = useState<Record<string, boolean>>({});
   const molecularConflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
   const molecularReview = molecularConflict ? reviews[reviewKey(molecularConflict)] : undefined;
   const molecularResolution = molecularReview?.outcome === 'accepted-a' || molecularReview?.outcome === 'accepted-b'
     ? molecularConflict?.sources[molecularReview.outcome === 'accepted-a' ? 0 : 1]
     : undefined;
+  const glanceAssertions = [
+    { label: 'Disease', assertion: evidenceFor(record, 'Disease', record.diagnosis.primary) },
+    { label: 'Stage / current state', assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`) },
+    { label: 'Treatments so far', assertion: evidenceFor(record, 'Treatments so far', treatments) },
+    { label: 'What changed', assertion: evidenceFor(record, 'What changed', recentChange) },
+    { label: 'Question for the MDT', assertion: evidenceFor(record, 'Question for the MDT', clinicalQuestion(record)) },
+    ...(molecularConflict && !molecularResolution ? [{ label: 'Molecular source disagreement', assertion: molecularConflict }] : []),
+  ];
+  const reviewCandidates = glanceAssertions.filter(({ assertion }) => {
+    const outcome = reviews[reviewKey(assertion)]?.outcome;
+    if (assertion.state === 'missing') return outcome !== 'gap-reviewed';
+    if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed';
+    if (assertion.state === 'contradictory') return outcome !== 'accepted-a' && outcome !== 'accepted-b';
+    return outcome !== 'verified';
+  });
+  const assertionByKey = new Map(glanceAssertions.map(({ assertion }) => [reviewKey(assertion), assertion]));
+  const startAgentReview = async () => {
+    if (reviewRunning || reviewCandidates.length === 0) return;
+    setReviewRunning(true);
+    setReviewFinished(false);
+    setReviewSkillResult(null);
+    setReviewSkillError('');
+    setDismissedProposals({});
+    try {
+      const result = await api.reviewEvidence({
+        patient_id: record.id,
+        assertions: reviewCandidates.map(({ label, assertion }) => ({
+          key: reviewKey(assertion),
+          label,
+          statement: assertion.statement,
+          state: assertion.state,
+          sources: assertion.sources.map(({ title, hospital, date, excerpt, value }) => ({ title, hospital, date, excerpt, value })),
+        })),
+      });
+      setReviewSkillResult(result);
+    } catch {
+      setReviewSkillError('The review skill could not be reached. No review was recorded; use the source links and clinician review controls.');
+    } finally {
+      setReviewFinished(true);
+    }
+  };
+
+  const confirmAgentProposal = (proposal: EvidenceReviewProposal) => {
+    const assertion = assertionByKey.get(proposal.assertion_key);
+    if (!assertion) return;
+    reviewContext?.saveReview(assertion, {
+      outcome: proposal.outcome,
+      rationale: `Clinician confirmed agent proposal: ${proposal.rationale}`,
+      reviewedAt: new Date().toISOString(),
+    });
+  };
   return (
     <>
       <Panel title="Patient at a glance" actions={<Pill tone={agentResult?.mode === 'copilot' ? 'ok' : agentResult ? 'neutral' : 'warn'}>{agentResult ? (agentResult.mode === 'copilot' ? 'Copilot reviewed' : 'Demo mode · synthetic record') : 'Preparation not started'}</Pill>}>
@@ -1683,6 +1746,66 @@ function AtAGlance({ record, agentResult, specialty, horizon, onInspect }: { rec
           <Fact label="What changed" value={recentChange} assertion={evidenceFor(record, 'What changed', recentChange)} onInspect={onInspect} />
           <Fact label="Question for the MDT" value={clinicalQuestion(record)} assertion={evidenceFor(record, 'Question for the MDT', clinicalQuestion(record))} onInspect={onInspect} />
         </div>
+        <div className="issue74-agent-review-action">
+          <div><strong>Check summary evidence</strong><span>{reviewCandidates.length} item{reviewCandidates.length === 1 ? '' : 's'} need an agent review. Suggestions never update the record or replace clinician confirmation.</span></div>
+          <button className="hx-btn primary" type="button" disabled={reviewRunning || reviewCandidates.length === 0} onClick={() => void startAgentReview()}>
+            {reviewRunning ? <><span className="hx-spinner" aria-hidden /> Agent review in progress…</> : reviewCandidates.length ? 'Start agent evidence review' : 'Summary evidence reviewed'}
+          </button>
+        </div>
+        {reviewRunning && <Backstage
+          title="Copilot SDK · evidence review"
+          stages={evidenceReviewStages}
+          running
+          holdLast
+          release={reviewFinished}
+          onFinished={() => setReviewRunning(false)}
+          note="Source-grounded proposals only · clinician confirmation required · synthetic data."
+        />}
+        {reviewSkillError && <div className="issue74-notice issue74-warning" role="alert">{reviewSkillError}</div>}
+        {reviewSkillResult && (
+          <div className="issue74-agent-review-result" aria-live="polite">
+            <header>
+              <div><span className="issue74-eyebrow">{reviewSkillResult.result.mode === 'copilot' ? 'COPILOT SDK REVIEW' : 'DETERMINISTIC DEMO REVIEW'}</span><strong>{reviewSkillResult.result.mode === 'copilot' ? 'Evidence review proposals' : 'Simulated source check · confirm each proposal'}</strong></div>
+              <Pill tone={reviewSkillResult.result.mode === 'copilot' ? 'info' : 'neutral'}>{reviewSkillResult.proposals.length} proposal{reviewSkillResult.proposals.length === 1 ? '' : 's'}</Pill>
+            </header>
+            {reviewSkillResult.result.note && <p className="issue74-muted">{reviewSkillResult.result.note}</p>}
+            {reviewSkillResult.proposals.length === 0 ? (
+              <p className="issue74-muted">The agent did not return review proposals. No evidence status changed.</p>
+            ) : (
+              <ul>
+                {reviewSkillResult.proposals.map((proposal) => {
+                  const assertion = assertionByKey.get(proposal.assertion_key);
+                  if (!assertion || dismissedProposals[proposal.assertion_key]) return null;
+                  const recorded = reviews[proposal.assertion_key]?.outcome === proposal.outcome;
+                  const outcomeLabel = proposal.outcome === 'verified' ? 'Suggest human verification'
+                    : proposal.outcome === 'accepted-a' || proposal.outcome === 'accepted-b' ? `Suggest Evidence ${proposal.outcome === 'accepted-a' ? 'A' : 'B'} · clinician must reconcile`
+                      : proposal.outcome === 'gap-reviewed' ? 'Keep missing · gap reviewed'
+                        : proposal.outcome === 'unverified-reviewed' ? 'Keep unverified · review noted'
+                          : proposal.outcome === 'unresolved' ? 'Keep conflict unresolved'
+                            : 'Further investigation suggested';
+                  const source = proposal.source_index === undefined || proposal.source_index === null ? undefined : assertion.sources[proposal.source_index];
+                  return (
+                    <li key={proposal.assertion_key} className={recorded ? 'proposal-confirmed' : ''}>
+                      <div className="issue74-agent-proposal-heading"><strong>{assertion.statement}</strong><Pill tone={recorded ? 'ok' : 'warn'}>{recorded ? 'Clinician confirmed' : outcomeLabel}</Pill></div>
+                      <p>{proposal.rationale}</p>
+                      <div className="issue74-agent-proposal-sources">
+                        {assertion.sources.map((item, index) => <button key={`${item.title}-${item.date}-${index}`} className="issue74-evidence-link" type="button" onClick={() => onInspect(assertion)}>Inspect {item.title} · {item.hospital} ↗</button>)}
+                      </div>
+                      {!recorded && (
+                        <div className="issue74-review-actions">
+                          <button className="hx-btn primary" type="button" onClick={() => confirmAgentProposal(proposal)}>Confirm this review</button>
+                          <button className="hx-btn" type="button" onClick={() => setDismissedProposals((current) => ({ ...current, [proposal.assertion_key]: true }))}>Keep for clinician review</button>
+                        </div>
+                      )}
+                      {source && <small>Suggested source: {source.title} · {source.hospital}. Confirmation remains a human action.</small>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <p className="issue74-muted">Copilot proposes; the clinician decides. Confirming a conflict records a case-specific selection but preserves the source disagreement and history.</p>
+          </div>
+        )}
       </Panel>
       <EvidenceReadiness record={record} onInspect={onInspect} />
       <Panel title={`What matters to ${specialty.toLowerCase()}`} actions={horizon === 'sixMonths' ? <Pill tone="warn">Future capability · not in six months</Pill> : undefined}>

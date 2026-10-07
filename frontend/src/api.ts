@@ -24,6 +24,18 @@ export type AgentResult = {
   note?: string | null;
 };
 
+export type EvidenceReviewProposal = {
+  assertion_key: string;
+  outcome: 'verified' | 'gap-reviewed' | 'unverified-reviewed' | 'accepted-a' | 'accepted-b' | 'unresolved' | 'investigation';
+  rationale: string;
+  source_index?: number | null;
+};
+
+export type EvidenceReviewSkillResult = {
+  result: AgentResult;
+  proposals: EvidenceReviewProposal[];
+};
+
 export type Status = {
   event: string;
   city: string;
@@ -69,4 +81,14 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  reviewEvidence: (body: {
+    patient_id: string;
+    assertions: {
+      key: string;
+      label: string;
+      statement: string;
+      state: 'corroborated' | 'single-source' | 'unverified' | 'contradictory' | 'missing';
+      sources: { title: string; hospital: string; date: string; excerpt: string; value?: string }[];
+    }[];
+  }) => request<EvidenceReviewSkillResult>('/api/ideas/74/evidence-review', { method: 'POST', body: JSON.stringify(body) }),
 };
