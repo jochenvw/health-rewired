@@ -13,7 +13,7 @@ export const meta: IdeaMeta = {
 };
 
 type CaseStatus = 'scheduled' | 'preparing' | 'prepared' | 'accepted' | 'challenged' | 'returned';
-type View = 'worklist' | 'identity' | 'case' | 'timeline' | 'evidence' | 'completeness';
+type View = 'worklist' | 'identity' | 'case' | 'timeline' | 'evidence' | 'completeness' | 'ready';
 type Specialty = 'Oncology' | 'Radiology' | 'Pathology';
 type Horizon = 'future' | 'sixMonths';
 type IdentityState = 'verified' | 'probable' | 'review' | 'mismatch';
@@ -419,7 +419,7 @@ export default function TeamDomitian() {
     ? 'acquire'
     : view === 'completeness'
       ? 'completeness'
-    : statuses[selectedId] === 'accepted'
+    : view === 'ready' || statuses[selectedId] === 'accepted'
       ? 'decision'
         : view === 'evidence'
           ? 'decision'
@@ -554,6 +554,7 @@ export default function TeamDomitian() {
           { id: 'timeline', label: 'Timeline' },
           { id: 'evidence', label: 'Evidence & gaps' },
           { id: 'completeness', label: 'Completeness & next question' },
+          ...(statuses[selectedId] === 'accepted' ? [{ id: 'ready', label: 'Ready for MDT', badge: '✓' }] : []),
         ]}
         active={view}
         onNav={(id) => setView(id as View)}
@@ -568,7 +569,7 @@ export default function TeamDomitian() {
               }
             : null
         }
-        toolbar={
+        toolbar={view === 'ready' ? null : (
           <>
             <label>
               Patient{' '}
@@ -594,10 +595,10 @@ export default function TeamDomitian() {
               {preparing && preparationTarget === selectedId ? <><span className="hx-spinner" aria-hidden /> Preparing case…</> : 'Prepare this patient'}
             </button>
           </>
-        }
+        )}
       >
         <div className="issue74-main" id="issue74-main" tabIndex={-1}>
-        {notice && <div className="issue74-notice" role="status">{notice}</div>}
+        {notice && view !== 'ready' && <div className="issue74-notice" role="status">{notice}</div>}
         {loadErrors.length > 0 && <div className="issue74-notice issue74-warning">Could not load {loadErrors.join(', ')}. Start the local demo API to open the synthetic records.</div>}
         {preparing && (
           <Panel title={preparationTarget === 'all' ? 'Preparing the scheduled patients in parallel' : `Preparing ${record?.name ?? 'this patient'}`}>
@@ -650,6 +651,7 @@ export default function TeamDomitian() {
         {view !== 'worklist' && (
           record ? (
             <>
+              {view === 'ready' && <ReadyForMDT record={record} horizon={horizon} onBack={() => setView('case')} onDrillDown={() => setView('evidence')} />}
               {view === 'identity' && (
                 <IdentityPanel
                   record={record}
@@ -666,7 +668,7 @@ export default function TeamDomitian() {
                   }}
                 />
               )}
-              {view !== 'identity' && (
+              {view !== 'identity' && view !== 'ready' && (
                 <AttentionPanel
                   record={record}
                   horizon={horizon}
@@ -693,14 +695,20 @@ export default function TeamDomitian() {
                   onInspect={(assertion) => setEvidenceDrawer(assertion)}
                 />
               )}
-              {horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
-              <Panel title="Your review">
+              {view !== 'ready' && horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
+              {view !== 'ready' && <Panel title="Your review">
                 <p className="issue74-intro">Accepting means this evidence package is suitable for MDT review. It does not approve a diagnosis or treatment; the team keeps every clinical judgment and decision.</p>
                 {statuses[selectedId] === 'accepted' ? (
-                    <Pill tone="ok">Evidence package accepted for MDT review · no diagnosis or treatment approved</Pill>
+                    <div className="issue74-review-actions">
+                      <Pill tone="ok">Evidence package accepted for MDT review · no diagnosis or treatment approved</Pill>
+                      <button className="hx-btn" type="button" onClick={() => setView('ready')}>Open Ready for MDT summary</button>
+                    </div>
                 ) : (
                   <div className="issue74-actions">
-                    <button className="hx-btn primary" type="button" onClick={() => updateDecision('accepted', 'Evidence package accepted as suitable for MDT review. No diagnosis or treatment was approved.')}>Accept preparation for MDT review</button>
+                    <button className="hx-btn primary" type="button" onClick={() => {
+                      updateDecision('accepted', 'Evidence package accepted as suitable for MDT review. No diagnosis or treatment was approved.');
+                      setView('ready');
+                    }}>Accept preparation for MDT review</button>
                     <button className="hx-btn" type="button" onClick={() => updateDecision('challenged', 'Tell the team what needs a second look.')}>Challenge</button>
                     <button className="hx-btn" type="button" onClick={() => updateDecision('returned', 'Preparation sent back for correction. The source record is unchanged.')}>Send back for correction</button>
                   </div>
@@ -712,9 +720,9 @@ export default function TeamDomitian() {
                     <button className="hx-btn" type="submit">Save review note</button>
                   </form>
                 )}
-              </Panel>
-              {horizon === 'future' && specialty === 'Radiology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
-              {horizon === 'future' && specialty === 'Pathology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              </Panel>}
+              {view !== 'ready' && horizon === 'future' && specialty === 'Radiology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              {view !== 'ready' && horizon === 'future' && specialty === 'Pathology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
             </>
           ) : (
             <Panel title="Loading synthetic patient record"><span className="hx-working"><span className="hx-spinner" aria-hidden /> Loading the record…</span></Panel>
@@ -849,9 +857,10 @@ function AttentionPanel({
     : [];
   const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
   const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
+  const conflictReconciled = conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b';
   const gaps = completenessItems(record, horizon).filter((item) => item.state === 'missing' || (item.state === 'conflicting' && !conflict));
   const generatedCount = agentResult?.blocks.reduce((count, block) => count + (block.body ? 1 : 0) + block.items.length, 0) ?? 0;
-  const needsAttention = identityItems.length + gaps.length + generatedCount + (conflict && !conflictReview ? 1 : 0);
+  const needsAttention = identityItems.length + gaps.length + generatedCount + (conflict && !conflictReconciled ? 1 : 0);
   return (
     <Panel
       title="Needs your attention"
@@ -860,10 +869,10 @@ function AttentionPanel({
       <p className="issue74-attention-intro">Preparation priorities · unresolved evidence is kept separate from the case summary.</p>
       <div className="issue74-attention-list">
         {conflict && (
-          <div className={`attention-conflict${conflictReview ? ' attention-reviewed' : ''}`}>
-            <span className="issue74-attention-symbol" aria-hidden="true">!</span>
-            <div><strong>{conflictReview ? 'Molecular sources disagree · review recorded' : 'Molecular sources disagree · review required'}</strong><span>{conflictReview ? reviewStatusLabel(conflictReview) : 'Neither result has been selected. Compare both source passages.'}</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => onInspect(conflict)}>Review conflict <span aria-hidden="true">→</span></button>
+          <div className={`attention-conflict${conflictReconciled ? ' attention-reconciled' : ''}`}>
+            <span className="issue74-attention-symbol" aria-hidden="true">{conflictReconciled ? '✓' : '!'}</span>
+            <div><strong>{conflictReconciled ? 'Preparation reconciled · source disagreement retained' : 'Molecular sources disagree · review required'}</strong><span>{conflictReconciled ? `${conflictReview.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B'} selected for this preparation. ${reviewStatusLabel(conflictReview)}` : conflictReview ? `${reviewStatusLabel(conflictReview)} · neither result is selected.` : 'Neither result has been selected. Compare both source passages.'}</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => onInspect(conflict)}>{conflictReconciled ? 'Inspect both sources' : 'Review conflict'} <span aria-hidden="true">→</span></button>
           </div>
         )}
         {gaps.length > 0 && (
@@ -890,6 +899,45 @@ function AttentionPanel({
         {needsAttention === 0 && <p className="issue74-attention-clear">No new identity, evidence-gap or generated-source review item is flagged. The MDT question remains with the clinical team.</p>}
       </div>
     </Panel>
+  );
+}
+
+function ReadyForMDT({ record, horizon, onBack, onDrillDown }: { record: PatientRecord; horizon: Horizon; onBack: () => void; onDrillDown: () => void }) {
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const slot = scheduled.find((patient) => patient.id === record.id);
+  const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
+  const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
+  const conflictReconciled = conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b';
+  const completeness = completenessItems(record, horizon);
+  const openItems = completeness.filter((item) => item.state === 'missing' || (item.state === 'conflicting' && !conflictReconciled)).length
+    + (conflict && !conflictReconciled && !completeness.some((item) => item.state === 'conflicting') ? 1 : 0);
+  return (
+    <section className="issue74-ready" aria-labelledby="issue74-ready-title">
+      <div className="issue74-ready-banner">
+        <span className="issue74-ready-check" aria-hidden="true">✓</span>
+        <div>
+          <span className="issue74-eyebrow">PREPARATION STATUS · HUMAN REVIEW RECORDED</span>
+          <h1 id="issue74-ready-title">Ready for MDT review</h1>
+          <p>This evidence package is ready for the team to discuss. It is not a diagnosis or treatment decision.</p>
+        </div>
+        <Pill tone="ok">Accepted for review</Pill>
+      </div>
+      <div className="issue74-ready-facts">
+        <div><span className="issue74-eyebrow">PATIENT</span><strong>{record.name}</strong><span>{record.id} · age {record.age}</span></div>
+        <div><span className="issue74-eyebrow">MDT SLOT</span><strong>{slot?.time ?? 'Scheduled'}</strong><span>Colorectal MDT · tomorrow</span></div>
+        <div><span className="issue74-eyebrow">CASE</span><strong>{record.diagnosis.primary}</strong><span>Stage {record.diagnosis.stage} · {record.treatments.length} recorded treatment{record.treatments.length === 1 ? '' : 's'}</span></div>
+      </div>
+      <div className="issue74-ready-question">
+        <span className="issue74-eyebrow">QUESTION FOR THE MDT</span>
+        <strong>{clinicalQuestion(record)}</strong>
+        <span>{openItems ? `${openItems} evidence item${openItems === 1 ? '' : 's'} remain open and visible for discussion.` : 'No open item was flagged by this synthetic completeness check.'}</span>
+      </div>
+      {conflictReconciled && <p className="issue74-ready-reconciled"><strong>✓ Reconciled for this preparation:</strong> {conflictReview.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B'} is selected. The original source disagreement remains available for review.</p>}
+      <div className="issue74-ready-actions">
+        <button className="hx-btn" type="button" onClick={onBack}>Back to case review</button>
+        <button className="hx-btn primary" type="button" onClick={onDrillDown}>Drill down into evidence & gaps</button>
+      </div>
+    </section>
   );
 }
 
@@ -924,10 +972,11 @@ function IdentityPanel({
         {candidates.map((candidate) => {
           const decision = decisions[`${record.id}:${candidate.id}`];
           const status = decision === 'confirmed' ? 'verified' : candidate.state;
+          const resolved = decision === 'confirmed' || decision === 'separate';
           return (
-            <article key={candidate.id} className={`issue74-identity-card identity-${status}${horizon === 'sixMonths' ? ' identity-future-locked' : ''}`}>
+            <article key={candidate.id} className={`issue74-identity-card identity-${status}${resolved ? ' identity-resolved' : ''}${horizon === 'sixMonths' ? ' identity-future-locked' : ''}`}>
               <header>
-                <strong>{decision === 'confirmed' ? '✓ Human verified' : decision === 'separate' ? 'Human kept separate' : decision === 'investigating' ? 'Investigation in progress' : identityLabels[status]}</strong>
+                <strong>{decision === 'confirmed' ? '✓ Same patient confirmed' : decision === 'separate' ? '✓ Kept separate · review complete' : decision === 'investigating' ? 'Investigation in progress' : identityLabels[status]}</strong>
                 <span>{candidate.hospital}</span>
               </header>
               <div className="issue74-identity-details">
@@ -1054,8 +1103,8 @@ function EvidenceReviewControls({ assertion }: { assertion: EvidenceAssertion })
           <p>Compare both source passages above. The system does not select a result.</p>
           <label>Review rationale (optional)<textarea value={rationale} onChange={(event) => setRationale(event.target.value)} rows={2} placeholder="Record why this evidence was selected, deferred or needs follow-up" /></label>
           <div className="issue74-review-actions">
-            <button type="button" className="hx-btn" onClick={() => save('accepted-a')}>Use Evidence A for this preparation</button>
-            <button type="button" className="hx-btn" onClick={() => save('accepted-b')}>Use Evidence B for this preparation</button>
+            <button type="button" className="hx-btn" onClick={() => save('accepted-a')}>Select Evidence A for this case</button>
+            <button type="button" className="hx-btn" onClick={() => save('accepted-b')}>Select Evidence B for this case</button>
             <button type="button" className="hx-btn" onClick={() => save('unresolved')}>Keep unresolved</button>
             <button type="button" className="hx-btn" onClick={() => save('investigation')}>Further investigation required</button>
           </div>
@@ -1330,13 +1379,15 @@ function conflictFor(record: PatientRecord): EvidenceAssertion {
 function ConflictCard({ record, onInspect }: { record: PatientRecord; onInspect: (assertion: EvidenceAssertion) => void }) {
   const assertion = conflictFor(record);
   const review = useContext(EvidenceReviewContext)?.reviews[reviewKey(assertion)];
+  const selected = review?.outcome === 'accepted-a' || review?.outcome === 'accepted-b';
+  const selectedLabel = review?.outcome === 'accepted-a' ? 'Evidence A' : 'Evidence B';
   return (
-    <div className="issue74-conflict">
-      <div className="issue74-conflict-heading"><EvidenceMarker state="contradictory" /><strong>Conflicting molecular evidence · clinical review required</strong></div>
+    <div className={`issue74-conflict${selected ? ' conflict-reconciled' : ''}`}>
+      <div className="issue74-conflict-heading"><EvidenceMarker state="contradictory" /><strong>{selected ? `${selectedLabel} selected for this preparation · source disagreement retained` : 'Conflicting molecular evidence · clinical review required'}</strong></div>
       <div className="issue74-conflict-values">
         {assertion.sources.map((source, index) => <div key={source.title}><span>Evidence {index === 0 ? 'A' : 'B'} · {source.hospital} · {source.date}</span><strong>{source.excerpt}</strong><small>{source.title}</small></div>)}
       </div>
-      <p>These synthetic source records disagree. Neither is ranked above the other, and neither is selected automatically.</p>
+      <p>{selected ? `A clinician selected ${selectedLabel} for this preparation. Both synthetic source records remain available and the disagreement is still visible; this does not alter either source.` : 'These synthetic source records disagree. Neither is ranked above the other, and neither is selected automatically.'}</p>
       <div className="issue74-fact-evidence">
         <EvidenceLink assertion={assertion} onInspect={onInspect} label="Compare both sources" />
         <EvidenceReviewControls assertion={assertion} />
@@ -1543,8 +1594,14 @@ function CompletenessPanel({
   onSelectQuestion: (question: string) => void;
   onInspect: (assertion: EvidenceAssertion) => void;
 }) {
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
   const items = completenessItems(record, horizon);
-  const unresolved = items.filter((item) => item.state !== 'present');
+  const reviewFor = (item: CompletenessItem) => item.state === 'conflicting' ? reviews[reviewKey(item.assertion)] : undefined;
+  const isReconciled = (item: CompletenessItem) => {
+    const outcome = reviewFor(item)?.outcome;
+    return outcome === 'accepted-a' || outcome === 'accepted-b';
+  };
+  const unresolved = items.filter((item) => item.state !== 'present' && !isReconciled(item));
   const materialGaps = unresolved.filter((item) => item.relevance.startsWith('Could') || item.relevance.startsWith('May') || item.relevance.startsWith('Directly'));
   const cohort = cohortGuidance(record);
   const recoveryAssertion = record.id === 'P-003' && horizon === 'future'
@@ -1598,17 +1655,21 @@ function CompletenessPanel({
           <span>This is a checklist, not an overall confidence score. The MDT decides whether it has enough evidence to proceed.</span>
         </div>
         <ul className="issue74-completeness-list">
-          {items.map((item) => (
-            <li key={item.label} className={`completeness-${item.state}`}>
-              <div className="issue74-completeness-item">
-                <span className="issue74-completeness-status">{item.state === 'present' ? '✓ PRESENT' : item.state === 'conflicting' ? '! CONFLICTING' : '– MISSING'}</span>
-                <strong>{item.label}</strong>
-                <span>{item.detail}</span>
-                <small>{item.relevance}</small>
-              </div>
-              <span className="issue74-fact-evidence"><EvidenceLink assertion={item.assertion} onInspect={onInspect} /></span>
-            </li>
-          ))}
+          {items.map((item) => {
+            const review = reviewFor(item);
+            const reconciled = isReconciled(item);
+            return (
+              <li key={item.label} className={`completeness-${reconciled ? 'reconciled' : item.state}`}>
+                <div className="issue74-completeness-item">
+                  <span className="issue74-completeness-status">{item.state === 'present' ? '✓ PRESENT' : reconciled ? '✓ RECONCILED FOR THIS CASE' : item.state === 'conflicting' ? '! CONFLICTING' : '– MISSING'}</span>
+                  <strong>{item.label}</strong>
+                  <span>{item.detail}</span>
+                  <small>{reconciled ? `Evidence ${review?.outcome === 'accepted-a' ? 'A' : 'B'} selected for this preparation. Original source values remain unchanged.` : item.relevance}</small>
+                </div>
+                <span className="issue74-fact-evidence"><EvidenceLink assertion={item.assertion} onInspect={onInspect} /></span>
+              </li>
+            );
+          })}
         </ul>
       </Panel>
 
