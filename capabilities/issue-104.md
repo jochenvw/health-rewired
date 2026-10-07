@@ -33,6 +33,11 @@ Additional hair-loss, nausea and hand–foot avoidance switches each add one pre
 the ten slider points. Fit combines the slider sum with the selected invented avoidance scores,
 divides by ten plus switch count and scales to 100. This is not a contraindication or prediction.
 Switch changes clear assistant drafts and invalidate recorded decisions; case changes and reset clear switches.
+Side-effect concerns are selectable cards with keyboard-accessible switch semantics and explicit
+included/not-included states. “In your own words” accepts up to 1,000 characters of synthetic
+discussion context. It is included in immutable snapshots, assistant explanations and decision
+receipts, but never scored or used to change outcomes or matching. Edits invalidate drafts/decisions;
+reset and patient changes clear it. The assistant treats the text as untrusted input, not instructions.
 Three distinct synthetic colon cancer patients have fixed records and concerns: Eva Sommer (68,
 neuropathy), Marta Klein (61, hair loss) and Leon Fischer (72, nausea). Select a patient directly
 from the Patient dropdown or open their worklist row; selecting a concern no longer changes Eva.
@@ -43,6 +48,8 @@ Side-effect definitions now expand within Compare options, not in a
 separate priorities panel. Outcome cards include simulated week-12 symptom severity; an outcome
 dropdown selects survival, recurrence, fatigue, neuropathy, hair loss, nausea or hand–foot plots.
 Survival/recurrence samples use years 1, 3 and 5; symptom samples use weeks 4, 12 and 24.
+Clinical outcome cards show compact value chips with units, not progress bars; preference-fit bars
+and selectable trajectory plots remain unchanged.
 Severity is an invented 0–10 illustration, not incidence or a validated scale. Zero chemotherapy
 effects do not exclude existing symptoms. Equal curves do not establish equal regimen risks.
 Topic selection uses the Bijwerkingen bij kanker side-effect index returned by web search;

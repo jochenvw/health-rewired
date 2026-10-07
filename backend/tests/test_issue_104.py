@@ -133,3 +133,21 @@ def test_distinct_fixed_patient_records(patient_id, name, age, case_id, ecog, mo
     result = client.post("/api/ideas/104/explain", json={"patient_id": patient_id}).json()
     assert f"Patient: {name} ({patient_id})" in result["blocks"][0]["body"]
     assert client.post("/api/ideas/104/explain", json={"patient_id": "unknown"}).status_code == 422
+
+
+def test_free_text_priorities_are_discussion_context_only(monkeypatch):
+    monkeypatch.setattr(settings, "copilot_token", None)
+    monkeypatch.setattr(settings, "copilot_use_logged_in_user", False)
+    text = "  I want energy for my daughter's graduation.  "
+    baseline = consultation_data(Consultation(patient_id="SDM-104-2"))
+    context = consultation_data(Consultation(patient_id="SDM-104-2", personal_priorities=text))
+    assert context["personal_priorities"] == text.strip()
+    assert context["options"] == baseline["options"]
+    assert context["priorities"] == baseline["priorities"]
+    assert context["patient_identity"] == baseline["patient_identity"]
+    assert context["comparable_patients"] == baseline["comparable_patients"]
+    client = TestClient(app)
+    result = client.post("/api/ideas/104/explain", json={"patient_id": "SDM-104-2", "personal_priorities": text}).json()
+    assert text.strip() in result["blocks"][0]["body"]
+    assert "discussion context only, not scored" in result["blocks"][0]["body"]
+    assert client.post("/api/ideas/104/explain", json={"personal_priorities": "x" * 1001}).status_code == 422

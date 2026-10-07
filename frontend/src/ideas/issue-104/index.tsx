@@ -42,6 +42,7 @@ type Snapshot = {
   labels: Record<keyof Priorities, string>; weights: Priorities; scores: number[]; optionLabels: string[];
   avoided: Avoidance[];
   patientId: string;
+  personalPriorities: string;
 };
 
 export default function SharedDecision() {
@@ -51,6 +52,7 @@ export default function SharedDecision() {
   const [caseId, setCaseId] = useState<CaseId>('neuropathy');
   const [weights, setWeights] = useState<Priorities>(initialPriorities);
   const [avoided, setAvoided] = useState<Avoidance[]>([]);
+  const [personalPriorities, setPersonalPriorities] = useState('');
   const [outcomeKey, setOutcomeKey] = useState<Outcome>('fatigue');
   const [term, setTerm] = useState<keyof typeof data.terms>('Adjuvant therapy');
   const [result, setResult] = useState<AgentResult | null>(null);
@@ -83,7 +85,7 @@ export default function SharedDecision() {
   const changeWeights = (next: Priorities) => { setWeights(next); resetDraft(); };
   const changeCase = (next: CaseId) => {
     setCaseId(next); setWeights(initialPriorities); setAvoided([]); setChoice('undecided');
-    setSnapshotName('');
+    setSnapshotName(''); setPersonalPriorities('');
     setNotes(data.priorityCases.find((item) => item.id === next)!.note); resetDraft();
   };
   const selectPatient = (id: string) => {
@@ -96,7 +98,7 @@ export default function SharedDecision() {
       id, name: snapshotName.trim() || `Combination ${id}`, patientId: patient.id,
       caseTitle: `${patient.name} · ${priorityCase.title}`, context: `${patient.minimal} ${patient.details} ${priorityCase.context}`,
       country: countryName, labels: { ...priorityCase.labels }, weights: { ...weights }, scores: [...scores],
-      optionLabels: [...country.labels], avoided: [...avoided],
+      optionLabels: [...country.labels], avoided: [...avoided], personalPriorities: personalPriorities.trim(),
     }]);
     setSnapshotName('');
   };
@@ -104,7 +106,7 @@ export default function SharedDecision() {
     setBusy(true); setStarted(true); setRuns((n) => n + 1); setError(''); setResult(null);
     try {
       setResult(await request<AgentResult>('/api/ideas/104/explain', {
-        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', patient_id: patient.id, priorities: weights, avoided_effects: avoided }),
+        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', patient_id: patient.id, priorities: weights, avoided_effects: avoided, personal_priorities: personalPriorities.trim() }),
       }));
     } catch { setError('Assistant unavailable. The synthetic comparisons and term definitions remain available.'); }
     finally { setBusy(false); }
@@ -151,13 +153,12 @@ export default function SharedDecision() {
             {[{ label: 'Alive at five years', value: option.survival, tone: 'benefit' },
               { label: 'Recurrence within five years', value: option.recurrence, tone: 'burden' },
               { label: 'Chemotherapy-related nerve symptoms', value: option.neuropathy, tone: 'tradeoff' }].map((outcome) =>
-              <div className={`sdm-outcome ${outcome.tone}`} key={outcome.label}><span>{outcome.label}</span><strong>{outcome.value} / 100</strong>
-                <meter min="0" max="100" value={outcome.value} aria-label={`${country.labels[i]}: ${outcome.label}, ${outcome.value} of 100, simulated`} /></div>)}
+              <div className="sdm-outcome" key={outcome.label}><span>{outcome.label}</span>
+                <strong className={`sdm-value-chip ${outcome.tone}`}>{outcome.value} / 100</strong></div>)}
             <p><strong>{option.visits}</strong> chemotherapy infusion visits</p>
             <h4>Side effects at week 12 · invented severity</h4>
             {outcomes.filter((item) => item.max === 10).map((effect) => <div className="sdm-outcome tradeoff" key={effect.key}>
-              <span>{effect.label}</span><strong>{option.trajectories[effect.key][1]} / 10</strong>
-              <meter min="0" max="10" value={option.trajectories[effect.key][1]} aria-label={`${country.labels[i]}: ${effect.label} at week 12, invented severity ${option.trajectories[effect.key][1]} of 10`} />
+              <span>{effect.label}</span><strong className="sdm-value-chip tradeoff">{option.trajectories[effect.key][1]} / 10</strong>
             </div>)}
             {why(`${option.benefit} ${option.burden} Fixed invented figures, not personal predictions. No additional chemotherapy avoids chemotherapy toxicity, not existing symptoms or cancer risk; follow-up continues.`)}
           </section>)}</div>
@@ -195,11 +196,21 @@ export default function SharedDecision() {
             onChange={(event) => changeWeights(rebalancePriorities(weights, item.key, Number(event.target.value)))} /></div>)}
         <div className="sdm-presets"><button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 1, survivalFit: 8, mobility: 1 })}>Try: survival first</button>
           <button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 5, survivalFit: 0, mobility: 5 })}>Try: side effects first</button>
-          <button className="hx-btn" disabled={busy} onClick={() => { setAvoided([]); changeWeights(initialPriorities); }}>Reset priorities</button></div>
+          <button className="hx-btn" disabled={busy} onClick={() => { setAvoided([]); setPersonalPriorities(''); changeWeights(initialPriorities); }}>Reset priorities</button></div>
+        <label className="sdm-personal-priorities" htmlFor="sdm-personal-priorities">In your own words
+          <textarea id="sdm-personal-priorities" rows={3} maxLength={1000} value={personalPriorities} disabled={busy}
+            placeholder="e.g. I want enough energy to attend my daughter's graduation."
+            onChange={(event) => { setPersonalPriorities(event.target.value); resetDraft(); }} />
+        </label>
+        <small>Use synthetic examples only. Saved for the conversation, snapshots and assistant explanation; not scored or used to change medical estimates.</small>
         <fieldset className="sdm-avoidance"><legend>Additional side-effect concerns</legend>
-          {avoidanceControls.map((item) => <label key={item.key}><input type="checkbox" role="switch" checked={avoided.includes(item.key)} disabled={busy}
-            onChange={(event) => { setAvoided((current) => event.target.checked ? [...current, item.key] : current.filter((key) => key !== item.key)); resetDraft(); }} /> {item.label}</label>)}
-          <small>Each enabled switch adds one preference point beyond the ten slider points. Fit changes; medical outcomes do not.</small>
+          <div className="sdm-concern-cards">{avoidanceControls.map((item) => <button key={item.key} type="button" className="sdm-concern-card"
+            role="switch" aria-checked={avoided.includes(item.key)} disabled={busy}
+            onClick={() => { setAvoided((current) => current.includes(item.key) ? current.filter((key) => key !== item.key) : [...current, item.key]); resetDraft(); }}>
+            <span className="sdm-switch-track" aria-hidden="true"><span /></span>
+            <strong>{item.label}</strong><span className="sdm-concern-state">{avoided.includes(item.key) ? 'Included in my priorities' : 'Add to my priorities'}</span>
+          </button>)}</div>
+          <small>Select what matters to you. Each included concern adds one preference point beyond the ten slider points; medical outcomes stay fixed.</small>
         </fieldset>
         {why(`Additional fit assumptions (0–10): ${data.options.map((option, i) => `${country.labels[i]}: ${avoidanceControls.map((item) => `${item.label} ${option.avoidanceFit[item.key]}`).join(', ')}`).join('; ')}. Each selected concern adds one weighted point; divide the combined score by 10 plus the enabled switch count, then scale to 100. Scores are invented preferences, not toxicity predictions. Selected: ${avoidanceLabels(avoided)}.`)}
         {why(`Total = 10 points. Remaining points redistribute proportionally, rounded; an empty pair splits evenly. Case-specific invented scores in slider order: ${priorityCase.scores.map((option, i) => `${country.labels[i]}: ${caseCriteria.map((item) => option[item.key]).join('/')}`).join('; ')}. Fit = weighted sum of these scores; not clinical evidence or a model of side effects or recurrence. Equal hair-loss/nausea scores for the chemotherapy choices do not establish equal clinical risk. Regimen-specific likelihoods need clinician verification. Costs unavailable.`)}
@@ -213,11 +224,13 @@ export default function SharedDecision() {
           <div className="sdm-snapshots">
             <section className="sdm-snapshot"><h4>Current combination</h4><small>{patient.name} · {priorityCase.title} · {countryName}</small>
               {caseCriteria.map((item) => <p key={item.key}>{item.label}: <strong>{weights[item.key]} / 10</strong></p>)}<p>Additional concerns: {avoidanceLabels(avoided)}</p>{fitPlot}
+              {personalPriorities.trim() && <p className="sdm-personal-note"><strong>In your own words:</strong> {personalPriorities.trim()}</p>}
             </section>
             {snapshots.map((snapshot) => <section className="sdm-snapshot" key={snapshot.id} aria-label={`Snapshot ${snapshot.name}`}>
               <h4>{snapshot.name}</h4><small>{snapshot.caseTitle} · {snapshot.country}</small>
               {criteria.map((item) => <p key={item.key}>{snapshot.labels[item.key]}: <strong>{snapshot.weights[item.key]} / 10</strong></p>)}
               <p>Additional concerns: {avoidanceLabels(snapshot.avoided)}</p>
+              {snapshot.personalPriorities && <p className="sdm-personal-note"><strong>In your own words:</strong> {snapshot.personalPriorities}</p>}
               <div className="sdm-live-fit"><strong>Saved fit · not a probability</strong>
                 {snapshot.optionLabels.map((label, i) => <div className="sdm-fit" key={label}><span>{label}</span><strong>{snapshot.scores[i]} / 100</strong>
                   <progress max="100" value={snapshot.scores[i]} aria-label={`${snapshot.name}: ${label} saved preference fit`} /></div>)}
@@ -252,7 +265,8 @@ export default function SharedDecision() {
           {data.options.map((option, i) => <option key={option.id} value={option.id}>{country.labels[i]}</option>)}</select></label>
         <label>Priorities and next steps<textarea rows={3} value={notes} onChange={(event) => { setNotes(event.target.value); invalidateDecision(); }} /></label>
         <label><input type="checkbox" checked={confirmed} onChange={(event) => { invalidateDecision(); setConfirmed(event.target.checked); }} /> Patient and clinician reviewed options and uncertainty together.</label>
-        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · ${patient.name} (${patient.id}) · ${priorityCase.title}. ${notes} Priorities: ${caseCriteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Additional concerns: ${avoidanceLabels(avoided)}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
+        <p className="sdm-personal-note"><strong>In your own words:</strong> {personalPriorities.trim() || 'Not added'}</p>
+        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · ${patient.name} (${patient.id}) · ${priorityCase.title}. ${notes} Priorities: ${caseCriteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Additional concerns: ${avoidanceLabels(avoided)}. In your own words: ${personalPriorities.trim() || 'Not added'}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
         {receipt && <div className="sdm-attention" role="status"><strong>Conversation recorded ✓</strong><p>{receipt}</p><small>Local only · not persisted · no EHR write-back</small>
           <label><input type="checkbox" checked={consent} disabled={contributed} onChange={(event) => setConsent(event.target.checked)} /> Agree to a synthetic learning-loop preview.</label>
           <button className="hx-btn" disabled={!consent || contributed} onClick={() => setContributed(true)}>Contribute to learning loop · simulate</button>
