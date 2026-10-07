@@ -87,6 +87,29 @@ export const data = {
       fatigue: [3, 2, 1],
     },
   ],
+  priorityCases: [
+    {
+      id: 'walking', title: 'Foot tingling · daily walks',
+      context: 'Synthetic Eva: mild diabetic foot tingling; daily walks and caring for a partner make energy and foot symptoms relevant.',
+      note: 'I want energy for partner care and to avoid worse foot tingling on my daily walks.',
+      labels: { quality: 'Have energy for daily partner care', survivalFit: 'Reduce the chance of cancer returning', mobility: 'Avoid worse foot tingling on daily walks' },
+      scores: [{ quality: 8, survivalFit: 6, mobility: 8 }, { quality: 5, survivalFit: 9, mobility: 4 }, { quality: 9, survivalFit: 1, mobility: 10 }],
+    },
+    {
+      id: 'shoulder', title: 'Shoulder limitation · self-care',
+      context: 'Alternative synthetic Eva: painful restricted shoulder movement; walking is not her concern. Managing tablets and dressing without help matter.',
+      note: 'I want to manage medication and dress myself despite limited shoulder movement.',
+      labels: { quality: 'Manage tablets without extra help', survivalFit: 'Reduce the chance of cancer returning', mobility: 'Dress and wash with limited shoulder movement' },
+      scores: [{ quality: 3, survivalFit: 6, mobility: 6 }, { quality: 7, survivalFit: 9, mobility: 4 }, { quality: 9, survivalFit: 1, mobility: 9 }],
+    },
+    {
+      id: 'caregiving', title: 'Caregiving · travel support',
+      context: 'Alternative synthetic Eva: provides daily childcare and needs a relative to drive her to clinic. Energy and transport burden matter more than walking.',
+      note: 'I want energy for childcare and fewer visits requiring someone to drive me.',
+      labels: { quality: 'Keep energy for daily childcare', survivalFit: 'Reduce the chance of cancer returning', mobility: 'Limit visits needing travel support' },
+      scores: [{ quality: 8, survivalFit: 6, mobility: 8 }, { quality: 4, survivalFit: 9, mobility: 3 }, { quality: 9, survivalFit: 1, mobility: 10 }],
+    },
+  ],
   comparablePatients: [
     { id: 'DE-demo-1', site: 'Germany · synthetic site', age: 66, stage: 'III', priority: 'quality', option: 'short', outcome: 'Walking daily at 12 months; fatigue during treatment' },
     { id: 'IT-demo-1', site: 'Italy · synthetic site', age: 70, stage: 'III', priority: 'quality', option: 'none', outcome: 'No chemotherapy toxicity; recurrence recorded at 18 months' },

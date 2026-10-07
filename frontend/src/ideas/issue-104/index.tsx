@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { request, type AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type StoryStep } from '../../hospital/Story';
 import { data } from './data';
-import { criteria, initialPriorities, rebalancePriorities, type Priorities } from './priorities';
+import { criteria, initialPriorities, preferenceScores, rebalancePriorities, type Priorities } from './priorities';
 import type { IdeaMeta } from '../index';
 import './decision.css';
 
@@ -25,11 +25,17 @@ const stages = [
   { label: 'Explain the options and priorities', detail: 'Copilot SDK or labelled demo fallback' },
 ];
 type Country = 'Germany' | 'Italy' | 'Netherlands';
+type CaseId = typeof data.priorityCases[number]['id'];
+type Snapshot = {
+  id: number; name: string; caseTitle: string; context: string; country: string;
+  labels: Record<keyof Priorities, string>; weights: Priorities; scores: number[]; optionLabels: string[];
+};
 
 export default function SharedDecision() {
   const [theme, setTheme] = useState('light');
   const [step, setStep] = useState('worklist');
   const [countryName, setCountry] = useState<Country>('Germany');
+  const [caseId, setCaseId] = useState<CaseId>('walking');
   const [weights, setWeights] = useState<Priorities>(initialPriorities);
   const [term, setTerm] = useState<keyof typeof data.terms>('Adjuvant therapy');
   const [result, setResult] = useState<AgentResult | null>(null);
@@ -38,25 +44,43 @@ export default function SharedDecision() {
   const [runs, setRuns] = useState(0);
   const [error, setError] = useState('');
   const [choice, setChoice] = useState('undecided');
-  const [notes, setNotes] = useState('I want to keep walking and understand whether extra treatment time is worth it.');
+  const [notes, setNotes] = useState<string>(data.priorityCases[0].note);
   const [confirmed, setConfirmed] = useState(false);
   const [receipt, setReceipt] = useState('');
   const [consent, setConsent] = useState(false);
   const [contributed, setContributed] = useState(false);
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [snapshotName, setSnapshotName] = useState('');
+  const snapshotId = useRef(0);
   const country = data.countries.find((item) => item.name === countryName)!;
-  const scores = data.options.map((option) => criteria.reduce((sum, item) => sum + weights[item.key] * option[item.key], 0));
+  const priorityCase = data.priorityCases.find((item) => item.id === caseId)!;
+  const caseCriteria = criteria.map((item) => ({ ...item, label: priorityCase.labels[item.key] }));
+  const scores = preferenceScores(weights, priorityCase.scores);
   const bestFits = country.labels.filter((_, i) => scores[i] === Math.max(...scores));
-  const topPriorities = criteria.filter((item) => weights[item.key] === Math.max(...Object.values(weights)));
-  const comparable = data.comparablePatients.filter((patient) => Math.abs(patient.age - data.patient.age) <= 5 &&
+  const topPriorities = caseCriteria.filter((item) => weights[item.key] === Math.max(...Object.values(weights)));
+  const comparable = data.comparablePatients.filter((patient) => caseId === 'walking' && Math.abs(patient.age - data.patient.age) <= 5 &&
     patient.stage === 'III' && topPriorities.some((item) => item.key === patient.priority));
   const invalidateDecision = () => { setReceipt(''); setConfirmed(false); setConsent(false); setContributed(false); };
   const resetDraft = () => { setResult(null); setError(''); setStarted(false); invalidateDecision(); };
   const changeWeights = (next: Priorities) => { setWeights(next); resetDraft(); };
+  const changeCase = (next: CaseId) => {
+    setCaseId(next); setWeights(initialPriorities); setChoice('undecided');
+    setNotes(data.priorityCases.find((item) => item.id === next)!.note); resetDraft();
+  };
+  const saveSnapshot = () => {
+    const id = ++snapshotId.current;
+    setSnapshots((saved) => [...saved, {
+      id, name: snapshotName.trim() || `Combination ${id}`, caseTitle: priorityCase.title, context: priorityCase.context,
+      country: countryName, labels: { ...priorityCase.labels }, weights: { ...weights }, scores: [...scores],
+      optionLabels: [...country.labels],
+    }]);
+    setSnapshotName('');
+  };
   const explain = async () => {
     setBusy(true); setStarted(true); setRuns((n) => n + 1); setError(''); setResult(null);
     try {
       setResult(await request<AgentResult>('/api/ideas/104/explain', {
-        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', priorities: weights }),
+        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', case_id: caseId, priorities: weights }),
       }));
     } catch { setError('Assistant unavailable. The synthetic comparisons and term definitions remain available.'); }
     finally { setBusy(false); }
@@ -79,10 +103,13 @@ export default function SharedDecision() {
       patient={{ ...data.patient, ward: 'Colorectal consultation · Room 2' }}
       guide={<StoryGuide steps={steps} current={step} onGo={setStep} nextLabel={step === 'worklist' ? 'Open Eva’s consultation' : undefined} />}
       toolbar={<><label>Country <select value={countryName} disabled={busy} onChange={(event) => { setCountry(event.target.value as Country); resetDraft(); }}>
-        {data.countries.map((item) => <option key={item.name}>{item.name}</option>)}</select></label><span className="hx-spacer" />
+        {data.countries.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+        <label>Case example <select aria-label="Case example" value={caseId} disabled={busy} onChange={(event) => changeCase(event.target.value as CaseId)}>
+          {data.priorityCases.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label><span className="hx-spacer" />
         {['light', 'dark'].map((value) => <button key={value} className="hx-btn" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === 'light' ? 'Light' : 'Dark'}</button>)}</>}>
       <div id="sdm-task" tabIndex={-1}><h1>{steps.find((item) => item.id === step)?.title}</h1>
         <div className="sdm-attention"><Pill tone="warn">Human review required</Pill> Synthetic estimates · no validated prediction model</div>
+        <small>{priorityCase.context} Case examples change discussion factors and invented fit assumptions, not medical probabilities.</small>
       </div>
       {step === 'worklist' && <>
         <Panel title="Colorectal clinic · post-MDT"><div className="sdm-scroll"><table className="hx-table"><caption>Synthetic consultations</caption>
@@ -91,7 +118,7 @@ export default function SharedDecision() {
             <tr><td>10:00</td><td>Leon Fischer · 72</td><td>Stage II</td><td>Awaiting pathology</td></tr>
             <tr><td>10:30</td><td>Marta Klein · 61</td><td>Stage III</td><td>Nurse toxicity review</td></tr>
           </tbody></table></div></Panel>
-        <Panel title="Eva’s MDT outcome"><p>{data.patient.mdt}</p>{why(data.patient.details)}</Panel>
+        <Panel title="Eva’s MDT outcome"><p>{data.patient.mdt}</p>{why(`${data.patient.minimal} ${priorityCase.context}`)}</Panel>
       </>}
       {step === 'options' && <>
         <Panel title="Clinical outcomes · invented scenario">
@@ -121,27 +148,50 @@ export default function SharedDecision() {
           <section><h4>Patients like me</h4><Pill>Simulated examples</Pill><button className="hx-btn" onClick={() => setStep('patients')}>Explore comparable cases</button></section>
         </div></Panel>
       </>}
-      {step === 'priorities' && <div className="sdm-columns"><Panel title="Share ten priority points">
+      {step === 'priorities' && <><div className="sdm-columns"><Panel title="Share ten priority points">
         <p>Increase one slider; the others give up points. Outcomes do not change.</p>
-        <div className="sdm-budget" role="img" aria-label={criteria.map((item) => `${item.label} ${weights[item.key]} of 10`).join(', ')}>
-          {criteria.map((item, i) => <span key={item.key} className={`sdm-budget-${i}`} style={{ flexGrow: weights[item.key] }} />)}
+        <div className="sdm-budget" role="img" aria-label={caseCriteria.map((item) => `${item.label} ${weights[item.key]} of 10`).join(', ')}>
+          {caseCriteria.map((item, i) => <span key={item.key} className={`sdm-budget-${i}`} style={{ flexGrow: weights[item.key] }} />)}
         </div>
-        {criteria.map((item) => <div className="sdm-priority" key={item.key}><label htmlFor={`sdm-${item.key}`}>{item.label}<strong>{weights[item.key]} / 10</strong></label>
+        {caseCriteria.map((item) => <div className="sdm-priority" key={item.key}><label htmlFor={`sdm-${item.key}`}>{item.label}<strong>{weights[item.key]} / 10</strong></label>
           <input id={`sdm-${item.key}`} type="range" min="0" max="10" step="1" value={weights[item.key]} disabled={busy}
             onChange={(event) => changeWeights(rebalancePriorities(weights, item.key, Number(event.target.value)))} /></div>)}
         <div className="sdm-presets"><button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 1, survivalFit: 8, mobility: 1 })}>Try: survival first</button>
           <button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 5, survivalFit: 0, mobility: 5 })}>Try: everyday life first</button>
           <button className="hx-btn" disabled={busy} onClick={() => changeWeights(initialPriorities)}>Reset priorities</button></div>
-        {why('Total = 10 points. Remaining points are redistributed proportionally between the other sliders, rounded to whole points. If both were zero, remaining points split evenly. Fit is a weighted mean of invented quality/survival/walking scores: shorter 8/6/8, longer 5/9/4, no treatment 9/1/10. Not a recommendation or confidence score. Costs are unavailable.')}
+        {why(`Total = 10 points. Remaining points redistribute proportionally, rounded; an empty pair splits evenly. Case-specific invented scores in slider order: ${priorityCase.scores.map((option, i) => `${country.labels[i]}: ${caseCriteria.map((item) => option[item.key]).join('/')}`).join('; ')}. Fit = weighted sum of these scores; not clinical evidence or a model of shoulder function, fatigue or recurrence. Costs unavailable.`)}
       </Panel><Panel title="How the comparison changes">{fitPlot}
         {why('Higher survival weighting favours longer treatment in this invented scenario; everyday-life weighting can favour no additional chemotherapy. This is patient-value fit, not evidence of a best treatment.')}
-      </Panel></div>}
+      </Panel></div>
+        <Panel title="Compare saved combinations">
+          <div className="sdm-assistant-controls"><label>Snapshot name <input value={snapshotName} maxLength={80} onChange={(event) => setSnapshotName(event.target.value)} placeholder="e.g. Independence first" /></label>
+            <button className="hx-btn primary" onClick={saveSnapshot}>Save current combination</button></div>
+          <small>Saved snapshots stay unchanged as sliders move. Local to this visit; different case examples use different fit assumptions.</small>
+          <div className="sdm-snapshots">
+            <section className="sdm-snapshot"><h4>Current combination</h4><small>{priorityCase.title} · {countryName}</small>
+              {caseCriteria.map((item) => <p key={item.key}>{item.label}: <strong>{weights[item.key]} / 10</strong></p>)}{fitPlot}
+            </section>
+            {snapshots.map((snapshot) => <section className="sdm-snapshot" key={snapshot.id} aria-label={`Snapshot ${snapshot.name}`}>
+              <h4>{snapshot.name}</h4><small>{snapshot.caseTitle} · {snapshot.country}</small>
+              {criteria.map((item) => <p key={item.key}>{snapshot.labels[item.key]}: <strong>{snapshot.weights[item.key]} / 10</strong></p>)}
+              <div className="sdm-live-fit"><strong>Saved fit · not a probability</strong>
+                {snapshot.optionLabels.map((label, i) => <div className="sdm-fit" key={label}><span>{label}</span><strong>{snapshot.scores[i]} / 100</strong>
+                  <progress max="100" value={snapshot.scores[i]} aria-label={`${snapshot.name}: ${label} saved preference fit`} /></div>)}
+                <small>Closest fit: {snapshot.optionLabels.filter((_, i) => snapshot.scores[i] === Math.max(...snapshot.scores)).join(' / ')}</small>
+              </div>
+              <details className="sdm-why"><summary>Saved context</summary><p>{snapshot.context}</p><p>Synthetic preference fit only. No treatment decision was recorded by saving this snapshot.</p></details>
+              <button className="hx-btn" onClick={() => setSnapshots((saved) => saved.filter((item) => item.id !== snapshot.id))}>Remove {snapshot.name}</button>
+            </section>)}
+          </div>
+          {!snapshots.length && <p>Save one combination, change the sliders, then save another to compare side by side.</p>}
+        </Panel></>}
       {step === 'patients' && <Panel title="Patients like me · synthetic European examples">
         <p>{comparable.length} matches · age 63–73 · stage III · {topPriorities.map((item) => item.label).join(' / ')}</p>
+        {caseId !== 'walking' && <p>No synthetic records capture this case’s shoulder or caregiving factors. Walking examples are not relabelled as matches.</p>}
         <div className="sdm-option-cards">{data.options.map((option, i) => <section key={option.id}><h3>{country.labels[i]}</h3>
           <div className="sdm-match-count"><strong>{comparable.filter((patient) => patient.option === option.id).length}</strong> synthetic cases</div>
           {comparable.filter((patient) => patient.option === option.id).map((patient) => <details className="sdm-case" key={patient.id}><summary>{patient.age} years · {patient.site.split(' · ')[0]}</summary>
-            <p>{patient.outcome}</p><small>{patient.id} · {criteria.find((item) => item.key === patient.priority)?.label}</small></details>)}
+            <p>{patient.outcome}</p><small>{patient.id} · {caseCriteria.find((item) => item.key === patient.priority)?.label}</small></details>)}
         </section>)}</div>
         <button className="hx-btn" onClick={() => setStep('priorities')}>Change priorities to explore other cases</button>
         {why('Local invented cases only: age within five years, stage III and any tied highest priority. Different follow-up, missing outcomes and selection bias prevent causal comparisons. No real hospital query or pooled outcome probability.')}
@@ -151,7 +201,7 @@ export default function SharedDecision() {
           {data.options.map((option, i) => <option key={option.id} value={option.id}>{country.labels[i]}</option>)}</select></label>
         <label>Priorities and next steps<textarea rows={3} value={notes} onChange={(event) => { setNotes(event.target.value); invalidateDecision(); }} /></label>
         <label><input type="checkbox" checked={confirmed} onChange={(event) => { invalidateDecision(); setConfirmed(event.target.checked); }} /> Patient and clinician reviewed options and uncertainty together.</label>
-        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · Eva. ${notes} Priorities: ${criteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
+        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · Eva · ${priorityCase.title}. ${notes} Priorities: ${caseCriteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
         {receipt && <div className="sdm-attention" role="status"><strong>Conversation recorded ✓</strong><p>{receipt}</p><small>Local only · not persisted · no EHR write-back</small>
           <label><input type="checkbox" checked={consent} disabled={contributed} onChange={(event) => setConsent(event.target.checked)} /> Agree to a synthetic learning-loop preview.</label>
           <button className="hx-btn" disabled={!consent || contributed} onClick={() => setContributed(true)}>Contribute to learning loop · simulate</button>

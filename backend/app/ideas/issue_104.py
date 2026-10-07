@@ -24,21 +24,24 @@ class Priorities(BaseModel):
 class Consultation(BaseModel):
     country: Literal["Germany", "Italy", "Netherlands"] = "Germany"
     horizon: Literal["future", "six-months"] = "future"
+    case_id: Literal["walking", "shoulder", "caregiving"] = "walking"
     priorities: Priorities = Field(default_factory=Priorities)
 
 
 def consultation_data(params: Consultation) -> dict:
     data = sample_data.read("issue-104.json")
     country = next(item for item in data["countries"] if item["name"] == params.country)
+    priority_case = next(item for item in data["priorityCases"] if item["id"] == params.case_id)
     patient = data["patient"]["minimal"]
     if params.horizon == "future":
-        patient += " " + data["patient"]["details"]
+        patient += " " + (data["patient"]["details"] if params.case_id == "walking" else priority_case["context"])
     weights = params.priorities.model_dump()
     top_weight = max(weights.values())
     comparable = [
         item
         for item in data["comparablePatients"]
-        if abs(item["age"] - data["patient"]["age"]) <= 5
+        if params.case_id == "walking"
+        and abs(item["age"] - data["patient"]["age"]) <= 5
         and item["stage"] == "III"
         and top_weight > 0
         and weights[item["priority"]] == top_weight
@@ -48,6 +51,7 @@ def consultation_data(params: Consultation) -> dict:
         "country": country,
         "patient": patient,
         "priorities": weights,
+        "priority_case": priority_case,
         "evidence_status": {
             "guidelines_and_trials": "Guideline pointers unverified; no trial results retrieved.",
             "prediction_model": "No model connected. Displayed probabilities are teaching placeholders.",
@@ -85,6 +89,10 @@ async def explain(params: Consultation) -> AgentResult:
             "guideline passages or country-specific clinical differences. Full texts are not verified. "
             "Separate patient values from guideline/trial evidence, unconnected prediction models and "
             "synthetic observational examples. Discuss the provided priorities without treating fit as "
+            "a clinical probability. Use the selected priority_case labels and context, not generic walking "
+            "labels for shoulder or caregiving cases. Case-specific fit scores are invented assumptions, not "
+            "personalised medical predictions; clinical placeholder probabilities stay fixed. Discuss lack "
+            "of matching records when comparable_patients is empty. Do not relabel walking cohorts. Fit is not "
             "a clinical probability. Comparable cases are not causal evidence. Do not suggest a learning "
             "loop has transmitted data or trained a model. Say summaries are synthetic, not guideline "
             "recommendations. Final choice is human."
@@ -106,8 +114,13 @@ async def explain(params: Consultation) -> AgentResult:
                 body=(
                     context["terms"]["Adjuvant therapy"]
                     + " No additional chemotherapy remains a choice to discuss, with follow-up and supportive care."
-                    + f" Your priorities (0–10): quality of life {params.priorities.quality}, "
-                    + f"survival benefit {params.priorities.survivalFit}, walking {params.priorities.mobility}. "
+                    + f" Case example: {context['priority_case']['title']}. "
+                    + "Your priorities (0–10): "
+                    + ", ".join(
+                        f"{context['priority_case']['labels'][key]} {value}"
+                        for key, value in context["priorities"].items()
+                    )
+                    + ". "
                     + "Preferences change fit, not clinical risk estimates. The joint decision remains yours."
                 ),
                 items=[
@@ -129,7 +142,7 @@ async def explain(params: Consultation) -> AgentResult:
                         detail="Full text not retrieved or checked.",
                         source=context["country"]["url"],
                     ),
-                    UIItem(label="Ask together", detail="How important are walking, daily tablets and fewer visits?"),
+                    UIItem(label="Ask together", detail=context["priority_case"]["context"]),
                     UIItem(label="Prediction model", detail=context["evidence_status"]["prediction_model"]),
                     UIItem(
                         label="Patients like me",

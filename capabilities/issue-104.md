@@ -28,6 +28,14 @@ reasoning. Ten priority points are shared between quality of life, survival bene
 increasing one redistributes the remaining points proportionally between the others, with whole-point
 rounding; an empty pair splits the remainder evenly. Presets and reset use the same ten-point budget.
 Live bars beside the sliders demonstrate how fit changes immediately.
+Three alternative synthetic Eva case examples adapt the factors: foot tingling and partner care,
+restricted shoulder movement and self-care, or childcare and transport support. Labels and transparent
+invented option-fit scores change with the case; medical placeholder figures do not. Changing case
+resets priorities, draft, choice and note so the previous scenario is not accidentally recorded.
+Named snapshots preserve weights, factor labels, fit scores, option labels, country and case context.
+Multiple saved combinations sit beside the live combination; slider edits never mutate saved
+snapshots. Remove individual snapshots as needed. Snapshots persist only during the current visit,
+not after leaving/reloading; saving is not a treatment decision.
 Clinical outcomes stay separate and fixed. Guideline/trial pointers, an explicitly unconnected
 prediction-model module and observational examples have separate provenance and limitations.
 Plain-language definitions and an assistant explanation support the conversation.
@@ -39,9 +47,11 @@ Neither mode retrieves full guidelines, calculates a validated personal risk or 
 
 ## Inputs
 A synthetic 68-year-old stage III colon cancer scenario, unverified teaching summaries, source
-links, patient priorities and selected country. “Patients like me” uses invented European
+links, patient priorities, case example and selected country. “Patients like me” uses invented European
 records filtered by age within five years, stage III and any tied highest-rated priority. No priorities
 means no matches in the compatible API; the UI always allocates ten points.
+Only the foot-tingling case has compatible observational examples. Shoulder and caregiving cases
+explicitly show no compatible records rather than relabelling walking examples.
 
 ## Outputs
 Focused sections: worklist → visual outcomes → priorities → Patients like me → decision.
