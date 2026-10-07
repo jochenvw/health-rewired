@@ -1,0 +1,69 @@
+{
+  "synthetic": true,
+  "limitation": "Arbitrary author-created demo fixtures, not personal clinical probabilities, a risk model, evidence-derived estimates or real treatment effects. Not for clinical use. Personal five-year survival and risk-reduction estimates are unavailable; no validated survival or risk-reduction estimates are available. Both scenarios are hypothetical and cannot be selected as prescribed treatment.",
+  "metric_definitions": {
+    "survival": "Fictitious people alive at five years out of 100; not a personal survival probability.",
+    "quality": "Arbitrary demo quality-of-life score, 0–100; higher is better.",
+    "mobility": "Mock independently mobile people out of 100; higher is better.",
+    "limitations": "Mock daily limitation burden, 0–100; lower is better.",
+    "costs": "Relative mock cost burden, 0–100; lower is better. Not euros or a cost estimate.",
+    "neuropathy": "Fictitious people experiencing neuropathy out of 100; not a personal risk."
+  },
+  "recipe": "Copy each scenario's base metrics, neuropathy and six weekly story points. Only in the future horizon, with explicitly reviewed available ECOG of 2–4, add 10 to limitations and every weekly fatigue score, and subtract 10 from quality and mobility; clamp those scores to 0–100. Never adjust survival, neuropathy, costs, visits or recovery text. Missing or pending ECOG causes no adjustment; six-month mode always keeps base values. Age, MMR, CEA, other labs and comorbidities cause no numerical adjustment. Priority sliders only weight or highlight locally; they never change these raw metrics. This recipe is an arbitrary simulation, not a calibrated clinical model.",
+  "options": [
+    {
+      "id": "surgery",
+      "title": "Resection alone and follow-up, if pathology permits",
+      "condition": "Hypothetical localized case only. Surgical pathology and specialist MDT review must establish whether resection alone with follow-up is appropriate; staging and MMR must be reviewed. Not a prescribed treatment.",
+      "plain_language": "An operation removes the affected part of the bowel. Follow-up alone is a hypothetical later route only if the pathology and MDT support it. These mock numbers do not estimate your outcome.",
+      "metrics": {"survival": 70, "quality": 85, "mobility": 90, "limitations": 25, "costs": 35},
+      "neuropathy": 5,
+      "trajectory": [
+        {"week": 1, "fatigue": 75, "visits": 3, "recovery": "Mock story: hospital care after resection; help with daily tasks."},
+        {"week": 2, "fatigue": 65, "visits": 2, "recovery": "Mock story: home recovery and wound review."},
+        {"week": 3, "fatigue": 50, "visits": 1, "recovery": "Mock story: pathology discussion; follow-up only if appropriate."},
+        {"week": 4, "fatigue": 40, "visits": 1, "recovery": "Mock story: gradually resume short walks."},
+        {"week": 5, "fatigue": 30, "visits": 0, "recovery": "Mock story: more independent daily activities."},
+        {"week": 6, "fatigue": 25, "visits": 1, "recovery": "Mock story: review recovery and future follow-up."}
+      ],
+      "reasoning": "Author-selected base fixture: survival 70, quality 85, mobility 90, limitations 25, costs 35 and neuropathy 5. These are arbitrary display values, not evidence of benefit or harm."
+    },
+    {
+      "id": "combined",
+      "title": "Resection then adjuvant therapy, only if indicated",
+      "condition": "Hypothetical localized case only. Resection comes first; adjuvant systemic treatment is discussed ONLY IF surgical pathology and specialist MDT indicate it, after MMR and relevant safety assessments. It is not automatic and does not replace surgery. Not a prescribed treatment.",
+      "plain_language": "The operation removes the affected bowel. Additional medicines after surgery may be discussed only if pathology and the MDT show a reason. They do not replace the operation. These mock numbers do not estimate your outcome.",
+      "metrics": {"survival": 78, "quality": 65, "mobility": 70, "limitations": 55, "costs": 70},
+      "neuropathy": 30,
+      "trajectory": [
+        {"week": 1, "fatigue": 75, "visits": 3, "recovery": "Mock story: hospital care after resection, not medicine instead of surgery."},
+        {"week": 2, "fatigue": 65, "visits": 2, "recovery": "Mock story: home recovery and wound review."},
+        {"week": 3, "fatigue": 60, "visits": 2, "recovery": "Mock story: pathology and MDT review whether additional therapy is indicated."},
+        {"week": 4, "fatigue": 65, "visits": 2, "recovery": "Mock story: discuss additional treatment and safety checks only if indicated."},
+        {"week": 5, "fatigue": 70, "visits": 2, "recovery": "Mock story: imagined treatment-related burden; no real schedule is predicted."},
+        {"week": 6, "fatigue": 65, "visits": 2, "recovery": "Mock story: review symptoms and practical support; timing is illustrative only."}
+      ],
+      "reasoning": "Author-selected base fixture: survival 78, quality 65, mobility 70, limitations 55, costs 70 and neuropathy 30. Differences from the surgery fixture are arbitrary, not real treatment effects or validated survival risk reduction."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "resection",
+      "meaning": "An operation to remove the affected part of the bowel. This is an author-written explanation, not a guideline quotation.",
+      "timeline": "First step in these hypothetical localized scenarios; the six-week recovery story is arbitrary, not a forecast.",
+      "reference": "https://richtlijnendatabase.nl/richtlijn/colorectaal_carcinoom_crc/"
+    },
+    {
+      "term": "adjuvant therapy",
+      "meaning": "Additional treatment after an operation, only when pathology and specialist review indicate a reason. It is not automatic and does not replace surgery.",
+      "timeline": "Discussed after surgical pathology and MDT review; no start date or regimen is prescribed.",
+      "reference": "https://www.nccn.org/"
+    },
+    {
+      "term": "MMR / MSI",
+      "meaning": "Tumour tests about DNA repair and related instability. A reviewed tumour result is not an inherited genetic diagnosis and does not establish stage.",
+      "timeline": "Review the tumour result with staging and pathology before discussing its implications; pending means unknown.",
+      "reference": "https://richtlijnendatabase.nl/richtlijn/colorectaal_carcinoom_crc/"
+    }
+  ]
+}
