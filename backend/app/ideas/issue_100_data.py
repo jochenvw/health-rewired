@@ -244,6 +244,22 @@ def build_dataset(selected_definition: str = "inclusive", refined: bool = False)
             )
         patterns_by_site[site_id] = site_patterns
 
+    representative_cases = list(CASES)
+    represented_hospitals = {case["hospital"] for case in representative_cases}
+    for index, (site_id, name, *_rest) in enumerate(SITES):
+        if name in represented_hospitals:
+            continue
+        pattern = patterns_by_site[site_id].most_common(1)[0][0]
+        template = next((case for case in CASES if case["pattern"] == pattern), CASES[0])
+        representative_cases.append(
+            {
+                **template,
+                "id": f"SYN-{site_id}-{2023 + index % 4}-{index + 1:04d}",
+                "hospital": name,
+                "year": 2023 + index % 4,
+            }
+        )
+
     by_id = {
         "strict": [sum(event["strict"] for event in events if event["hospital"] == site[0]) for site in SITES],
         "inclusive": [sum(event["inclusive"] for event in events if event["hospital"] == site[0]) for site in SITES],
@@ -378,11 +394,11 @@ def build_dataset(selected_definition: str = "inclusive", refined: bool = False)
             "agreement_sample_size": agreement_cases,
         },
         "patterns": pattern_details,
-        "representative_cases": list(CASES),
+        "representative_cases": representative_cases,
         "yearly_patient_count": dict(sorted(years.items())),
         "histogram": [
             {"age_band": f"{start}–{start + 9}", "patients": sum(start <= age <= start + 9 for age in ages)}
-            for start in range(20, 90, 10)
+            for start in range(10, 100, 10)
         ],
         "definitions_note": (
             "Counts and metrics are generated and calculated in Python from a fixed synthetic seed. "

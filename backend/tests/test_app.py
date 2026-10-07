@@ -59,9 +59,17 @@ def test_issue_100_dataset_is_deterministic_and_definition_sensitive(client):
     assert dataset["patient_count"] == 24_000
     assert dataset["hospital_count"] == 12
     assert dataset["procedure_event_count"] >= 20_000
+    assert sum(band["patients"] for band in dataset["histogram"]) == dataset["patient_count"]
+    assert {case["hospital"] for case in dataset["representative_cases"]} == {
+        hospital["name"] for hospital in dataset["hospitals"]
+    }
     assert dataset["definition_stats"]["inclusive"]["total"] == 4_217
     assert dataset["definition_stats"]["strict"]["total"] == 3_841
     assert dataset["definition_sensitivity"]["cases"] == 376
+    assert dataset["definition_sensitivity"]["cross_hospital_agreement_before"] == 82
+    assert dataset["definition_sensitivity"]["cross_hospital_agreement_after"] == 94
+    assert dataset["definition_sensitivity"]["unexplained_before"] == 137
+    assert dataset["definition_sensitivity"]["unexplained_after"] == 41
     hospital_c = next(hospital for hospital in dataset["hospitals"] if hospital["id"] == "C")
     assert hospital_c["difference_percent"] == 21.1
 
