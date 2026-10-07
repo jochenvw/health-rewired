@@ -1,17 +1,9 @@
 # Health Rewired design language
 
-Adapted from the MDT Observatory design language. This is the shared visual and interaction
-foundation for hackathon prototypes. It complements the clinical storyline in
-[`purpose-and-learnings.md`](purpose-and-learnings.md): prototypes must still take the participant
-on a guided tour through one concrete scenario.
-
-For clinician- and operator-facing ideas, the default feel is a trusted institutional workstation:
-calm, dense, inspectable and operational, not a generic collection of rounded cards. This default
-is a starting point, not a mandate: an idea aimed at a different audience (patients, families, the
-public, executives) or a genuinely different kind of tool may adopt a different tone — warmer,
-simpler, more visual — as long as it stays legible, inspectable, accessible and specific to the
-idea rather than a generic marketing page or chat window. When in doubt, prefer a distinctive,
-credible workspace over either a decorative consumer dashboard or a carbon-copy EHR shell.
+Adapted from the MDT Observatory design language. **This entire document is optional inspiration,
+not a requirement.** Nothing below is enforced by the critic or the build rules: use any part of
+it, all of it, or none of it — pick whatever look, palette, components, motion and interaction
+style best tell your idea's story for its audience.
 
 ## 1. Design signature
 
