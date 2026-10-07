@@ -6,7 +6,7 @@ capabilities: [tool-use, generative-ui, human-in-the-loop]
 ui_surfaces: ["/#/idea/104"]
 api_endpoints: ["POST /api/ideas/104/explain"]
 agent_tools: ["read_shared_decision_context"]
-data: ["sample-data/issue-104.json", "sample-data/minimal-mdt-dataset.json"]
+data: ["sample-data/issue-104.json"]
 depends_on: []
 ---
 
@@ -22,9 +22,12 @@ The patient, clinician and optionally caregiver in the post-MDT consultation.
 ## Capability
 A guided worklist-to-decision walkthrough compares three synthetic choices, including no additional
 chemotherapy with follow-up (“No treatment / Do nothing”). Germany, Italy
-and Netherlands selectors change teaching wording and guideline source pointers. Separate sliders
+and Netherlands selectors change teaching wording and guideline source pointers. Linked sliders
 change preference fit, never the medical risk numbers. Every consequential element has expandable
-reasoning. Live bars beside the sliders and example priorities demonstrate how fit changes immediately.
+reasoning. Ten priority points are shared between quality of life, survival benefit and walking:
+increasing one redistributes the remaining points proportionally between the others, with whole-point
+rounding; an empty pair splits the remainder evenly. Presets and reset use the same ten-point budget.
+Live bars beside the sliders demonstrate how fit changes immediately.
 Clinical outcomes stay separate and fixed. Guideline/trial pointers, an explicitly unconnected
 prediction-model module and observational examples have separate provenance and limitations.
 Plain-language definitions and an assistant explanation support the conversation.
@@ -36,13 +39,14 @@ Neither mode retrieves full guidelines, calculates a validated personal risk or 
 
 ## Inputs
 A synthetic 68-year-old stage III colon cancer scenario, unverified teaching summaries, source
-links, patient priorities, selected country and horizon. Future “Patients like me” uses invented European
+links, patient priorities and selected country. “Patients like me” uses invented European
 records filtered by age within five years, stage III and any tied highest-rated priority. No priorities
-means no matches. Coverage uses actual minimal-dataset fields.
+means no matches in the compatible API; the UI always allocates ten points.
 
 ## Outputs
-Risk/benefit matrix, simulated future icon arrays and fatigue trajectories, generated explanation
-blocks, six-month coverage panel and a local receipt of the joint decision or deferral. The future
+Focused sections: worklist → visual outcomes → priorities → Patients like me → decision.
+Outcome bars and fatigue line plots replace dense comparison prose; explanations and sources expand
+on demand. Generated explanation blocks and a local receipt of the joint decision or deferral. The
 learning-loop preview captures the selected option, preferences, context and evidence limitations.
 
 ## Human decisions
@@ -58,8 +62,10 @@ No new dependencies or infrastructure.
 ## Major assumptions
 All summaries, risks, preference scores and trajectories are invented teaching material, not
 guideline-derived evidence or validated predictions. National guideline texts remain unverified;
-no country-specific efficacy differences are claimed. Costs are unavailable in both horizons.
-Six months offers qualitative summaries, priorities and a local conversation note; personalised
-probabilities, trajectories, comparable longitudinal cases and learning-loop linkage remain unavailable
-pending richer records, validated models, consent and governance. No clinical confidence algorithm
+no country-specific efficacy differences are claimed. Costs are unavailable.
+Per participant feedback in PR comment 6036045255, this idea shows the future demonstration only:
+the horizon selector and six-month coverage are removed locally, without changing shared policy or
+other ideas. The explanation API retains its existing horizon parameter for compatibility; this UI
+always requests `future`. Real predictions and learning-loop linkage would require richer records,
+validated models, consent and governance. No clinical confidence algorithm
 or evidence-based best option is claimed. Observational examples are not causal comparisons.

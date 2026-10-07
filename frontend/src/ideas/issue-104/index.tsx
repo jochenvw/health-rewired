@@ -1,48 +1,36 @@
-import { useEffect, useState } from 'react';
-import { api, request, type AgentResult } from '../../api';
+import { useState } from 'react';
+import { request, type AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type StoryStep } from '../../hospital/Story';
 import { data } from './data';
+import { criteria, initialPriorities, rebalancePriorities, type Priorities } from './priorities';
 import type { IdeaMeta } from '../index';
 import './decision.css';
-
-/** Shape we read from the shared /sample-data/minimal-mdt-dataset.json, fetched at runtime. */
-type MinimalDataset = {
-  groups: { group: string; elements: { name: string; likely_source: string }[] }[];
-};
 
 export const meta: IdeaMeta = {
   id: '104', issue: 104, title: 'Post-MDT shared decision making',
   tagline: 'Compare treatment trade-offs with the patient, explain the evidence and decide together.',
 };
-
 const steps: StoryStep[] = [
-  { id: 'worklist', title: 'Post-MDT worklist', explain: 'Eva has three choices after surgery, including no additional treatment. Open her consultation to talk them through.' },
-  { id: 'options', title: 'Compare options', explain: 'Choose a country and inspect the trade-offs. All summaries and numbers are synthetic, not verified guidance.' },
-  { id: 'priorities', title: 'What matters to you?', explain: 'Move one priority at a time. Fit changes, but medical risks do not change when preferences change.' },
-  { id: 'decision', title: 'Decide together', explain: 'Explain the terms, review uncertainties, then record a joint decision or defer it.' },
+  { id: 'worklist', title: 'Post-MDT worklist', explain: 'Open Eva’s consultation: three choices after surgery.' },
+  { id: 'options', title: 'Compare options', explain: 'Explore outcomes and treatment burden. All figures are invented.' },
+  { id: 'priorities', title: 'What matters to you?', explain: 'Share ten priority points. More for one means less for the others.' },
+  { id: 'patients', title: 'Patients like me', explain: 'Explore synthetic cases with similar age, stage and priorities.' },
+  { id: 'decision', title: 'Decide together', explain: 'Record a joint choice or defer; nothing is selected automatically.' },
 ];
 const stages = [
-  { label: 'Read the synthetic consultation', detail: 'Age, stage and MDT options; richer record only in the future', ms: 400 },
-  { label: 'Compare the three teaching summaries', detail: 'Country source pointers; full guideline texts not checked', ms: 400 },
-  { label: 'Draft a plain-language explanation', detail: 'Copilot SDK or clearly labelled demo fallback' },
+  { label: 'Read the synthetic consultation', detail: 'Age, stage and recorded options', ms: 400 },
+  { label: 'Compare three teaching summaries', detail: 'Guideline pointers, not verified evidence', ms: 400 },
+  { label: 'Explain the options and priorities', detail: 'Copilot SDK or labelled demo fallback' },
 ];
-const criteria = [
-  { key: 'quality', label: 'Everyday quality of life' },
-  { key: 'survivalFit', label: 'Possible survival benefit' },
-  { key: 'mobility', label: 'Avoid limitations to walking' },
-] as const;
-type Criterion = typeof criteria[number]['key'];
 type Country = 'Germany' | 'Italy' | 'Netherlands';
-type Option = typeof data.options[number];
 
 export default function SharedDecision() {
   const [theme, setTheme] = useState('light');
-  const [horizon, setHorizon] = useState<'future' | 'six-months'>('future');
   const [step, setStep] = useState('worklist');
   const [countryName, setCountry] = useState<Country>('Germany');
-  const [weights, setWeights] = useState<Record<Criterion, number>>({ quality: 5, survivalFit: 5, mobility: 5 });
+  const [weights, setWeights] = useState<Priorities>(initialPriorities);
   const [term, setTerm] = useState<keyof typeof data.terms>('Adjuvant therapy');
   const [result, setResult] = useState<AgentResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -55,214 +43,131 @@ export default function SharedDecision() {
   const [receipt, setReceipt] = useState('');
   const [consent, setConsent] = useState(false);
   const [contributed, setContributed] = useState(false);
-  const [dataset, setDataset] = useState<MinimalDataset | null>(null);
-  useEffect(() => {
-    api.sampleData<MinimalDataset>('minimal-mdt-dataset.json').then(setDataset).catch(() => setDataset(null));
-  }, []);
-  const future = horizon === 'future';
   const country = data.countries.find((item) => item.name === countryName)!;
-  const score = (option: Option) => {
-    const total = Object.values(weights).reduce((a, b) => a + b, 0);
-    return total ? Math.round(criteria.reduce((sum, item) => sum + weights[item.key] * option[item.key], 0) / total * 10) : null;
-  };
-  const highestWeight = Math.max(...Object.values(weights));
-  const topPriorities = criteria.filter((item) => highestWeight > 0 && weights[item.key] === highestWeight);
-  const comparable = data.comparablePatients.filter((patient) =>
-    Math.abs(patient.age - data.patient.age) <= 5 && patient.stage === 'III' &&
-    topPriorities.some((item) => item.key === patient.priority));
-  const bestScore = Math.max(...data.options.map((option) => score(option) ?? 0));
-  const bestFits = data.options.flatMap((option, i) => score(option) === bestScore ? [country.labels[i]] : []);
+  const scores = data.options.map((option) => criteria.reduce((sum, item) => sum + weights[item.key] * option[item.key], 0));
+  const bestFits = country.labels.filter((_, i) => scores[i] === Math.max(...scores));
+  const topPriorities = criteria.filter((item) => weights[item.key] === Math.max(...Object.values(weights)));
+  const comparable = data.comparablePatients.filter((patient) => Math.abs(patient.age - data.patient.age) <= 5 &&
+    patient.stage === 'III' && topPriorities.some((item) => item.key === patient.priority));
   const invalidateDecision = () => { setReceipt(''); setConfirmed(false); setConsent(false); setContributed(false); };
   const resetDraft = () => { setResult(null); setError(''); setStarted(false); invalidateDecision(); };
-  const changeWeights = (next: Record<Criterion, number>) => { setWeights(next); resetDraft(); };
+  const changeWeights = (next: Priorities) => { setWeights(next); resetDraft(); };
   const explain = async () => {
     setBusy(true); setStarted(true); setRuns((n) => n + 1); setError(''); setResult(null);
     try {
       setResult(await request<AgentResult>('/api/ideas/104/explain', {
-        method: 'POST', body: JSON.stringify({ country: countryName, horizon, priorities: weights }),
+        method: 'POST', body: JSON.stringify({ country: countryName, horizon: 'future', priorities: weights }),
       }));
-    } catch {
-      setError('The assistant could not be reached. You can still compare the synthetic summaries and explain terms below.');
-    } finally { setBusy(false); }
+    } catch { setError('Assistant unavailable. The synthetic comparisons and term definitions remain available.'); }
+    finally { setBusy(false); }
   };
-  const why = (text: string) => <details className="sdm-why"><summary>Why? · reasoning and source</summary>
-    <p>{text}</p><p>{data.notice}</p><p>Teaching content: sample-data/issue-104.json. Guideline pointer below is not the source of invented numbers or preference scores.</p>
+  const why = (text: string) => <details className="sdm-why"><summary>Why? · source and limitations</summary>
+    <p>{text}</p><p>{data.notice}</p><small>Teaching data: sample-data/issue-104.json. The guideline pointer is not the source of invented figures.</small>
     <a href={country.url} target="_blank" rel="noreferrer">{country.source} ↗</a>
   </details>;
-  const numeric = (value: number, label: string) => <><strong>{value} of 100</strong><span className="sdm-array" role="img" aria-label={`${value} of 100: ${label}; simulated`}>
-    {Array.from({ length: 100 }, (_, i) => <i key={i} className={i < value ? 'filled' : ''} />)}
-  </span></>;
+  const fitPlot = <div className="sdm-live-fit" aria-live="polite" aria-atomic="true">
+    <strong>Fit with your values · not a probability</strong>
+    {data.options.map((option, i) => <div className="sdm-fit" key={option.id}><span>{country.labels[i]}</span>
+      <strong>{scores[i]} / 100</strong><progress max="100" value={scores[i]} aria-label={`${country.labels[i]} preference fit`} /></div>)}
+    <small>Closest fit: {bestFits.join(' / ')}. You decide together.</small>
+  </div>;
   return <div className="sdm104" data-theme={theme}>
-    <a className="sdm-skip" href="#sdm-task">Skip to consultation</a>
+    <a className="sdm-skip" href="#sdm-task" onClick={(event) => { event.preventDefault(); document.getElementById('sdm-task')?.focus(); }}>Skip to consultation</a>
     <div className="sdm-disclaimer">Hackathon prototype – synthetic data – not for clinical use</div>
     <HospitalShell module="Post-MDT shared decision making" active={step} onNav={setStep}
-      nav={steps.map((s) => ({ id: s.id, label: s.title }))}
+      nav={steps.map((item) => ({ id: item.id, label: item.title }))}
       patient={{ ...data.patient, ward: 'Colorectal consultation · Room 2' }}
       guide={<StoryGuide steps={steps} current={step} onGo={setStep} nextLabel={step === 'worklist' ? 'Open Eva’s consultation' : undefined} />}
-      toolbar={<>
-        <label>Country <select value={countryName} disabled={busy} onChange={(e) => { setCountry(e.target.value as Country); resetDraft(); }}>
-          {data.countries.map((item) => <option key={item.name}>{item.name}</option>)}
-        </select></label>
-        <span className="hx-spacer" />
-        {(['six-months', 'future'] as const).map((value) => <button key={value} className="hx-btn" disabled={busy}
-          aria-pressed={horizon === value} onClick={() => { setHorizon(value); resetDraft(); }}>
-          {value === 'future' ? 'The future' : 'In six months'}
-        </button>)}
-        {['light', 'dark'].map((value) => <button key={value} className="hx-btn" aria-pressed={theme === value}
-          onClick={() => setTheme(value)}>{value === 'light' ? 'Light' : 'Dark'}</button>)}
-      </>}>
-      <div id="sdm-task">
-        <h1>Post-MDT shared decision making</h1>
-        <div className="sdm-attention"><Pill tone="warn">Human review required</Pill> No single best option. Teaching estimates only — not a personal prognosis.</div>
+      toolbar={<><label>Country <select value={countryName} disabled={busy} onChange={(event) => { setCountry(event.target.value as Country); resetDraft(); }}>
+        {data.countries.map((item) => <option key={item.name}>{item.name}</option>)}</select></label><span className="hx-spacer" />
+        {['light', 'dark'].map((value) => <button key={value} className="hx-btn" aria-pressed={theme === value} onClick={() => setTheme(value)}>{value === 'light' ? 'Light' : 'Dark'}</button>)}</>}>
+      <div id="sdm-task" tabIndex={-1}><h1>{steps.find((item) => item.id === step)?.title}</h1>
+        <div className="sdm-attention"><Pill tone="warn">Human review required</Pill> Synthetic estimates · no validated prediction model</div>
       </div>
-      {step === 'worklist' ? <>
-        <Panel title="Post-MDT worklist · colorectal clinic">
-          <table className="hx-table"><caption>Synthetic consultations today</caption><thead><tr><th>Time</th><th>Patient</th><th>MDT outcome</th><th>Next action</th></tr></thead>
-            <tbody><tr><td>09:30</td><td><strong>Eva Sommer · 68</strong></td><td>Stage III · discuss treatment duration</td><td><button className="hx-btn primary" onClick={() => setStep('options')}>Open consultation</button></td></tr>
-              <tr><td>10:00</td><td>Leon Fischer · 72</td><td>Stage II · pathology clarification</td><td><Pill>Awaiting pathology · demo context</Pill></td></tr>
-              <tr><td>10:30</td><td>Marta Klein · 61</td><td>Stage III · toxicity review</td><td><Pill>Nurse review · demo context</Pill></td></tr></tbody>
-          </table>
-        </Panel>
-        <Panel title="Eva’s MDT outcome"><p>{data.patient.mdt}</p><p>{future ? data.patient.details : data.patient.minimal}</p>
-          {why('Source: the invented MDT note and patient record in sample-data/issue-104.json. This is not an EHR connection.')}
-        </Panel>
-      </> : <>
-        <Panel title={`${countryName} · treatment discussion`}>
-          <p>{country.summary}</p>{why('Changing country changes the teaching wording and source pointer only. We have not verified national differences or eligibility; check the original guideline with the clinician.')}
-        </Panel>
-        <Panel title="Evidence and prediction sources · clinician review">
-          <div className="sdm-evidence-sources">
-            <section><h4>Guideline / clinical-trial evidence</h4><Pill tone="warn">Not verified</Pill>
-              <p>{country.source}. Full text and trial results have not been reviewed. No trial-derived numbers are shown.</p>
-              {why('Clinicians must select applicable guideline sections and trial evidence, including conflicting results, before replacing these teaching summaries.')}
-            </section>
-            <section><h4>Prediction-model output</h4><Pill tone="warn">No model connected</Pill>
-              <p>{future ? 'Matrix numbers below are fixed synthetic placeholders, not model outputs.' : 'Personalised predictions unavailable with MDT fields alone.'}</p>
-              <details className="sdm-why"><summary>Model inputs, outputs and review requirements</summary>
-                <p>Inputs: age, stage, molecular results, fitness, renal function and treatment choice. Outputs: survival, recurrence, treatment toxicity and uncertainty over a specified time horizon.</p>
-                <p>No model name, version, calibration data or uncertainty interval is available. A locally validated model and clinical review are required. Patient values never alter medical probabilities.</p>
-              </details>
-            </section>
-            <section><h4>Real-world / Patients like me</h4><Pill>Simulated records only</Pill>
-              <p>Separate observational examples below, not trials or a prediction model. No live European hospital queries.</p>
-              {why('Comparable cases may help discuss daily life, but small selected cohorts, incomplete follow-up and treatment-selection bias prevent causal claims or a best-treatment conclusion.')}
-            </section>
-          </div>
-        </Panel>
-        <div className="sdm-columns">
-          <Panel title="Clinical outcomes · risk / benefit matrix">
-            <p>{future ? 'Future demonstration · invented numbers for Eva. No validated personalisation model.' : 'Six-month view · qualitative teaching summaries. Personalised probabilities unavailable.'}</p>
-            <div className="sdm-scroll"><table className="sdm-matrix">
-              <caption>Lower burden / trade-off / higher burden · colour never means a treatment recommendation</caption>
-              <thead><tr><th>What we compare</th>{data.options.map((option, i) => <th key={option.id}>{country.labels[i]}<small>{option.plain}</small>
-                {why(`${option.benefit} ${option.burden} Synthetic option, to be checked against stage, fitness and guideline.`)}</th>)}</tr></thead>
-              <tbody>
-                <tr><th>Alive at five years</th>{data.options.map((o) => <td key={o.id} className={o.id === 'none' ? 'burden' : 'benefit'}>{future ? numeric(o.survival, 'alive at five years') : o.id === 'none' ? 'Foregoes possible chemotherapy benefit' : 'Possible benefit; discuss uncertainty'}
-                  {why('Fixed invented teaching estimate. Not extracted from a guideline or calculated from age, genetics or labs. Sliders do not change it.')}</td>)}</tr>
-                <tr><th>Cancer returns within five years</th>{data.options.map((o) => <td key={o.id} className={o.id === 'none' ? 'burden' : 'tradeoff'}>{future ? numeric(o.recurrence, 'recurrence within five years') : 'Risk reduction not quantified'}
-                  {why(future ? 'Invented recurrence probability; no additional chemotherapy is the demo comparator. Illustrated reduction: ' + (data.options[2].recurrence - o.recurrence) + ' percentage points. No validated evidence for these numbers.' : 'Additional treatment is discussed to reduce the chance of cancer returning. The minimal MDT fields do not provide a validated personal recurrence probability or numerical risk reduction.')}</td>)}</tr>
-                <tr><th>Lasting chemotherapy-related nerve symptoms</th>{data.options.map((o) => <td key={o.id} className={o.neuropathy > 20 ? 'burden' : o.id === 'none' ? 'benefit' : 'tradeoff'}>{future ? numeric(o.neuropathy, 'chemotherapy-related nerve symptoms') : o.id === 'none' ? 'No chemotherapy exposure' : o.id === 'short' ? 'Less time exposed · trade-off' : 'More time exposed · higher burden'}
-                  {why('Invented chemotherapy-related side-effect estimate, not adjusted for Eva’s diabetic tingling. Zero chemotherapy toxicity does not mean zero symptoms or zero cancer risk. Clinical assessment is needed.')}</td>)}</tr>
-                <tr><th>Daily life and visits</th>{data.options.map((o) => <td key={o.id} className={o.id === 'short' ? 'benefit' : 'tradeoff'}>{o.burden}<small>{o.visits} planned infusion visits · simulated schedule</small>
-                  {why('Simplified synthetic schedule. Quality of life and walking scores are teaching assumptions, not measured outcomes.')}</td>)}</tr>
-              </tbody>
-            </table></div>
-          </Panel>
-          <div className="sdm-rail">
-            <Panel title="What matters to you?">
-              <p>Patient values · move a slider to see the comparison below change. Clinical outcome estimates stay fixed.</p>
-              <div className="sdm-live-fit" aria-live="polite" aria-atomic="true">
-                <strong>Live comparison · preference fit, not survival</strong>
-                {data.options.map((option, i) => <div className="sdm-fit" key={option.id}>
-                  <span>{country.labels[i]}</span><strong>{score(option) === null ? 'Not scored' : `${score(option)} / 100`}</strong>
-                  <progress max="100" value={score(option) ?? 0} aria-label={`${country.labels[i]} preference fit`} />
-                </div>)}
-                <p>{highestWeight === 0 ? 'Set at least one priority to compare what fits.' : `Closest fit to these values: ${bestFits.join(' / ')}. This does not select treatment.`}</p>
-              </div>
-              <div className="sdm-presets">
-                <button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 1, survivalFit: 10, mobility: 1 })}>Try: survival matters most</button>
-                <button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 10, survivalFit: 1, mobility: 10 })}>Try: everyday life matters most</button>
-                <button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 5, survivalFit: 5, mobility: 5 })}>Reset priorities</button>
-              </div>
-              {criteria.map((item) => <div className="sdm-priority" key={item.key}><label htmlFor={`sdm-${item.key}`}>{item.label} <strong>{weights[item.key]} / 10</strong></label>
-                <input id={`sdm-${item.key}`} type="range" min="0" max="10" value={weights[item.key]} disabled={busy}
-                  onChange={(e) => changeWeights({ ...weights, [item.key]: Number(e.target.value) })} />
-                {why('Your own importance rating: 0 = not a priority, 10 = very important. The live preference comparison and comparable-patient filter change; clinical outcomes stay fixed.')}
-              </div>)}
-              {why('Preference fit = weighted mean of invented option scores × 10. Scores (quality / survival benefit / walking): shorter treatment 8/6/8; longer treatment 5/9/4; no additional treatment 9/1/10. Not a clinical confidence score or validated decision aid.')}
-              <label className="sdm-unavailable">Costs <input aria-label="Costs priority unavailable" type="range" disabled value="0" readOnly /></label>
-              <small>Unavailable in both horizons — no local cost data. Never treated as zero cost.</small>{why('Cost comparison is deferred in the approved proposal. Hospitals would need local patient costs before enabling this slider.')}
-            </Panel>
-            <Panel title="Plain words, together">
-              <label>Explain a term <select value={term} onChange={(e) => setTerm(e.target.value as keyof typeof data.terms)}>{Object.keys(data.terms).map((key) => <option key={key}>{key}</option>)}</select></label>
-              <p aria-live="polite">{data.terms[term]}</p>{why('Plain-language teaching definition from sample-data/issue-104.json; clinician checks understanding.')}
-              <button className="hx-btn primary" disabled={busy} onClick={explain}>{busy ? <><span className="hx-spinner" /> Working…</> : 'Ask assistant to explain options'}</button>
-            </Panel>
-          </div>
-          <Panel title="Clinical evidence versus your values · conversation, not a decision">
-            <p>{future ? 'In the invented outcome scenario, longer treatment has the highest survival and lowest recurrence figures. That does not establish an evidence-based best option; no validated model or trial data is connected.' : 'No evidence-based best option is established by these qualitative teaching summaries.'}</p>
-            <p>{highestWeight === 0 ? 'No preference fit until you set a priority.' : `Your values currently fit ${bestFits.join(' / ')} most closely. Discuss any tension between possible benefit, treatment burden and daily life.`}</p>
-            <p>No additional treatment means no further chemotherapy, not abandonment of care. Follow-up and supportive care remain available; it differs from deferring a decision.</p>
-            {why('The clinician and patient interpret evidence, uncertainty and values together. Neither the highest outcome number nor the highest preference score chooses treatment.')}
-          </Panel>
-          <Panel title="Patients like me · synthetic European examples">
-            {future ? <>
-              <p>Matching Eva’s age within five years and resected stage III colon cancer, plus her highest-rated priorities: {topPriorities.map((item) => item.label).join(', ') || 'none set'}. {comparable.length} matching invented records.</p>
-              <div className="sdm-scroll"><table className="hx-table sdm-comparable"><caption>Simulated observational examples · not real patients or causal evidence</caption>
-                <thead><tr><th>Example / site</th><th>Age / stage</th><th>Shared priority</th><th>Choice</th><th>Recorded outcome / follow-up</th></tr></thead>
-                <tbody>{comparable.map((patient) => <tr key={patient.id}><td>{patient.id}<small>{patient.site}</small></td><td>{patient.age} / {patient.stage}</td>
-                  <td>{criteria.find((item) => item.key === patient.priority)?.label}</td><td>{country.labels[data.options.findIndex((option) => option.id === patient.option)]}</td><td>{patient.outcome}</td></tr>)}
-                  {!comparable.length && <tr><td colSpan={5}>No matches with these priorities. Set a priority to explore examples.</td></tr>}
-                </tbody></table></div>
-              {why('Local synthetic records in sample-data/issue-104.json. Tied highest priorities include either priority. Matching only age, stage and values misses other differences. Outcomes have different follow-up periods; no pooled probability, causal effect, or clinical confidence algorithm is inferred.')}
-            </> : <p className="sdm-unavailable">Needs linked longitudinal outcomes, patient values and governed cross-hospital access — unavailable in six months. Priorities can still be discussed locally.</p>}
-          </Panel>
-        </div>
-        {started && <Panel title="Assistant explanation">
-          <Backstage key={runs} stages={stages} running={started} holdLast release={!busy} note="Stages illustrate the work; no live EHR lookup or validated risk calculation." />
-          {error && <p role="alert">{error}</p>}
-          {result && <><Pill tone={result.mode === 'copilot' ? 'ok' : 'warn'}>{result.mode === 'copilot' ? 'Live Copilot SDK' : 'Demo fallback · no live AI'}</Pill>
-            <p>{result.note}</p>{result.blocks.map((block, i) => <RenderBlock block={block} key={i} />)}
-            {why('The assistant explains synthetic summaries only. Sources are pointers, not retrieved evidence. Review any generated explanation before using it in discussion.')}</>}
-        </Panel>}
-        <Panel title="Week-by-week recovery · future demonstration">
-          {future ? <details><summary>Compare illustrative fatigue trajectories</summary>
-            <table className="hx-table"><caption>Invented fatigue score: 0 none, 10 severe; not a prediction</caption><thead><tr><th>Option</th><th>Week 4</th><th>Week 12</th><th>Week 24</th></tr></thead>
-              <tbody>{data.options.map((o, i) => <tr key={o.id}><th>{country.labels[i]}</th>{o.fatigue.map((f, j) => <td key={j}>{f} / 10</td>)}</tr>)}</tbody></table>
-            {why('Synthetic trajectory placeholders. Repeated patient-reported symptoms and a validated longitudinal model are needed for personal projections.')}
-          </details> : <p className="sdm-unavailable">Unavailable in six months — needs repeated symptom data and a validated trajectory model, not just MDT fields.</p>}
-        </Panel>
-        {step === 'decision' && <Panel title="Record the decision you reach together">
-          <div className="sdm-decision">
-            <label>Joint choice <select value={choice} onChange={(e) => { setChoice(e.target.value); invalidateDecision(); }}>
-              <option value="undecided">Not decided — arrange another conversation</option>
-              {data.options.map((o, i) => <option key={o.id} value={o.id}>{country.labels[i]}</option>)}
-            </select></label>
-            <label>Patient’s priorities and next steps <textarea rows={3} value={notes} onChange={(e) => { setNotes(e.target.value); invalidateDecision(); }} /></label>
-            <label><input type="checkbox" checked={confirmed} onChange={(e) => { invalidateDecision(); setConfirmed(e.target.checked); }} /> Patient and clinician reviewed the options, uncertainty and next steps together.</label>
-            <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`Recorded locally for Eva · ${countryName} · ${future ? 'Future demo' : 'Six-month discussion'} · ${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((o) => o.id === choice)]}. ${notes} Priorities: quality of life ${weights.quality}/10, survival benefit ${weights.survivalFit}/10, walking ${weights.mobility}/10. Evidence context: unverified guideline pointers, no prediction model, synthetic observational examples only.`); }}>Record joint decision · demo</button>
-            {receipt && <div className="sdm-attention" role="status"><strong>Conversation recorded ✓</strong><p>{receipt}</p><small>Local prototype only. No EHR write-back; not persisted after leaving.</small>
-              <h4>Contribute back to the learning loop</h4>
-              {future ? <>
-                <p>Preview package: selected option or deferral, priorities, decision context and evidence limitations above. Future follow-up outcomes would be linked only with appropriate consent and governance.</p>
-                <label><input type="checkbox" checked={consent} disabled={contributed} onChange={(e) => setConsent(e.target.checked)} /> Patient and clinician agree to this synthetic learning-loop preview.</label>
-                <button className="hx-btn" disabled={!consent || contributed} onClick={() => setContributed(true)}>Contribute to learning loop · simulate</button>
-                {contributed && <p><strong>Learning-loop preview received ✓</strong> This decision package is shown locally only; nothing was sent, no model was trained and no observed outcome was invented.</p>}
-              </> : <p className="sdm-unavailable">Unavailable in six months — requires consent, governed linkage and later outcome collection. The local conversation note still works.</p>}
-            </div>}
-            {why('Only the patient and clinician decide. Recording requires explicit human confirmation; the assistant cannot select or file treatment.')}
-          </div>
-        </Panel>}
+      {step === 'worklist' && <>
+        <Panel title="Colorectal clinic · post-MDT"><div className="sdm-scroll"><table className="hx-table"><caption>Synthetic consultations</caption>
+          <thead><tr><th>Time</th><th>Patient</th><th>MDT outcome</th><th>Action</th></tr></thead><tbody>
+            <tr><td>09:30</td><td>Eva Sommer · 68</td><td>Stage III · discuss three choices</td><td><button className="hx-btn primary" onClick={() => setStep('options')}>Open consultation</button></td></tr>
+            <tr><td>10:00</td><td>Leon Fischer · 72</td><td>Stage II</td><td>Awaiting pathology</td></tr>
+            <tr><td>10:30</td><td>Marta Klein · 61</td><td>Stage III</td><td>Nurse toxicity review</td></tr>
+          </tbody></table></div></Panel>
+        <Panel title="Eva’s MDT outcome"><p>{data.patient.mdt}</p>{why(data.patient.details)}</Panel>
       </>}
-      {!future && <Panel title="What this needs from the minimal dataset">
-        <p>7 of 7 record fields are listed; availability still depends on each hospital. Source categories are hackathon assumptions, not measured readiness.</p>
-        <div className="sdm-scroll"><table className="hx-table"><caption>Coverage from /sample-data/minimal-mdt-dataset.json</caption><thead><tr><th>Group</th><th>Field</th><th>Likely source</th><th>Six-month readiness</th></tr></thead><tbody>
-          {(dataset?.groups ?? []).flatMap((group) => group.elements.filter((element) => (data.coverage as readonly string[]).includes(element.name)).map((element) => <tr key={element.name}><td>{group.group}</td><td>{element.name}</td><td>{element.likely_source}</td>
-            <td>{['structured', 'derived'].includes(element.likely_source) ? '✓ Map structured field' : '◐ Structure / confirm with clinician'}</td></tr>))}
-          <tr><td>Beyond MDT data</td><td>Personalised probabilities; weekly symptoms; costs</td><td>Validated models / richer records</td><td>✕ Not available</td></tr>
-        </tbody></table></div>
-        <p><strong>Each hospital:</strong> map age; structure pathology stage, MSI, history and performance status; map renal labs; record the MDT options in a fixed form. Agree and clinically validate national summaries and ask the patient for priorities during the consultation.</p>
-        {why('Coverage is derived from the minimal dataset working list, not patient-level completeness. Presence of a field does not make a personal risk model available.')}
+      {step === 'options' && <>
+        <Panel title="Clinical outcomes · invented scenario">
+          <div className="sdm-option-cards">{data.options.map((option, i) => <section key={option.id}>
+            <h3>{country.labels[i]}</h3><small>{option.plain}</small>
+            {[{ label: 'Alive at five years', value: option.survival, tone: 'benefit' },
+              { label: 'Recurrence within five years', value: option.recurrence, tone: 'burden' },
+              { label: 'Chemotherapy-related nerve symptoms', value: option.neuropathy, tone: 'tradeoff' }].map((outcome) =>
+              <div className={`sdm-outcome ${outcome.tone}`} key={outcome.label}><span>{outcome.label}</span><strong>{outcome.value} / 100</strong>
+                <meter min="0" max="100" value={outcome.value} aria-label={`${country.labels[i]}: ${outcome.label}, ${outcome.value} of 100, simulated`} /></div>)}
+            <p><strong>{option.visits}</strong> chemotherapy infusion visits</p>
+            {why(`${option.benefit} ${option.burden} Fixed invented figures, not personal predictions. No additional chemotherapy avoids chemotherapy toxicity, not existing symptoms or cancer risk; follow-up continues.`)}
+          </section>)}</div>
+        </Panel>
+        <Panel title="Recovery over time · simulated fatigue">
+          <div className="sdm-recovery">{data.options.map((option, i) => <figure key={option.id}><figcaption>{country.labels[i]}</figcaption>
+            <svg viewBox="0 0 240 125" role="img" aria-label={`${country.labels[i]} fatigue at weeks 4, 12, 24: ${option.fatigue.join(', ')} out of 10; invented`}>
+              <path d="M20 10V100H220" className="sdm-axis" />
+              <polyline points={option.fatigue.map((value, j) => `${30 + j * 90},${100 - value * 8}`).join(' ')} className="sdm-line" />
+              {option.fatigue.map((value, j) => <g key={j}><circle cx={30 + j * 90} cy={100 - value * 8} r="4" /><text x={30 + j * 90} y={90 - value * 8}>{value}</text><text x={30 + j * 90} y="118">{[4, 12, 24][j]}w</text></g>)}
+            </svg></figure>)}</div><small>Fatigue score: 0 none, 10 severe. Not a validated trajectory.</small>
+          {why('Invented fatigue samples at weeks 4, 12 and 24. Lines connect these samples only; no clinical model is connected.')}
+        </Panel>
+        <Panel title="Evidence · inspect before use"><div className="sdm-evidence-sources">
+          <section><h4>Guidelines / trials</h4><Pill tone="warn">Unverified pointer</Pill>{why(country.summary + ' Full guideline texts and trial results have not been reviewed.')}</section>
+          <section><h4>Prediction model</h4><Pill tone="warn">Not connected</Pill>{why('Inputs would include age, stage, molecular findings, fitness and renal function. Model version, calibration and uncertainty intervals are unavailable; local validation and clinician review are required.')}</section>
+          <section><h4>Patients like me</h4><Pill>Simulated examples</Pill><button className="hx-btn" onClick={() => setStep('patients')}>Explore comparable cases</button></section>
+        </div></Panel>
+      </>}
+      {step === 'priorities' && <div className="sdm-columns"><Panel title="Share ten priority points">
+        <p>Increase one slider; the others give up points. Outcomes do not change.</p>
+        <div className="sdm-budget" role="img" aria-label={criteria.map((item) => `${item.label} ${weights[item.key]} of 10`).join(', ')}>
+          {criteria.map((item, i) => <span key={item.key} className={`sdm-budget-${i}`} style={{ flexGrow: weights[item.key] }} />)}
+        </div>
+        {criteria.map((item) => <div className="sdm-priority" key={item.key}><label htmlFor={`sdm-${item.key}`}>{item.label}<strong>{weights[item.key]} / 10</strong></label>
+          <input id={`sdm-${item.key}`} type="range" min="0" max="10" step="1" value={weights[item.key]} disabled={busy}
+            onChange={(event) => changeWeights(rebalancePriorities(weights, item.key, Number(event.target.value)))} /></div>)}
+        <div className="sdm-presets"><button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 1, survivalFit: 8, mobility: 1 })}>Try: survival first</button>
+          <button className="hx-btn" disabled={busy} onClick={() => changeWeights({ quality: 5, survivalFit: 0, mobility: 5 })}>Try: everyday life first</button>
+          <button className="hx-btn" disabled={busy} onClick={() => changeWeights(initialPriorities)}>Reset priorities</button></div>
+        {why('Total = 10 points. Remaining points are redistributed proportionally between the other sliders, rounded to whole points. If both were zero, remaining points split evenly. Fit is a weighted mean of invented quality/survival/walking scores: shorter 8/6/8, longer 5/9/4, no treatment 9/1/10. Not a recommendation or confidence score. Costs are unavailable.')}
+      </Panel><Panel title="How the comparison changes">{fitPlot}
+        {why('Higher survival weighting favours longer treatment in this invented scenario; everyday-life weighting can favour no additional chemotherapy. This is patient-value fit, not evidence of a best treatment.')}
+      </Panel></div>}
+      {step === 'patients' && <Panel title="Patients like me · synthetic European examples">
+        <p>{comparable.length} matches · age 63–73 · stage III · {topPriorities.map((item) => item.label).join(' / ')}</p>
+        <div className="sdm-option-cards">{data.options.map((option, i) => <section key={option.id}><h3>{country.labels[i]}</h3>
+          <div className="sdm-match-count"><strong>{comparable.filter((patient) => patient.option === option.id).length}</strong> synthetic cases</div>
+          {comparable.filter((patient) => patient.option === option.id).map((patient) => <details className="sdm-case" key={patient.id}><summary>{patient.age} years · {patient.site.split(' · ')[0]}</summary>
+            <p>{patient.outcome}</p><small>{patient.id} · {criteria.find((item) => item.key === patient.priority)?.label}</small></details>)}
+        </section>)}</div>
+        <button className="hx-btn" onClick={() => setStep('priorities')}>Change priorities to explore other cases</button>
+        {why('Local invented cases only: age within five years, stage III and any tied highest priority. Different follow-up, missing outcomes and selection bias prevent causal comparisons. No real hospital query or pooled outcome probability.')}
+      </Panel>}
+      {step === 'decision' && <Panel title="Your joint decision"><div className="sdm-decision">
+        <label>Choice <select value={choice} onChange={(event) => { setChoice(event.target.value); invalidateDecision(); }}><option value="undecided">Defer — another conversation</option>
+          {data.options.map((option, i) => <option key={option.id} value={option.id}>{country.labels[i]}</option>)}</select></label>
+        <label>Priorities and next steps<textarea rows={3} value={notes} onChange={(event) => { setNotes(event.target.value); invalidateDecision(); }} /></label>
+        <label><input type="checkbox" checked={confirmed} onChange={(event) => { invalidateDecision(); setConfirmed(event.target.checked); }} /> Patient and clinician reviewed options and uncertainty together.</label>
+        <button className="hx-btn primary" disabled={!confirmed || !notes.trim()} onClick={() => { setConsent(false); setContributed(false); setReceipt(`${choice === 'undecided' ? 'Decision deferred' : country.labels[data.options.findIndex((option) => option.id === choice)]} · ${countryName} · Eva. ${notes} Priorities: ${criteria.map((item) => `${item.label} ${weights[item.key]}/10`).join(', ')}. Unverified guidelines; no prediction model; synthetic examples only.`); }}>Record joint decision · demo</button>
+        {receipt && <div className="sdm-attention" role="status"><strong>Conversation recorded ✓</strong><p>{receipt}</p><small>Local only · not persisted · no EHR write-back</small>
+          <label><input type="checkbox" checked={consent} disabled={contributed} onChange={(event) => setConsent(event.target.checked)} /> Agree to a synthetic learning-loop preview.</label>
+          <button className="hx-btn" disabled={!consent || contributed} onClick={() => setContributed(true)}>Contribute to learning loop · simulate</button>
+          {contributed && <p>Learning-loop preview received ✓ · nothing sent or trained.</p>}</div>}
+        {why('Only the patient and clinician choose. No additional treatment includes follow-up and supportive care; it is not the same as deferring. Recording needs human confirmation; contribution needs separate consent. Edits invalidate both.')}
+      </div></Panel>}
+      {step !== 'worklist' && <Panel title="Plain words · assistant">
+        <div className="sdm-assistant-controls"><label>Explain a term <select value={term} onChange={(event) => setTerm(event.target.value as keyof typeof data.terms)}>
+          {Object.keys(data.terms).map((key) => <option key={key}>{key}</option>)}</select></label>
+          <button className="hx-btn primary" disabled={busy} onClick={explain}>{busy ? <><span className="hx-spinner" /> Working…</> : 'Explain options and priorities'}</button></div>
+        <p>{data.terms[term]}</p>
+        <Backstage key={runs} stages={stages} running={started} holdLast release={!busy} note="Illustrative steps · no live EHR or validated model." />
+        {error && <p role="alert">{error}</p>}
+        {result && <details open><summary>{result.mode === 'copilot' ? 'Live Copilot SDK explanation' : 'Demo fallback · no live AI'}</summary><p>{result.note}</p>
+          {result.blocks.map((block, i) => <RenderBlock block={block} key={i} />)}</details>}
+        {why('Plain-language teaching definitions and assistant explanations require clinician review. No treatment is selected or filed by the assistant.')}
       </Panel>}
     </HospitalShell>
   </div>;
