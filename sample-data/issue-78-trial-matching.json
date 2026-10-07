@@ -24,6 +24,9 @@
   "trials": [
     {
       "id": "LOCAL-078-A", "title": "PATHWAY-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
+      "registry_id": "SYNTHETIC-REG-078-A",
+      "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}, {"name": "Rewired Süd Trial Centre", "city": "Augsburg", "distance_km": 65, "nearest": false}],
+      "site_contact": {"name": "PATHWAY-CRC principal investigator (synthetic)", "email": "pathway-crc@trial-site.invalid"},
       "treatment": "Investigational KRAS G12D-targeted agent DEMO-A",
       "design": "Single-arm phase II",
       "arms": ["DEMO-A alone (fictional regimen)"],
@@ -49,6 +52,9 @@
     },
     {
       "id": "LOCAL-078-B", "title": "IMMUNE-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "II", "status": "Recruiting",
+      "registry_id": "SYNTHETIC-REG-078-B",
+      "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}],
+      "site_contact": {"name": "IMMUNE-CRC site contact (synthetic)", "email": "immune-crc@trial-site.invalid"},
       "treatment": "Investigational immunotherapy DEMO-B",
       "design": "Single-arm phase II",
       "arms": ["DEMO-B infusion (fictional regimen)"],
@@ -61,6 +67,9 @@
     },
     {
       "id": "LOCAL-078-C", "title": "RAS-WT-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "III", "status": "Recruiting",
+      "registry_id": "SYNTHETIC-REG-078-C",
+      "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}],
+      "site_contact": {"name": "RAS-WT-CRC site contact (synthetic)", "email": "ras-wt-crc@trial-site.invalid"},
       "treatment": "Investigational antibody combination DEMO-C",
       "design": "Randomised phase III",
       "arms": ["DEMO-C combination (fictional regimen)", "Protocol comparator (fictional usual-care arm)"],
@@ -73,6 +82,9 @@
     },
     {
       "id": "NETWORK-078-D", "title": "EU-PATHWAY-CRC", "site": "Fictional European partner network", "scope": "network", "phase": "I/II", "status": "Recruiting",
+      "registry_id": "SYNTHETIC-REG-078-D",
+      "centres": [{"name": "Rewired Alpine Trial Centre", "city": "Innsbruck", "distance_km": 165, "nearest": true}, {"name": "Rewired Partner Trial Centre", "city": "Utrecht", "distance_km": 800, "nearest": false}],
+      "site_contact": {"name": "EU-PATHWAY-CRC principal investigator (synthetic)", "email": "eu-pathway-crc@trial-site.invalid"},
       "treatment": "Investigational KRAS G12D-targeted agent DEMO-D",
       "design": "Single-arm dose-expansion phase I/II",
       "arms": ["DEMO-D alone (fictional regimen)"],
@@ -91,6 +103,9 @@
     },
     {
       "id": "LOCAL-078-E", "title": "RECOVER-CRC", "site": "Klinikum Rewired München", "scope": "local", "phase": "III", "status": "Recruiting",
+      "registry_id": "SYNTHETIC-REG-078-E",
+      "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}, {"name": "Rewired North Trial Centre", "city": "Nuremberg", "distance_km": 170, "nearest": false}],
+      "site_contact": {"name": "RECOVER-CRC principal investigator (synthetic)", "email": "recover-crc@trial-site.invalid"},
       "treatment": "Investigational chemotherapy combination DEMO-E",
       "design": "Randomised phase III",
       "arms": ["DEMO-E combination (fictional regimen)", "Protocol comparator (fictional usual-care arm)"],

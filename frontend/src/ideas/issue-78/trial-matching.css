@@ -345,12 +345,44 @@
 .tm78-arms > div > div { display: grid; gap: 6px; }
 .tm78-arm-letter { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border: 1px solid var(--cp-border); border-radius: 10px; background: var(--cp-surface-soft); font-size: 20px; font-weight: 600; }
 .tm78-empty { padding: 16px; color: var(--cp-text-muted); }
+.tm78 [hidden] { display: none !important; }
+.tm78-source { font-size: 11px; line-height: 1.5; font-weight: normal; }
+.tm78-source > summary { font-size: 11px; }
+.tm78-centres { overflow-wrap: anywhere; padding: 4px 0; }
+.tm78 .tm78-unknown-row > td,
+.tm78 .tm78-unknown-row > th { background: var(--cp-bg-elevated); border-top: 2px solid var(--cp-warning); }
+.tm78 .tm78-unknown-row > :first-child { border-left: 4px solid var(--cp-warning); }
+.tm78-missing { border: 1px solid var(--cp-border); border-left: 4px solid var(--cp-warning); border-radius: 12px; }
+.tm78-data-principles { font-size: 12px; color: var(--cp-text-muted); margin: 0 !important; }
+.tm78-phase-workspace { min-width: 0; }
+.tm78[data-presentation="enrollment"] .tm78-phase-workspace {
+  border: 1px solid var(--cp-border); border-radius: 16px; background: var(--cp-surface); overflow: hidden;
+}
+.tm78-phase-layout { min-width: 0; }
+.tm78[data-presentation="enrollment"] .tm78-phase-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start;
+}
+.tm78[data-presentation="enrollment"] .tm78-phase-layout > .hx-panel { min-width: 0; border: 0; border-radius: 0; }
+.tm78[data-presentation="enrollment"] .tm78-phase-inspector { background: var(--cp-bg-elevated); min-height: 100%; box-sizing: border-box; }
+.tm78-phase-inspector .tm78-proposed-checks, .tm78-handoff-context {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--cp-border);
+}
+.tm78-phase-inspector .tm78-choice { font-size: 12px; line-height: 1.5; }
+.tm78[data-presentation="enrollment"] .tm78-phase-workspace .hx-panel > header { padding: 16px 20px; }
+.tm78[data-presentation="enrollment"] .tm78-phase-workspace .hx-panel-body { padding: 20px; }
+.tm78[data-presentation="enrollment"] .tm78-phase-workspace .tm78-notes {
+  padding: 12px 16px; border: 1px solid var(--cp-border); border-radius: 12px; background: var(--cp-bg-elevated);
+}
+.tm78-handoff { border-top: 2px solid var(--cp-accent); margin-top: 20px; padding-top: 16px; }
+.tm78 .tm78-notes input { min-height: 38px; color: var(--cp-text); background: var(--cp-surface-soft); border: 1px solid var(--cp-border); border-radius: 8px; font: inherit; padding: 8px 12px; min-width: 0; box-sizing: border-box; }
 @media (max-width: 1100px) {
   .tm78-context-banner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .tm78-match-layout { grid-template-columns: minmax(0, 1fr) 290px; }
+  .tm78[data-presentation="enrollment"] .tm78-phase-layout { grid-template-columns: minmax(0, 1fr) 290px; }
 }
 @media (max-width: 760px) {
   .tm78-match-layout { grid-template-columns: minmax(0, 1fr); }
+  .tm78[data-presentation="enrollment"] .tm78-phase-layout { grid-template-columns: minmax(0, 1fr); }
   .tm78-inspector { border-left: 0; border-top: 1px solid var(--cp-border); padding: 16px; }
   .tm78-match-toolbar { flex-wrap: wrap; padding: 16px; }
   .tm78-match-toolbar-actions { justify-content: flex-start; }

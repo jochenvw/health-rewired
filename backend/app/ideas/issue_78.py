@@ -25,6 +25,49 @@ class ScreeningRequest(BaseModel):
     trial_ids: list[str] = Field(default_factory=list, max_length=4)
 
 
+class HandoffRequest(BaseModel):
+    horizon: Horizon = "future"
+    trial_id: str
+
+
+def handoff_details(trial: dict, facts: dict) -> dict:
+    relevant_fields = {c["field"] for c in trial["criteria"]} & {"pathology", "ras", "msi", "therapy"}
+    labels = {"pathology": "Pathology", "ras": "RAS", "msi": "MSI", "therapy": "Prior regimen"}
+    return {
+        "reference": "REF-078",
+        "trial": trial["title"],
+        "registry_id": trial["registry_id"],
+        "clinical_summary": [
+            f"{labels[field]}: {facts[field]['value']}"
+            for field in sorted(relevant_fields)
+            if facts[field]["value"] is not None
+        ],
+        "outstanding_checks": [c["text"] for c in trial["criteria"] if c["status"] != "Match"],
+    }
+
+
+def handoff_email(trial: dict, facts: dict) -> dict:
+    details = handoff_details(trial, facts)
+    return {
+        "reference": details["reference"],
+        "to": trial["site_contact"]["email"],
+        "subject": f"Participation assessment enquiry — {trial['title']} / REF-078 (synthetic)",
+        "body": (
+            f"Dear {trial['site_contact']['name']},\n\n"
+            f"Please assess potential participation in {trial['title']} ({trial['registry_id']}) "
+            "for pseudonymised referral REF-078.\n"
+            f"Minimum clinical summary: {'; '.join(details['clinical_summary'])}.\n"
+            f"Outstanding checks: {'; '.join(details['outstanding_checks']) or 'Full protocol review required'}.\n"
+            "Eligibility is not confirmed. Please advise on recruitment and further screening. "
+            "Patient agreement and full trial-team validation are still required.\n\n"
+            "Trial onboarding is handled by the trial site (out of scope). "
+            "Synthetic email draft only; nothing has been sent."
+        ),
+        "channel": "email",
+        "simulation": True,
+    }
+
+
 def screening(horizon: Horizon) -> dict:
     data = sample_data.read(DATA)
     dataset = sample_data.read("minimal-mdt-dataset.json")
@@ -114,6 +157,7 @@ def screening(horizon: Horizon) -> dict:
                 ),
                 "enquiry_note": enquiry,
                 "proposed_orders": [f"Proposed evidence request: {c['text']}" for c in gaps],
+                "handoff_email": handoff_email({**trial, "criteria": criteria}, facts),
             }
         )
     candidates = sorted(
@@ -130,12 +174,65 @@ def screening(horizon: Horizon) -> dict:
         "coverage": coverage,
         "horizon": horizon,
         "notice": "Synthetic screening only. Not confirmed eligibility or a treatment recommendation.",
+        "data_principles": "Patient data stays in the hospital by default. Only the minimum pseudonymised referral "
+        "information leaves after clinician approval; this prototype simulates email only and sends nothing.",
     }
 
 
 @router.get("/context")
 def context(horizon: Horizon = "future"):
     return screening(horizon)
+
+
+@router.post("/handoff")
+async def handoff(request: HandoffRequest):
+    assessment = screening(request.horizon)
+    trial = next((t for t in assessment["trials"] if t["id"] == request.trial_id), None)
+    if trial is None:
+        raise HTTPException(status_code=422, detail="Select a current conflict-free screening candidate.")
+    draft = trial["handoff_email"]
+    details = handoff_details(trial, assessment["facts"])
+
+    def fallback(_request: AgentRequest, note: str) -> AgentResult:
+        return AgentResult(
+            mode="fallback",
+            headline="Pseudonymised email draft for clinician review",
+            note=note,
+            blocks=[UIBlock(type="actions", title="Participation email", body=draft["body"])],
+        )
+
+    try:
+        result = await asyncio.wait_for(
+            run_agent(
+                AgentRequest(task="Draft a participation assessment email", patient_id="REF-078", role="Oncologist"),
+                system_prompt=(
+                    "Draft a synthetic email to a trial site for human review. Use only the supplied pseudonymised "
+                    "details; no names, hospital patient IDs, demographics, dates, record sources or invented facts. "
+                    "Do not call patient data tools. Render one actions block titled Participation email with the "
+                    "email body. Include REF-078 and outstanding checks; eligibility is not confirmed. "
+                    "Request assessment, never enrolment or treatment. Do not send email. "
+                    "Trial onboarding is handled by the trial site (out of scope)."
+                ),
+                prompt=json.dumps(details),
+                data_tools=[],
+                fallback_builder=fallback,
+            ),
+            timeout=40,
+        )
+    except TimeoutError:
+        result = fallback(AgentRequest(task="Draft email"), "Email drafting timed out. Synthetic demo draft retained.")
+    body = next(
+        (b.body for b in result.blocks if b.type == "actions" and b.title == "Participation email" and b.body),
+        draft["body"],
+    )
+    identifiers = [assessment["patient"]["id"], *assessment["patient"]["name"].split()]
+    if any(identifier.casefold() in body.casefold() for identifier in identifiers) or "REF-078" not in body:
+        return {
+            **draft,
+            "mode": "fallback",
+            "note": "Assistant draft failed pseudonymisation checks; demo draft retained.",
+        }
+    return {**draft, "body": body, "mode": result.mode, "note": result.note}
 
 
 @router.post("/review")

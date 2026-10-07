@@ -102,3 +102,74 @@ def test_review_timeout_returns_editable_demo_draft(monkeypatch):
     assert result["mode"] == "fallback"
     assert "timed out" in result["note"]
     assert "eGFR" in result["enquiry_notes"]["LOCAL-078-A"]
+
+
+def test_site_metadata_and_pseudonymised_email(monkeypatch):
+    monkeypatch.setattr(settings, "copilot_token", None)
+    monkeypatch.setattr(settings, "copilot_use_logged_in_user", False)
+    with TestClient(app) as client:
+        assessment = client.get("/api/ideas/78/context").json()
+        assert "stays in the hospital" in assessment["data_principles"]
+        for trial in assessment["trials"] + assessment["excluded_trials"]:
+            assert trial["registry_id"].startswith("SYNTHETIC-")
+            nearest = [centre for centre in trial["centres"] if centre["nearest"]]
+            assert len(nearest) == 1
+            assert nearest[0]["distance_km"] == min(c["distance_km"] for c in trial["centres"])
+            assert trial["site_contact"]["email"].endswith(".invalid")
+        response = client.post("/api/ideas/78/handoff", json={"trial_id": "LOCAL-078-A"})
+        assert response.status_code == 200
+        email = response.json()
+        assert email["mode"] == "fallback"
+        assert email["simulation"] and email["channel"] == "email"
+        assert "REF-078" in email["body"] and "eGFR" in email["body"]
+        assert "Eligibility is not confirmed" in email["body"]
+        assert not any(
+            value in email["body"] for value in ("Eva", "Sommer", "TM-078", "58", "female", "LAB-078", "2026-09-28")
+        )
+        assert "onboarding" in email["body"]
+        assert client.post("/api/ideas/78/handoff", json={"trial_id": "LOCAL-078-B"}).status_code == 422
+        assert (
+            client.post("/api/ideas/78/handoff", json={"horizon": "six-month", "trial_id": "NETWORK-078-D"}).status_code
+            == 422
+        )
+
+
+def test_email_sdk_receives_only_minimal_details_and_rejects_identity(monkeypatch):
+    import asyncio
+
+    from app.agent.models import AgentResult
+    from app.agent.ui import UIBlock
+    from app.ideas import issue_78
+
+    async def draft_email(request, **kwargs):
+        assert request.patient_id == "REF-078"
+        assert kwargs["data_tools"] == []
+        assert not any(
+            value in kwargs["prompt"] for value in ("Eva", "Sommer", "TM-078", "58", "female", "LAB-078", "2026-09-28")
+        )
+        return AgentResult(
+            mode="copilot",
+            headline="Draft",
+            blocks=[UIBlock(type="actions", title="Participation email", body="Referral REF-078: Eva Sommer")],
+        )
+
+    monkeypatch.setattr(issue_78, "run_agent", draft_email)
+    email = asyncio.run(issue_78.handoff(issue_78.HandoffRequest(trial_id="LOCAL-078-A")))
+    assert email["mode"] == "fallback"
+    assert "pseudonymisation" in email["note"]
+    assert "Sommer" not in email["body"]
+
+
+def test_email_timeout_retains_demo_draft(monkeypatch):
+    import asyncio
+
+    from app.ideas import issue_78
+
+    async def unavailable(request, **kwargs):
+        raise TimeoutError
+
+    monkeypatch.setattr(issue_78, "run_agent", unavailable)
+    email = asyncio.run(issue_78.handoff(issue_78.HandoffRequest(trial_id="LOCAL-078-E")))
+    assert email["mode"] == "fallback"
+    assert "timed out" in email["note"]
+    assert "REF-078" in email["body"]

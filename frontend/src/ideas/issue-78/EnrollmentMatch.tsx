@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Pill } from '../../hospital/HospitalShell';
 import type { Context, Criterion, Trial } from './index';
+import { SourceReference, TrialCentres } from './SourceReference';
 
 export type Inspection = { trialId: string; criterionId?: string };
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
   inspection: Inspection | null; setInspection: (value: Inspection | null) => void;
   hiddenTrials: string[]; setHiddenTrials: (value: string[]) => void;
   missingOnly: boolean; setMissingOnly: (value: boolean) => void;
+  secondaryExpanded: boolean; setSecondaryExpanded: (value: boolean) => void;
 };
 
 const statusLabel = { Match: 'Met', Conflict: 'Not met', Unknown: 'Unknown' };
@@ -29,6 +31,7 @@ function TrialEvidence({ trial }: { trial: Trial }) {
         <dl><dt>Result</dt><dd>{evidence.result}</dd>
           <dt>Population</dt><dd>{evidence.population} · n={evidence.sample_size ?? 'not supplied'}</dd>
           <dt>Limitations</dt><dd>{evidence.limitation}</dd><dt>Source</dt><dd>{evidence.source}</dd></dl>
+        <SourceReference source={evidence.source} />
       </div>) : <p>No evidence track supplied.</p>}
   </details>;
 }
@@ -36,6 +39,7 @@ function TrialEvidence({ trial }: { trial: Trial }) {
 export function EnrollmentMatch({
   context, chosen, compare, choose, toggleComparison, openScreening,
   inspection, setInspection, hiddenTrials, setHiddenTrials, missingOnly, setMissingOnly,
+  secondaryExpanded, setSecondaryExpanded,
 }: Props) {
   const trials = [...context.trials, ...context.excluded_trials];
   const visible = trials.filter((trial) => !hiddenTrials.includes(trial.id));
@@ -48,7 +52,10 @@ export function EnrollmentMatch({
   const focusInspection = useRef(false);
   const rows = Object.entries(context.facts).filter(([, fact]) =>
     visible.some((trial) => trial.criteria.some((item) =>
-      item.patient_label === fact.label && (!missingOnly || item.status === 'Unknown'))));
+      item.patient_label === fact.label && (!missingOnly || item.status === 'Unknown'))))
+    .sort(([, a], [, b]) => Number(visible.some((trial) => trial.criteria.some((item) => item.patient_label === b.label && item.status === 'Unknown'))) -
+      Number(visible.some((trial) => trial.criteria.some((item) => item.patient_label === a.label && item.status === 'Unknown'))));
+  const rowUnknown = (label: string) => visible.some((trial) => trial.criteria.some((item) => item.patient_label === label && item.status === 'Unknown'));
 
   useEffect(() => {
     if (focusInspection.current) {
@@ -75,7 +82,7 @@ export function EnrollmentMatch({
       <div className="tm78-match-toolbar-actions">
         <label className="tm78-choice"><input type="checkbox" checked={missingOnly}
           onChange={(event) => setMissingOnly(event.target.checked)} />Missing information only</label>
-        <div><button className="hx-btn primary" disabled={!chosen} onClick={openScreening}>Proceed to screening</button>
+        <div><button className="hx-btn primary" disabled={!chosen} onClick={openScreening}>Approve screening preparation</button>
           <small>{chosen ? `Chosen: ${chosen.title} · eligibility not confirmed` : 'No screening candidate selected'}</small></div>
       </div>
     </div>
@@ -107,6 +114,7 @@ export function EnrollmentMatch({
                     aria-pressed={inspected?.id === trial.id && !criterion}
                     onClick={(event) => inspect({ trialId: trial.id }, event.currentTarget)}>{trial.title}</button>
                   <small>{trial.site}</small>
+                  <TrialCentres trial={trial} />
                   <div className="tm78-segments" aria-hidden="true">{trial.criteria.map((item) =>
                     <span key={item.id} className={`tm78-segment-${item.status}`} />)}</div>
                   <span className={`tm78-verdict ${isExcluded ? 'tm78-status-Conflict' : 'tm78-status-Unknown'}`}>
@@ -122,8 +130,8 @@ export function EnrollmentMatch({
                     onChange={() => toggleComparison(trial.id)} />Include in Copilot review</label>}
                 </th>;
               })}</tr></thead>
-            <tbody>{rows.map(([key, fact]) => <tr key={key}>
-              <th scope="row">{fact.label}</th><td className="tm78-patient-value">{fact.display}</td>
+            <tbody>{rows.map(([key, fact]) => <tr key={key} className={rowUnknown(fact.label) ? 'tm78-unknown-row' : ''}>
+              <th scope="row">{rowUnknown(fact.label) && <span className="tm78-status-Unknown">Unknown first · </span>}{fact.label}</th><td className="tm78-patient-value">{fact.display}<SourceReference source={fact.source} /></td>
               {visible.map((trial) => <td key={trial.id} className={chosen?.id === trial.id ? 'tm78-column-chosen' : ''}>
                 {trial.criteria.filter((item) => item.patient_label === fact.label).map((item) =>
                   <button key={item.id} className={`tm78-criterion-cell ${criterion?.id === item.id && inspected?.id === trial.id ? 'is-inspected' : ''}`}
@@ -157,6 +165,7 @@ export function EnrollmentMatch({
           </div>
           <dl><dt>Patient evidence</dt><dd>{criterion.evidence}</dd><dt>Record source</dt><dd>{criterion.source}</dd>
             <dt>Protocol source</dt><dd>{criterion.protocol_source}</dd></dl>
+          <SourceReference source={criterion.source} /><SourceReference source={criterion.protocol_source} />
           {criterion.status !== 'Match' && <div className="tm78-attention">
             <strong>{criterion.status === 'Unknown' ? 'Evidence required · cannot mark as met' : 'Known conflict · trial excluded'}</strong>
             <p>{criterion.status === 'Unknown' ? 'Request current evidence during screening. Draft requests and human acknowledgements never resolve an Unknown criterion.' :
@@ -165,6 +174,7 @@ export function EnrollmentMatch({
           <button className="hx-btn" onClick={backToOverview}>Back to trial overview</button>
         </> : <>
           <div className="tm78-section-meta"><span>Phase {inspected.phase}</span><span>{inspected.design}</span></div>
+          <TrialCentres trial={inspected} />
           <p>{inspected.description}</p>
           <h3>Study treatment</h3><p>{inspected.treatment || 'Fictional demo regimen · details pending'}</p>
           <div className="tm78-arms">{inspected.arms?.map((arm, index) =>
@@ -174,15 +184,24 @@ export function EnrollmentMatch({
           <small>All regimens and treatment names are fictional demo names · not clinical advice.</small>
           <div className="tm78-counts"><Pill tone="ok">{inspected.counts.Match} met</Pill>
             <Pill tone="crit">{inspected.counts.Conflict} not met</Pill><Pill tone="warn">{inspected.counts.Unknown} unknown</Pill></div>
-          <details><summary>Why this screening priority</summary><p>{inspected.priority_reason}</p>
+          <SourceReference source={`${inspected.registry_id} · synthetic protocol treatment, design, arms and practical meaning`} />
+          <button className="hx-btn" aria-expanded={secondaryExpanded} onClick={() => setSecondaryExpanded(!secondaryExpanded)}>
+           {secondaryExpanded ? 'Hide 3 secondary sections' : '3 sections hidden — show'}</button>
+          <div hidden={!secondaryExpanded}>
+          <details><summary>Why this screening priority · best local first</summary><p>{inspected.priority_reason}</p>
             <small>Not a predicted benefit or treatment recommendation.</small></details>
           <TrialEvidence trial={inspected} />
+          <details><summary>All protocol criteria & exclusion reasons</summary>{[...inspected.criteria]
+            .sort((a, b) => Number(b.status === 'Unknown') - Number(a.status === 'Unknown')).map((item) =>
+              <div key={item.id}><CriterionStatus criterion={item} /><p>{item.text} · {item.evidence}</p>
+                <SourceReference source={item.source} /><SourceReference source={item.protocol_source} /></div>)}</details>
+          </div>
           {excluded && <p className="tm78-attention">Excluded: known conflicts prevent screening selection.</p>}
         </>)}
         <div className="tm78-inspector-gate">
           <span className="tm78-eyebrow">Screening candidate</span><strong>{chosen?.title ?? 'None selected'}</strong>
           <p>{chosen ? `${chosen.counts.Unknown} unknown criteria remain. Eligibility is not confirmed.` : 'No screening enquiry will be prepared.'}</p>
-          <button className="hx-btn primary" disabled={!chosen} onClick={openScreening}>Request missing information</button>
+          <button className="hx-btn primary" disabled={!chosen} onClick={openScreening}>Approve screening preparation</button>
           <small>Clinician approval required for all draft requests and patient sharing. Nothing is sent automatically.</small>
           <button className="hx-btn" disabled>Enrolment unavailable · prototype</button>
         </div>
