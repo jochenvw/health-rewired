@@ -666,15 +666,14 @@ export default function TeamDomitian() {
                   }}
                 />
               )}
-              {view === 'case' && (
-                <IdentityPanel
+              {view !== 'identity' && (
+                <AttentionPanel
                   record={record}
                   horizon={horizon}
                   decisions={identityDecisions}
-                  onDecision={(id, decision) => {
-                    setIdentityDecisions((current) => ({ ...current, [`${record.id}:${id}`]: decision }));
-                    setNotice(decision === 'confirmed' ? 'Human verified: this source can now be considered for this synthetic case.' : decision === 'separate' ? 'This source will remain separate from the patient timeline.' : 'Investigation noted. This source remains separate until a clinician verifies it.');
-                  }}
+                  agentResult={agentResults[selectedId]}
+                  onNavigate={setView}
+                  onInspect={(assertion) => setEvidenceDrawer(assertion)}
                 />
               )}
               {view === 'case' && <AtAGlance record={record} agentResult={agentResults[selectedId]} specialty={specialty} horizon={horizon} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
@@ -794,23 +793,26 @@ function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onIns
           <div key={state} className={`readiness-${state}`}><EvidenceMarker state={state} /><strong>{count}</strong></div>
         ))}
       </div>
-      <div className="issue74-evidence-assertions">
-        {assertions.map((assertion) => (
-          <div key={assertion.statement} className="issue74-assertion-row">
-            <strong>{assertion.statement}</strong>
-            <EvidenceMarker state={assertion.state} />
-            <span className="issue74-fact-evidence"><EvidenceLink assertion={assertion} onInspect={onInspect} /></span>
-          </div>
-        ))}
-      </div>
-      <details className="issue74-status-legend">
-        <summary>What the evidence labels mean</summary>
-        <ul>
-          {Object.entries(evidenceDescriptions).map(([state, explanation]) => (
-            <li key={state}><EvidenceMarker state={state as EvidenceState} /><span>{explanation}</span></li>
+      <details className="issue74-evidence-detail">
+        <summary>Open evidence status by fact</summary>
+        <div className="issue74-evidence-assertions">
+          {assertions.map((assertion) => (
+            <div key={assertion.statement} className="issue74-assertion-row">
+              <strong>{assertion.statement}</strong>
+              <EvidenceMarker state={assertion.state} />
+              <span className="issue74-fact-evidence"><EvidenceLink assertion={assertion} onInspect={onInspect} /></span>
+            </div>
           ))}
-        </ul>
-        <p>Source institution and document are provenance. These labels describe how sources relate to each other. “Previously verified” is a separate human review record.</p>
+        </div>
+        <details className="issue74-status-legend">
+          <summary>What the evidence labels mean</summary>
+          <ul>
+            {Object.entries(evidenceDescriptions).map(([state, explanation]) => (
+              <li key={state}><EvidenceMarker state={state as EvidenceState} /><span>{explanation}</span></li>
+            ))}
+          </ul>
+          <p>Source institution and document are provenance. These labels describe how sources relate to each other. Human verification is recorded separately.</p>
+        </details>
       </details>
       {record.id === 'P-003' && (
         <div className="issue74-conflict-summary">
@@ -819,6 +821,74 @@ function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onIns
           <EvidenceLink assertion={conflictFor(record)} onInspect={onInspect} label="Review conflict ↗" />
         </div>
       )}
+    </Panel>
+  );
+}
+
+function AttentionPanel({
+  record,
+  horizon,
+  decisions,
+  agentResult,
+  onNavigate,
+  onInspect,
+}: {
+  record: PatientRecord;
+  horizon: Horizon;
+  decisions: Record<string, IdentityDecision>;
+  agentResult?: AgentResult;
+  onNavigate: (view: View) => void;
+  onInspect: (assertion: EvidenceAssertion) => void;
+}) {
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const identityItems = horizon === 'future'
+    ? identityCandidates(record).filter((candidate) => {
+        const decision = decisions[`${record.id}:${candidate.id}`];
+        return (candidate.state === 'review' || candidate.state === 'probable') && decision !== 'confirmed' && decision !== 'separate';
+      })
+    : [];
+  const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
+  const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
+  const gaps = completenessItems(record, horizon).filter((item) => item.state === 'missing' || (item.state === 'conflicting' && !conflict));
+  const generatedCount = agentResult?.blocks.reduce((count, block) => count + (block.body ? 1 : 0) + block.items.length, 0) ?? 0;
+  const needsAttention = identityItems.length + gaps.length + generatedCount + (conflict && !conflictReview ? 1 : 0);
+  return (
+    <Panel
+      title="Needs your attention"
+      actions={<Pill tone={needsAttention ? 'warn' : 'ok'}>{needsAttention ? `${needsAttention} review items` : 'No new review items'}</Pill>}
+    >
+      <p className="issue74-attention-intro">Preparation priorities · unresolved evidence is kept separate from the case summary.</p>
+      <div className="issue74-attention-list">
+        {conflict && (
+          <div className={`attention-conflict${conflictReview ? ' attention-reviewed' : ''}`}>
+            <span className="issue74-attention-symbol" aria-hidden="true">!</span>
+            <div><strong>{conflictReview ? 'Molecular sources disagree · review recorded' : 'Molecular sources disagree · review required'}</strong><span>{conflictReview ? reviewStatusLabel(conflictReview) : 'Neither result has been selected. Compare both source passages.'}</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => onInspect(conflict)}>Review conflict <span aria-hidden="true">→</span></button>
+          </div>
+        )}
+        {gaps.length > 0 && (
+          <div className="attention-gap">
+            <span className="issue74-attention-symbol" aria-hidden="true">–</span>
+            <div><strong>{gaps.length} evidence gap{gaps.length === 1 ? '' : 's'} remain</strong><span>{gaps.slice(0, 2).map((item) => item.label).join(' · ')}{gaps.length > 2 ? ` · +${gaps.length - 2} more` : ''}. Missing values are not inferred.</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => onNavigate('completeness')}>Review gaps <span aria-hidden="true">→</span></button>
+          </div>
+        )}
+        {identityItems.length > 0 && (
+          <div className="attention-identity">
+            <span className="issue74-attention-symbol" aria-hidden="true">?</span>
+            <div><strong>{identityItems.length} identity match{identityItems.length === 1 ? '' : 'es'} need your review</strong><span>These cross-hospital records remain separate until you compare the identity details.</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => onNavigate('identity')}>Compare identities <span aria-hidden="true">→</span></button>
+          </div>
+        )}
+        {generatedCount > 0 && (
+          <div className="attention-unverified">
+            <span className="issue74-attention-symbol" aria-hidden="true">?</span>
+            <div><strong>{generatedCount} generated item{generatedCount === 1 ? '' : 's'} need source review</strong><span>These statements have no exact linked passage and remain unverified.</span></div>
+            <button type="button" className="issue74-attention-action" onClick={() => onNavigate('evidence')}>Inspect evidence <span aria-hidden="true">→</span></button>
+          </div>
+        )}
+        {needsAttention === 0 && <p className="issue74-attention-clear">No new identity, evidence-gap or generated-source review item is flagged. The MDT question remains with the clinical team.</p>}
+      </div>
     </Panel>
   );
 }
@@ -876,7 +946,7 @@ function IdentityPanel({
                   <span>Referral link</span><strong>{candidate.referral}</strong>
                 </div>
               </details>
-              {horizon === 'future' && candidate.state === 'review' && (!decision || decision === 'investigating') && (
+              {horizon === 'future' && (candidate.state === 'review' || candidate.state === 'probable') && (!decision || decision === 'investigating') && (
                 <div className="issue74-identity-actions">
                   <button className="hx-btn primary" type="button" onClick={() => onDecision(candidate.id, 'confirmed')}>Confirm same patient</button>
                   <button className="hx-btn" type="button" onClick={() => onDecision(candidate.id, 'separate')}>Keep separate</button>
