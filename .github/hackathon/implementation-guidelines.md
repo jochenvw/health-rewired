@@ -67,10 +67,12 @@ click through, react to, and iterate on with you. Speed to something visible bea
    notice visible.
 7. **Look credible in the participant's working world.** Match the visual language to the user and
    task in the proposal instead of making every idea look like the same blue EHR.
-   - Follow [`design-language.md`](design-language.md) in every mode: dark institutional chrome,
-     cool neutral work surfaces, semantic `--cp-*` tokens, restrained accent, operational
-     typography, explicit status, inspectable detail and visible human control. Reuse the token
-     values rather than inventing an unrelated palette in each issue.
+   - Follow [`design-language.md`](design-language.md): its shared tokens, typography and
+     principles (semantic status, inspectable detail, visible human control) are the default for
+     clinician/operator-facing ideas. Reuse them when they fit. When the proposal calls for a more
+     distinctive, polished or audience-specific look (e.g. elegant cards, bespoke visual metaphors,
+     richer motion), adapt the palette, chrome and component style to match — consistency means
+     accessibility and legibility, not an identical dark institutional theme on every idea.
    - **Visible theme choice.** Put separate, labelled `Light` and `Dark` buttons in the persistent
      header or top-level controls. Show the selected theme with styling and `aria-pressed`; apply
      it to the complete workspace. Do not use only an icon or ambiguous single toggle.

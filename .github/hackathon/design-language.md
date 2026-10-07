@@ -333,9 +333,11 @@ retrieval visible beside affected information.
 
 ## 8. Motion
 
-Motion is limited to new public activity. Never delay controls, state, errors or critical
-information for animation. Do not animate ordinary card entry or navigation. Disable non-essential
-motion under `prefers-reduced-motion: reduce`; pulse only genuinely active work.
+Motion should earn its place: use it to make real activity, state changes and staged progress
+(e.g. a "searching participating hospitals…" sequence) understandable, not as decoration. Never
+delay controls, state, errors or critical information for animation. Disable non-essential motion
+under `prefers-reduced-motion: reduce`; keep pulsing/looping animation limited to genuinely active
+work so it doesn't mislead the viewer.
 
 ## 9. Theme and accessibility
 
