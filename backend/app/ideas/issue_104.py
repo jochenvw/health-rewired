@@ -5,7 +5,7 @@ from typing import Literal
 
 from copilot import define_tool
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app import sample_data
 from app.agent import run_agent
@@ -15,9 +15,16 @@ from app.agent.ui import UIBlock, UIItem
 router = APIRouter(prefix="/api/ideas/104", tags=["idea-104"])
 
 
+class Priorities(BaseModel):
+    quality: int = Field(default=5, ge=0, le=10)
+    survivalFit: int = Field(default=5, ge=0, le=10)
+    mobility: int = Field(default=5, ge=0, le=10)
+
+
 class Consultation(BaseModel):
     country: Literal["Germany", "Italy", "Netherlands"] = "Germany"
     horizon: Literal["future", "six-months"] = "future"
+    priorities: Priorities = Field(default_factory=Priorities)
 
 
 def consultation_data(params: Consultation) -> dict:
@@ -26,10 +33,27 @@ def consultation_data(params: Consultation) -> dict:
     patient = data["patient"]["minimal"]
     if params.horizon == "future":
         patient += " " + data["patient"]["details"]
+    weights = params.priorities.model_dump()
+    top_weight = max(weights.values())
+    comparable = [
+        item
+        for item in data["comparablePatients"]
+        if abs(item["age"] - data["patient"]["age"]) <= 5
+        and item["stage"] == "III"
+        and top_weight > 0
+        and weights[item["priority"]] == top_weight
+    ]
     return {
         "notice": data["notice"],
         "country": country,
         "patient": patient,
+        "priorities": weights,
+        "evidence_status": {
+            "guidelines_and_trials": "Guideline pointers unverified; no trial results retrieved.",
+            "prediction_model": "No model connected. Displayed probabilities are teaching placeholders.",
+            "observational_examples": "Synthetic only; selection bias and unequal follow-up. Not causal evidence.",
+        },
+        "comparable_patients": comparable if params.horizon == "future" else [],
         "options": [
             {
                 "label": country["labels"][i],
@@ -55,10 +79,15 @@ async def explain(params: Consultation) -> AgentResult:
         AgentRequest(task="Explain the post-MDT options in plain language.", role="Oncologist and patient"),
         system_prompt=(
             "You support a synthetic post-MDT consultation. Use read_shared_decision_context, then "
-            "render_ui with summary and evidence blocks. Explain the two supplied options and "
+            "render_ui with summary and evidence blocks. Explain the three supplied options, including "
+            "no additional chemotherapy with follow-up (not abandonment of care), and "
             "adjuvant therapy in plain language. Never choose treatment or invent risk estimates, "
             "guideline passages or country-specific clinical differences. Full texts are not verified. "
-            "Say summaries are synthetic, not guideline recommendations. Final choice is human."
+            "Separate patient values from guideline/trial evidence, unconnected prediction models and "
+            "synthetic observational examples. Discuss the provided priorities without treating fit as "
+            "a clinical probability. Comparable cases are not causal evidence. Do not suggest a learning "
+            "loop has transmitted data or trained a model. Say summaries are synthetic, not guideline "
+            "recommendations. Final choice is human."
         ),
         prompt=f"Consultation settings: {params.model_dump_json()}\nTeaching context: {json.dumps(context)}",
         extra_tools=[read_shared_decision_context],
@@ -74,7 +103,13 @@ async def explain(params: Consultation) -> AgentResult:
             UIBlock(
                 type="summary",
                 title="What treatment after surgery means",
-                body=context["terms"]["Adjuvant therapy"],
+                body=(
+                    context["terms"]["Adjuvant therapy"]
+                    + " No additional chemotherapy remains a choice to discuss, with follow-up and supportive care."
+                    + f" Your priorities (0–10): quality of life {params.priorities.quality}, "
+                    + f"survival benefit {params.priorities.survivalFit}, walking {params.priorities.mobility}. "
+                    + "Preferences change fit, not clinical risk estimates. The joint decision remains yours."
+                ),
                 items=[
                     UIItem(
                         label=option["label"],
@@ -95,6 +130,15 @@ async def explain(params: Consultation) -> AgentResult:
                         source=context["country"]["url"],
                     ),
                     UIItem(label="Ask together", detail="How important are walking, daily tablets and fewer visits?"),
+                    UIItem(label="Prediction model", detail=context["evidence_status"]["prediction_model"]),
+                    UIItem(
+                        label="Patients like me",
+                        detail=(
+                            f"{len(context['comparable_patients'])} matching synthetic examples; not causal evidence."
+                            if params.horizon == "future"
+                            else "Unavailable in six months; needs linked outcomes and recorded patient values."
+                        ),
+                    ),
                 ],
             ),
         ],

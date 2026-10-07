@@ -20,10 +20,14 @@ especially when there is no single clear-cut option.
 The patient, clinician and optionally caregiver in the post-MDT consultation.
 
 ## Capability
-A guided worklist-to-decision walkthrough compares two synthetic treatment options. Germany, Italy
+A guided worklist-to-decision walkthrough compares three synthetic choices, including no additional
+chemotherapy with follow-up (“No treatment / Do nothing”). Germany, Italy
 and Netherlands selectors change teaching wording and guideline source pointers. Separate sliders
 change preference fit, never the medical risk numbers. Every consequential element has expandable
-reasoning. Plain-language definitions and an assistant explanation support the conversation.
+reasoning. Live bars beside the sliders and example priorities demonstrate how fit changes immediately.
+Clinical outcomes stay separate and fixed. Guideline/trial pointers, an explicitly unconnected
+prediction-model module and observational examples have separate provenance and limitations.
+Plain-language definitions and an assistant explanation support the conversation.
 
 ## Agent behaviour
 The shared Copilot SDK runner uses a read-only consultation tool and renders summary/evidence
@@ -32,15 +36,20 @@ Neither mode retrieves full guidelines, calculates a validated personal risk or 
 
 ## Inputs
 A synthetic 68-year-old stage III colon cancer scenario, unverified teaching summaries, source
-links, patient priorities, selected country and horizon. Coverage uses actual minimal-dataset fields.
+links, patient priorities, selected country and horizon. Future “Patients like me” uses invented European
+records filtered by age within five years, stage III and any tied highest-rated priority. No priorities
+means no matches. Coverage uses actual minimal-dataset fields.
 
 ## Outputs
 Risk/benefit matrix, simulated future icon arrays and fatigue trajectories, generated explanation
-blocks, six-month coverage panel and a local receipt of the joint decision or deferral.
+blocks, six-month coverage panel and a local receipt of the joint decision or deferral. The future
+learning-loop preview captures the selected option, preferences, context and evidence limitations.
 
 ## Human decisions
 The patient and clinician choose or defer treatment, edit the conversation note and explicitly confirm
-review before recording. No automatic choice, persistence or EHR write-back.
+review before recording. Separate consent is required for the simulated learning-loop contribution.
+Edits invalidate the receipt and contribution. No automatic choice, transmission, training, persistence
+or EHR write-back.
 
 ## Dependencies
 Existing HospitalShell, StoryGuide, Backstage, generated block registry and shared Copilot runner.
@@ -51,4 +60,6 @@ All summaries, risks, preference scores and trajectories are invented teaching m
 guideline-derived evidence or validated predictions. National guideline texts remain unverified;
 no country-specific efficacy differences are claimed. Costs are unavailable in both horizons.
 Six months offers qualitative summaries, priorities and a local conversation note; personalised
-probabilities and trajectories remain unavailable pending richer records and validated models.
+probabilities, trajectories, comparable longitudinal cases and learning-loop linkage remain unavailable
+pending richer records, validated models, consent and governance. No clinical confidence algorithm
+or evidence-based best option is claimed. Observational examples are not causal comparisons.

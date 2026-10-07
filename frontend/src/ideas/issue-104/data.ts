@@ -12,7 +12,7 @@ export const data = {
     sex: 'female',
     diagnosis: 'Resected stage III colon cancer · pT3N1a · M0',
     allergies: 'None recorded (synthetic)',
-    mdt: 'Discuss shorter oral-plus-infusion treatment versus longer infusion treatment. No single option chosen; confirm fitness and patient preferences.',
+    mdt: 'Discuss shorter oral-plus-infusion treatment, longer infusion treatment, or no additional chemotherapy with follow-up. No single option chosen; confirm fitness and patient preferences.',
     details:
       'Synthetic record: ECOG 1; mild diabetic foot tingling; eGFR 72 mL/min; haemoglobin 12.1 g/dL; MMR proficient. Walks daily and cares for a partner.',
     minimal: 'Age 68; resected colon cancer; pT3N1a, M0; MMR proficient; MDT options recorded.',
@@ -24,7 +24,7 @@ export const data = {
       url: 'https://github.com/user-attachments/files/33147972/LL_KRK_Langversion_3.2.1.pdf',
       summary:
         "Demo discussion: additional chemotherapy after surgery; compare duration, side effects and the patient's ability to manage treatment.",
-      labels: ['CAPOX · 3 months', 'FOLFOX · 6 months'],
+      labels: ['CAPOX · 3 months', 'FOLFOX · 6 months', 'No treatment / Do nothing'],
     },
     {
       name: 'Italy',
@@ -32,7 +32,7 @@ export const data = {
       url: 'https://github.com/user-attachments/files/33147967/LG.146_Colon_agg2024-13-17.pdf',
       summary:
         'Demo discussion: terapia adiuvante (treatment after surgery); balance possible benefit with tolerability and everyday life.',
-      labels: ['CAPOX · 3 months · terapia adiuvante', 'FOLFOX · 6 months · terapia adiuvante'],
+      labels: ['CAPOX · 3 months · terapia adiuvante', 'FOLFOX · 6 months · terapia adiuvante', 'No treatment / Do nothing'],
     },
     {
       name: 'Netherlands',
@@ -40,7 +40,7 @@ export const data = {
       url: 'https://richtlijnendatabase.nl/richtlijn/colorectaal_carcinoom_crc/startpagina_-_colorectaal_carcinoom.html',
       summary:
         'Demo discussion: adjuvante behandeling (treatment after surgery); discuss duration and burden together with the patient.',
-      labels: ['CAPOX · 3 months · adjuvante behandeling', 'FOLFOX · 6 months · adjuvante behandeling'],
+      labels: ['CAPOX · 3 months · adjuvante behandeling', 'FOLFOX · 6 months · adjuvante behandeling', 'No treatment / Do nothing'],
     },
   ],
   options: [
@@ -72,6 +72,29 @@ export const data = {
       visits: 12,
       fatigue: [7, 7, 4],
     },
+    {
+      id: 'none',
+      plain: 'No additional chemotherapy after surgery; continue follow-up and supportive care',
+      benefit: 'Avoids chemotherapy-related toxicity and infusion visits.',
+      burden: 'Foregoes possible chemotherapy benefit; cancer may still return. Follow-up and symptom care continue.',
+      survival: 72,
+      recurrence: 28,
+      neuropathy: 0,
+      quality: 9,
+      mobility: 10,
+      survivalFit: 1,
+      visits: 0,
+      fatigue: [3, 2, 1],
+    },
+  ],
+  comparablePatients: [
+    { id: 'DE-demo-1', site: 'Germany · synthetic site', age: 66, stage: 'III', priority: 'quality', option: 'short', outcome: 'Walking daily at 12 months; fatigue during treatment' },
+    { id: 'IT-demo-1', site: 'Italy · synthetic site', age: 70, stage: 'III', priority: 'quality', option: 'none', outcome: 'No chemotherapy toxicity; recurrence recorded at 18 months' },
+    { id: 'NL-demo-1', site: 'Netherlands · synthetic site', age: 68, stage: 'III', priority: 'survivalFit', option: 'long', outcome: 'No recurrence recorded at 24 months; lasting tingling' },
+    { id: 'DE-demo-2', site: 'Germany · synthetic site', age: 64, stage: 'III', priority: 'survivalFit', option: 'short', outcome: 'Recurrence recorded at 20 months; treatment completed' },
+    { id: 'IT-demo-2', site: 'Italy · synthetic site', age: 71, stage: 'III', priority: 'mobility', option: 'none', outcome: 'Walking daily at 12 months; later outcome unknown' },
+    { id: 'NL-demo-2', site: 'Netherlands · synthetic site', age: 67, stage: 'III', priority: 'mobility', option: 'short', outcome: 'Walking reduced by tingling at 12 months' },
+    { id: 'DE-demo-3', site: 'Germany · synthetic site', age: 48, stage: 'II', priority: 'quality', option: 'none', outcome: 'Excluded from this comparison by age and stage' },
   ],
   coverage: [
     'Age',

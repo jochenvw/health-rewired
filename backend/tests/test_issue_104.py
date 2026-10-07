@@ -26,3 +26,31 @@ def test_shared_decision_demo(country, monkeypatch):
     dataset = sample_data.read("minimal-mdt-dataset.json")
     fields = {element["name"] for group in dataset["groups"] for element in group["elements"]}
     assert set(sample_data.read("issue-104.json")["coverage"]) <= fields
+    assert len(body["blocks"][0]["items"]) == 3
+    assert body["blocks"][0]["items"][2]["label"] == "No treatment / Do nothing"
+    assert "follow-up" in body["blocks"][0]["items"][2]["detail"]
+
+
+def test_priorities_filter_synthetic_cases_and_reach_explanation(monkeypatch):
+    monkeypatch.setattr(settings, "copilot_token", None)
+    monkeypatch.setattr(settings, "copilot_use_logged_in_user", False)
+    client = TestClient(app)
+    survival = {"quality": 1, "survivalFit": 10, "mobility": 1}
+    context = consultation_data(Consultation(priorities=survival))
+    assert context["priorities"] == survival
+    assert {item["priority"] for item in context["comparable_patients"]} == {"survivalFit"}
+    assert all(63 <= item["age"] <= 73 and item["stage"] == "III" for item in context["comparable_patients"])
+    assert consultation_data(Consultation(horizon="six-months", priorities=survival))["comparable_patients"] == []
+    assert (
+        consultation_data(Consultation(priorities={"quality": 0, "survivalFit": 0, "mobility": 0}))[
+            "comparable_patients"
+        ]
+        == []
+    )
+    tied = consultation_data(Consultation(priorities={"quality": 10, "survivalFit": 1, "mobility": 10}))
+    assert {item["priority"] for item in tied["comparable_patients"]} == {"quality", "mobility"}
+    response = client.post("/api/ideas/104/explain", json={"priorities": survival})
+    assert response.status_code == 200
+    assert "survival benefit 10" in response.json()["blocks"][0]["body"]
+    assert "No model connected" in str(response.json())
+    assert client.post("/api/ideas/104/explain", json={"priorities": {"quality": 11}}).status_code == 422
