@@ -1,6 +1,7 @@
 """Targeted, source-grounded review skill for the synthetic MDT cases."""
 
 import json
+import re
 from typing import Literal
 
 from copilot import define_tool
@@ -32,7 +33,7 @@ class ReviewCandidate(BaseModel):
 
 class EvidenceReviewRequest(BaseModel):
     patient_id: str = Field(pattern=r"^P-[0-9]{3}$")
-    assertions: list[ReviewCandidate] = Field(min_length=1, max_length=8)
+    assertions: list[ReviewCandidate] = Field(min_length=1, max_length=12)
 
 
 class ReviewProposal(BaseModel):
@@ -51,7 +52,7 @@ class ReviewProposal(BaseModel):
 
 
 class ReviewProposalParams(BaseModel):
-    proposals: list[ReviewProposal] = Field(min_length=1, max_length=8)
+    proposals: list[ReviewProposal] = Field(min_length=1, max_length=12)
 
 
 class EvidenceReviewResponse(BaseModel):
@@ -60,11 +61,12 @@ class EvidenceReviewResponse(BaseModel):
 
 
 SYSTEM_PROMPT = """You are the evidence-review skill in a synthetic colorectal MDT preparation workspace.
-Check the supplied Patient-at-a-glance assertions against the synthetic patient's record and the
-linked source passages. Do not invent, infer, or fill missing facts. Treat generated statements
-without an exact source passage as unverified. Compare both passages for contradictions; you may
-suggest Evidence A or B only when its cited passage directly supports the claim. Otherwise leave
-the conflict unresolved.
+Check the supplied case assertions against the synthetic patient's record and the linked source
+passages. Do not invent, infer, or fill missing facts. Treat generated statements without an exact
+source passage as unverified. For contradictions, try to reconcile: compare both passages and apply
+the source hierarchy (a pathology or molecular report is primary for molecular results; a referral
+letter or summary is secondary). Suggest Evidence A or B only when the primary passage directly
+states the result and the record agrees. Otherwise leave the conflict unresolved.
 
 For every supplied assertion, call submit_evidence_review with a source-grounded proposal:
 - verified only for a present claim directly supported by its cited source;
@@ -146,14 +148,14 @@ async def review_patient_evidence(request: EvidenceReviewRequest) -> EvidenceRev
 
     captured: dict[str, ReviewProposal] = {}
     prompt = (
-        f"Review the following selected summary assertions for synthetic patient {request.patient_id}.\n"
+        f"Review the following case assertions for synthetic patient {request.patient_id}.\n"
         "Assertions and linked source passages:\n"
         f"{json.dumps([item.model_dump() for item in request.assertions], ensure_ascii=False)}\n"
         "Use get_patient to check the patient record, then submit one proposal per assertion."
     )
     result = await run_agent(
         AgentRequest(
-            task=f"Review the Patient-at-a-glance evidence for synthetic patient {request.patient_id}.",
+            task=f"Review and reconcile the MDT case evidence for synthetic patient {request.patient_id}.",
             patient_id=request.patient_id,
             role="MDT evidence reviewer",
         ),
@@ -176,8 +178,29 @@ def _demo_proposal(candidate: ReviewCandidate) -> ReviewProposal:
         outcome = "unverified-reviewed"
         rationale = "Deterministic demo: no exact source passage is attached; this statement remains unverified."
     elif candidate.state == "contradictory":
-        outcome = "unresolved"
-        rationale = "Deterministic demo: the supplied sources disagree; neither source is selected."
+        primary = next(
+            (
+                index
+                for index, source in enumerate(candidate.sources[:2])
+                if re.search(r"patholog|molecular", source.title, re.IGNORECASE)
+            ),
+            None,
+        )
+        if primary is None or len(candidate.sources) < 2:
+            outcome = "unresolved"
+            rationale = "Deterministic demo: the supplied sources disagree; neither source is selected."
+        else:
+            source = candidate.sources[primary]
+            return ReviewProposal(
+                assertion_key=candidate.key,
+                outcome="accepted-a" if primary == 0 else "accepted-b",
+                source_index=primary,
+                rationale=(
+                    f"Deterministic demo: {source.title} ({source.hospital}) is the primary molecular "
+                    "source; the referral letter is secondary. Suggest this result for the case and keep "
+                    "the source disagreement visible. Clinician confirmation is required."
+                ),
+            )
     elif candidate.sources:
         outcome = "verified"
         rationale = (

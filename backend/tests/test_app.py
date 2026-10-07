@@ -87,9 +87,12 @@ def test_issue_74_evidence_review_returns_proposals_without_applying_them(client
     body = response.json()
     assert response.status_code == 200
     assert body["result"]["mode"] == "fallback"
-    assert {item["outcome"] for item in body["proposals"]} == {"verified", "unresolved"}
+    assert {item["outcome"] for item in body["proposals"]} == {"verified", "accepted-a"}
+    reconciliation = next(item for item in body["proposals"] if item["outcome"] == "accepted-a")
+    assert reconciliation["source_index"] == 0
+    assert "Clinician confirmation is required" in reconciliation["rationale"]
     assert all(
-        "confirmation is still required" in item["rationale"] or "sources disagree" in item["rationale"]
+        "confirmation is still required" in item["rationale"] or "confirmation is required" in item["rationale"]
         for item in body["proposals"]
     )
 

@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { api, type AgentResult, type EvidenceReviewProposal, type EvidenceReviewSkillResult, type PatientRecord } from '../../api';
-import { DataTable, HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { api, type AgentResult, type EvidenceReviewProposal, type PatientRecord } from '../../api';
+import { Avatar, ClinicalShell, Icon, Panel, PatientTabs, Pill, Segmented, Sparkline, type IconName, type SearchEntry } from './ui';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './issue-74.css';
@@ -83,12 +83,6 @@ const scheduled = [
   { id: 'P-004', time: '08:45', source: 'Connected · structured record + imaging report' },
   { id: 'P-005', time: '09:00', source: 'Connected · structured record + clinic note' },
   { id: 'P-010', time: '09:15', source: 'Outside hospital · Italian MRI PDF' },
-];
-
-const evidenceReviewStages: Stage[] = [
-  { label: 'Checking the synthetic patient record', detail: 'The Copilot SDK reads only this case’s synthetic record', ms: 700 },
-  { label: 'Comparing summary claims with source passages', detail: 'Each assertion stays linked to its supplied evidence', ms: 900 },
-  { label: 'Preparing review or reconciliation proposals', detail: 'No review is recorded until a clinician confirms', ms: 700 },
 ];
 
 const story: StoryStep[] = [
@@ -401,6 +395,156 @@ function evidenceFor(record: PatientRecord, label: string, statement: string): E
   };
 }
 
+function treatmentSummary(record: PatientRecord) {
+  return record.treatments.map((item) => `${item.regimen} · ${item.status}`).join('; ') || 'No treatment recorded';
+}
+
+function currentStateSummary(record: PatientRecord) {
+  return `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`;
+}
+
+function molecularSummary(record: PatientRecord) {
+  return Object.entries(record.diagnosis.biomarkers).map(([name, value]) => `${name}: ${value}`).join(' · ');
+}
+
+// One canonical assertion per clinical fact, so a human review recorded in any view shows everywhere.
+function caseFacts(record: PatientRecord) {
+  const scan = record.imaging?.at(-1);
+  const molecular = molecularSummary(record);
+  return {
+    disease: evidenceFor(record, 'Disease', record.diagnosis.primary),
+    stage: evidenceFor(record, 'Stage / current state', currentStateSummary(record)),
+    treatments: evidenceFor(record, 'Treatments so far', treatmentSummary(record)),
+    change: evidenceFor(record, 'What changed', record.timeline.at(-1)?.event ?? 'No recent change recorded'),
+    question: evidenceFor(record, 'Question for the MDT', clinicalQuestion(record)),
+    molecular: molecular ? evidenceFor(record, 'Biomarker', molecular) : undefined,
+    imaging: scan ? evidenceFor(record, 'Imaging finding', scan.result) : undefined,
+    comorbidities: record.comorbidities.length ? evidenceFor(record, 'Comorbidity', record.comorbidities.join('; ')) : undefined,
+  };
+}
+
+type TimelineKind = 'diagnosis' | 'treatment' | 'imaging' | 'lab' | 'event';
+
+function timelineKind(event: string): TimelineKind {
+  const text = event.toLowerCase();
+  if (text.includes('diagnos') || text.includes('patholog') || text.includes('biopsy')) return 'diagnosis';
+  if (/treatment|resection|surgery|chemo|folfox|capox|cycle|radiother/.test(text)) return 'treatment';
+  if (/\bct\b|mri|pet|scan|imaging|ultrasound/.test(text)) return 'imaging';
+  if (/cea|lab|blood|marker/.test(text)) return 'lab';
+  return 'event';
+}
+
+function timelineAssertion(record: PatientRecord, event: PatientRecord['timeline'][number]): EvidenceAssertion {
+  const kind = timelineKind(event.event);
+  if (kind === 'diagnosis' && event.event.toLowerCase().includes('diagnos')) return evidenceFor(record, 'Disease', event.event);
+  if (kind === 'treatment') {
+    const base = evidenceFor(record, 'Treatments so far', event.event);
+    return { ...base, sources: base.sources.map((source) => ({ ...source, date: event.date, excerpt: event.event })) };
+  }
+  return {
+    patientId: record.id,
+    statement: event.event,
+    state: 'single-source',
+    explanation: 'One dated synthetic record entry supports this timeline event.',
+    sources: [{ title: 'Dated timeline entry', hospital: sourceFor(record.id).label, date: event.date, type: 'Synthetic source record', excerpt: `“${event.event}”` }],
+  };
+}
+
+type ReviewGroup = 'conflict' | 'gap' | 'statement' | 'fact' | 'timeline';
+type ReviewItem = { label: string; group: ReviewGroup; assertion: EvidenceAssertion };
+
+const reviewGroups: { id: ReviewGroup; label: string; action: string; tone: 'crit' | 'warn' | 'info' | 'neutral' }[] = [
+  { id: 'conflict', label: 'Source conflicts', action: 'Reconcile individually · neither value is selected automatically', tone: 'crit' },
+  { id: 'gap', label: 'Evidence gaps', action: 'Record the gap as reviewed · the value stays missing', tone: 'warn' },
+  { id: 'statement', label: 'Unverified assistant statements', action: 'Record review · no exact source passage is attached', tone: 'warn' },
+  { id: 'fact', label: 'Key case facts', action: 'Check the source passage and mark human-verified', tone: 'info' },
+  { id: 'timeline', label: 'Timeline events', action: 'Check the dated source entry and mark human-verified', tone: 'neutral' },
+];
+
+function generatedAssertions(record: PatientRecord, agentResult?: AgentResult) {
+  return agentResult?.blocks.flatMap((block) => [
+    ...(block.body ? [generatedAssertion(record, block.body)] : []),
+    ...block.items.map((item) => generatedAssertion(record, [item.label, item.detail].filter(Boolean).join(' · '))),
+  ]) ?? [];
+}
+
+// The single list of reviewable items for a case: queue, attention counts, progress and the agent skill all use it.
+function caseReviewItems(record: PatientRecord, horizon: Horizon, agentResult?: AgentResult): ReviewItem[] {
+  const facts = caseFacts(record);
+  const groupFor = (assertion: EvidenceAssertion, fallback: ReviewGroup): ReviewGroup => (
+    assertion.state === 'contradictory' ? 'conflict'
+      : assertion.state === 'missing' ? 'gap'
+        : assertion.state === 'unverified' ? 'statement'
+          : fallback
+  );
+  const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
+  const raw: { label: string; assertion: EvidenceAssertion; fallback: ReviewGroup }[] = [
+    ...(conflict ? [{ label: 'Molecular source disagreement', assertion: conflict, fallback: 'conflict' as const }] : []),
+    { label: 'Disease', assertion: facts.disease, fallback: 'fact' },
+    { label: 'Stage / current state', assertion: facts.stage, fallback: 'fact' },
+    { label: 'Treatments so far', assertion: facts.treatments, fallback: 'fact' },
+    { label: 'What changed', assertion: facts.change, fallback: 'fact' },
+    { label: 'Question for the MDT', assertion: facts.question, fallback: 'fact' },
+    ...(facts.molecular && facts.molecular.state !== 'contradictory' ? [{ label: 'Molecular results', assertion: facts.molecular, fallback: 'fact' as const }] : []),
+    ...(facts.imaging ? [{ label: 'Latest imaging finding', assertion: facts.imaging, fallback: 'fact' as const }] : []),
+    ...(facts.comorbidities ? [{ label: 'Relevant comorbidities', assertion: facts.comorbidities, fallback: 'fact' as const }] : []),
+    ...completenessItems(record, horizon).filter((item) => item.assertion.state !== 'contradictory' || conflict).map((item) => ({ label: item.label, assertion: item.assertion, fallback: 'fact' as const })),
+    ...missingEvidenceItems(record, horizon).map((item) => ({ label: item.label, assertion: item.assertion, fallback: 'gap' as const })),
+    ...[...(record.timeline ?? [])].sort((a, b) => a.date.localeCompare(b.date)).map((event) => ({ label: `Timeline · ${event.date}`, assertion: timelineAssertion(record, event), fallback: 'timeline' as const })),
+    ...generatedAssertions(record, agentResult).map((assertion) => ({ label: 'Assistant statement', assertion, fallback: 'statement' as const })),
+  ];
+  const unique = new Map<string, ReviewItem>();
+  raw.forEach(({ label, assertion, fallback }) => {
+    const key = reviewKey(assertion);
+    if (!unique.has(key)) unique.set(key, { label, assertion, group: groupFor(assertion, fallback) });
+  });
+  return [...unique.values()];
+}
+
+function isPendingReview(assertion: EvidenceAssertion, reviews: Record<string, EvidenceReview>) {
+  const outcome = reviews[reviewKey(assertion)]?.outcome;
+  if (assertion.state === 'missing') return outcome !== 'gap-reviewed';
+  if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed';
+  if (assertion.state === 'contradictory') return !outcome;
+  return outcome !== 'verified';
+}
+
+function bulkOutcome(assertion: EvidenceAssertion): EvidenceReview['outcome'] {
+  return assertion.state === 'missing' ? 'gap-reviewed'
+    : assertion.state === 'unverified' ? 'unverified-reviewed'
+      : assertion.state === 'contradictory' ? 'unresolved'
+        : 'verified';
+}
+
+function openIdentityCandidates(record: PatientRecord, horizon: Horizon, decisions: Record<string, IdentityDecision>) {
+  return horizon === 'future'
+    ? identityCandidates(record).filter(({ id, state }) => {
+        const decision = decisions[`${record.id}:${id}`];
+        return (state === 'review' || state === 'probable') && decision !== 'confirmed' && decision !== 'separate';
+      })
+    : [];
+}
+
+type AgentItemStatus = 'queued' | 'checking' | 'ready' | 'none' | 'failed';
+type AgentRun = {
+  status: 'running' | 'done';
+  startedAt: number;
+  finishedAt?: number;
+  items: { key: string; label: string; group: ReviewGroup; status: AgentItemStatus }[];
+  proposals: EvidenceReviewProposal[];
+  mode?: 'copilot' | 'fallback';
+  note?: string;
+  error?: string;
+  dismissed: Record<string, boolean>;
+};
+
+const syntheticClinicians: Record<string, string> = {
+  'P-003': 'Dr. A. Vermeulen · Medical oncology',
+  'P-004': 'Dr. L. Bianchi · Colorectal surgery',
+  'P-005': 'Dr. M. Keller · Medical oncology',
+  'P-010': 'Dr. S. Moretti · Hepatobiliary surgery',
+};
+
 export default function TeamDomitian() {
   const [records, setRecords] = useState<Record<string, PatientRecord>>({});
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
@@ -425,6 +569,7 @@ export default function TeamDomitian() {
   const [evidenceReviewHistory, setEvidenceReviewHistory] = useState<Record<string, EvidenceReview[]>>(loadEvidenceReviewHistory);
   const [sourceUpdates, setSourceUpdates] = useState<Record<string, SourceUpdate[]>>(loadSourceUpdates);
   const [evidenceDrawer, setEvidenceDrawer] = useState<EvidenceAssertion | null>(null);
+  const [agentRuns, setAgentRuns] = useState<Record<string, AgentRun>>({});
   const [datasetGroups, setDatasetGroups] = useState<{ group: string; elements: { name: string; likely_source: string }[] }[]>([]);
 
   useEffect(() => {
@@ -573,7 +718,149 @@ export default function TeamDomitian() {
     if (status === 'challenged') setChallenge('');
   };
 
+  const startAgentReview = async (target: PatientRecord) => {
+    const patientId = target.id;
+    if (agentRuns[patientId]?.status === 'running') return;
+    const pendingItems = caseReviewItems(target, horizon, agentResults[patientId]).filter(({ assertion }) => isPendingReview(assertion, evidenceReviews));
+    if (!pendingItems.length) return;
+    setAgentRuns((current) => ({
+      ...current,
+      [patientId]: {
+        status: 'running',
+        startedAt: Date.now(),
+        items: pendingItems.map((item) => ({ key: reviewKey(item.assertion), label: item.group === 'statement' ? item.assertion.statement : item.label, group: item.group, status: 'queued' })),
+        proposals: [],
+        dismissed: {},
+      },
+    }));
+    const updateRun = (change: (run: AgentRun) => AgentRun) => setAgentRuns((current) => (current[patientId] ? { ...current, [patientId]: change(current[patientId]) } : current));
+    const batches: ReviewItem[][] = [];
+    reviewGroups.forEach((group) => {
+      const list = pendingItems.filter((item) => item.group === group.id);
+      for (let index = 0; index < list.length; index += 8) batches.push(list.slice(index, index + 8));
+    });
+    let cursor = 0;
+    let failures = 0;
+    const worker = async () => {
+      while (cursor < batches.length) {
+        const batch = batches[cursor++];
+        const keys = batch.map(({ assertion }) => reviewKey(assertion));
+        updateRun((run) => ({ ...run, items: run.items.map((item) => (keys.includes(item.key) ? { ...item, status: 'checking' } : item)) }));
+        try {
+          const [response] = await Promise.all([
+            api.reviewEvidence({
+              patient_id: patientId,
+              assertions: batch.map(({ label, assertion }) => ({
+                key: reviewKey(assertion),
+                label,
+                statement: assertion.statement,
+                state: assertion.state,
+                sources: assertion.sources.map(({ title, hospital, date, excerpt, value }) => ({ title, hospital, date, excerpt, value })),
+              })),
+            }),
+            new Promise((resolve) => window.setTimeout(resolve, 900)),
+          ]);
+          const proposals = response.proposals.filter((proposal) => keys.includes(proposal.assertion_key));
+          const received = new Set(proposals.map((proposal) => proposal.assertion_key));
+          updateRun((run) => ({
+            ...run,
+            mode: response.result.mode,
+            note: response.result.note ?? run.note,
+            proposals: [...run.proposals.filter((proposal) => !received.has(proposal.assertion_key)), ...proposals],
+            items: run.items.map((item) => (keys.includes(item.key) ? { ...item, status: received.has(item.key) ? 'ready' : 'none' } : item)),
+          }));
+        } catch {
+          failures += 1;
+          updateRun((run) => ({ ...run, items: run.items.map((item) => (keys.includes(item.key) ? { ...item, status: 'failed' } : item)) }));
+        }
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    updateRun((run) => ({
+      ...run,
+      status: 'done',
+      finishedAt: Date.now(),
+      error: failures ? `The review skill could not be reached for ${failures} batch${failures === 1 ? '' : 'es'}. Those items stay in the review queue for the clinician.` : undefined,
+    }));
+  };
+
   const dataReady = Object.keys(records).length === scheduled.length;
+  const inspect = (assertion: EvidenceAssertion) => setEvidenceDrawer(assertion);
+  const pendingFor = (target?: PatientRecord) => (target ? caseReviewItems(target, horizon, agentResults[target.id]).filter(({ assertion }) => isPendingReview(assertion, evidenceReviews)).length : 0);
+  const selectedPending = pendingFor(record);
+  const selectedIdentities = record ? openIdentityCandidates(record, horizon, identityDecisions).length : 0;
+  const selectedConflict = record && record.id === 'P-003' && horizon === 'future' && isPendingReview(conflictFor(record), evidenceReviews);
+  const selectedGaps = record ? missingEvidenceItems(record, horizon).length : 0;
+
+  const openPatientView = (id: string, target: View) => {
+    setSelectedId(id);
+    setView(target);
+    setNotice('');
+  };
+
+  const searchEntries: SearchEntry[] = scheduled.flatMap(({ id, time }) => {
+    const patient = records[id];
+    if (!patient) return [];
+    const entries: SearchEntry[] = [
+      { id: `${id}-patient`, kind: 'Patient', title: patient.name, detail: `${patient.age} · ${patient.sex} · ${id} · MDT ${time}`, keywords: `${patient.diagnosis.primary} ${patient.diagnosis.stage}`, onSelect: () => openPatientView(id, 'case') },
+      { id: `${id}-diagnosis`, kind: 'Diagnosis', title: patient.diagnosis.primary, detail: `${patient.name} · ${patient.diagnosis.stage}`, onSelect: () => openPatientView(id, 'case') },
+    ];
+    Object.entries(patient.diagnosis.biomarkers).forEach(([marker, value]) => entries.push({ id: `${id}-bio-${marker}`, kind: 'Biomarker', title: `${marker} · ${value}`, detail: patient.name, keywords: 'molecular pathology', onSelect: () => openPatientView(id, 'evidence') }));
+    patient.labs.forEach((lab, index) => entries.push({ id: `${id}-lab-${index}`, kind: 'Lab result', title: `${lab.test} ${lab.value} ${lab.unit}${lab.flag ? ` · ${lab.flag}` : ''}`, detail: `${patient.name} · ${lab.date}`, onSelect: () => openPatientView(id, 'case') }));
+    (patient.imaging ?? []).forEach((scan, index) => entries.push({ id: `${id}-img-${index}`, kind: 'Imaging', title: `${scan.modality} · ${scan.date}`, detail: `${patient.name} · ${scan.result}`, onSelect: () => openPatientView(id, 'case') }));
+    patient.timeline.forEach((event, index) => entries.push({ id: `${id}-tl-${index}`, kind: 'Timeline', title: event.event, detail: `${patient.name} · ${event.date}`, onSelect: () => openPatientView(id, 'timeline') }));
+    return entries;
+  });
+
+  const patientTabs = [
+    { id: 'case', label: 'Overview' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'evidence', label: 'Evidence & gaps', badge: selectedConflict ? '!' : undefined },
+    { id: 'identity', label: 'Identity', badge: selectedIdentities || undefined },
+    { id: 'completeness', label: 'Completeness' },
+    { id: 'reviewQueue', label: 'Review queue', badge: selectedPending || undefined },
+    ...(statuses[selectedId] === 'accepted' ? [{ id: 'ready', label: 'Ready for MDT', badge: '✓' }] : []),
+  ];
+
+  const agentPanel = record ? (
+    <AgentReviewPanel
+      record={record}
+      horizon={horizon}
+      agentResult={agentResults[record.id]}
+      run={agentRuns[record.id]}
+      onStart={() => void startAgentReview(record)}
+      onDismiss={(key) => setAgentRuns((current) => (current[record.id] ? { ...current, [record.id]: { ...current[record.id], dismissed: { ...current[record.id].dismissed, [key]: true } } } : current))}
+      onInspect={inspect}
+    />
+  ) : null;
+
+  const reviewPanel = (
+    <Panel title="Your review" eyebrow="Human decision on the preparation" icon="users">
+      <p className="issue74-intro">Accepting means this evidence package is suitable for MDT review. It does not approve a diagnosis or treatment; the team keeps every clinical judgment and decision.</p>
+      {statuses[selectedId] === 'accepted' ? (
+        <div className="issue74-actions">
+          <Pill tone="ok">Evidence package accepted for MDT review · no diagnosis or treatment approved</Pill>
+          <button className="hx-btn" type="button" onClick={() => setView('ready')}>Open Ready for MDT summary</button>
+        </div>
+      ) : (
+        <div className="issue74-actions">
+          <button className="hx-btn primary" type="button" onClick={() => {
+            updateDecision('accepted', 'Evidence package accepted as suitable for MDT review. No diagnosis or treatment was approved.');
+            setView('ready');
+          }}>Accept preparation for MDT review</button>
+          <button className="hx-btn" type="button" onClick={() => updateDecision('challenged', 'Tell the team what needs a second look.')}>Challenge</button>
+          <button className="hx-btn" type="button" onClick={() => updateDecision('returned', 'Preparation sent back for correction. The source record is unchanged.')}>Send back for correction</button>
+        </div>
+      )}
+      {statuses[selectedId] === 'challenged' && (
+        <form className="issue74-challenge" onSubmit={(event) => { event.preventDefault(); setNotice(challenge.trim() ? `Challenge noted: ${challenge}` : 'Add a short note so the team knows what to review.'); }}>
+          <label htmlFor="issue74-challenge">What should the team check?</label>
+          <textarea id="issue74-challenge" value={challenge} onChange={(event) => setChallenge(event.target.value)} placeholder="For example: confirm the date of the outside MRI report" rows={2} />
+          <button className="hx-btn" type="submit">Save review note</button>
+        </form>
+      )}
+    </Panel>
+  );
 
   return (
     <div className="issue74" data-theme={theme}>
@@ -592,90 +879,40 @@ export default function TeamDomitian() {
           [reviewKey(assertion)]: [...(current[reviewKey(assertion)] ?? []), update],
         })),
       }}>
-      <div className="issue74-controls">
-        <div>
-          <span className="issue74-eyebrow">TUMOUR BOARD PREPARATION · 4 SYNTHETIC CASES</span>
-          <strong>Assemble the story before the MDT</strong>
-        </div>
-        <div className="issue74-control-group" aria-label="Prototype view controls">
-          <div className="issue74-switch" aria-label="Time horizon">
-            <button type="button" aria-pressed={horizon === 'sixMonths'} className={horizon === 'sixMonths' ? 'active' : ''} onClick={() => setHorizon('sixMonths')}>
-              In six months
-            </button>
-            <button type="button" aria-pressed={horizon === 'future'} className={horizon === 'future' ? 'active' : ''} onClick={() => setHorizon('future')}>
-              The future
-            </button>
-          </div>
-          <div className="issue74-switch" aria-label="Colour theme">
-            <button type="button" aria-pressed={theme === 'light'} className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}>
-              Light
-            </button>
-            <button type="button" aria-pressed={theme === 'dark'} className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}>
-              Dark
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <HospitalShell
-        module="MDT preparation"
-        guide={<StoryGuide steps={story} current={storyStep} onGo={goToStoryStep} />}
+      <ClinicalShell
         nav={[
-          { id: 'worklist', label: 'Upcoming MDT', badge: scheduled.length },
-          { id: 'identity', label: 'Patient identity' },
-          { id: 'reviewQueue', label: 'Review all items' },
-          { id: 'case', label: 'Patient at a glance' },
-          { id: 'timeline', label: 'Timeline' },
-          { id: 'evidence', label: 'Evidence & gaps' },
-          { id: 'completeness', label: 'Completeness & next question' },
-          ...(statuses[selectedId] === 'accepted' ? [{ id: 'ready', label: 'Ready for MDT', badge: '✓' }] : []),
+          { id: 'worklist', label: 'MDT board', icon: 'board', badge: scheduled.length },
+          { id: 'reviewQueue', label: 'Review queue', icon: 'queue', badge: selectedPending || undefined },
+          ...(statuses[selectedId] === 'accepted' ? [{ id: 'ready', label: 'Ready for MDT', icon: 'ready' as const, badge: '✓' }] : []),
         ]}
         active={view}
         onNav={(id) => setView(id as View)}
-        patient={
-          record
-            ? {
-                id: record.id,
-                name: record.name,
-                age: record.age,
-                sex: record.sex,
-                diagnosis: `${record.diagnosis.primary} · stage ${record.diagnosis.stage}`,
-              }
-            : null
-        }
-        toolbar={view === 'ready' ? null : (
+        patients={scheduled.map(({ id, time }) => ({
+          id,
+          name: records[id]?.name ?? id,
+          meta: `${time} · ${records[id] ? `${records[id].diagnosis.stage.split('(')[0].trim()}` : 'Loading…'}`,
+          status: statusLabel(statuses[id]),
+          tone: preparedTone(statuses[id]),
+        }))}
+        selectedPatientId={selectedId}
+        onPatient={choosePatient}
+        search={searchEntries}
+        controls={(
           <>
-            <label>
-              Patient{' '}
-              <select value={selectedId} onChange={(event) => choosePatient(event.target.value)}>
-                {scheduled.map(({ id }) => (
-                  <option key={id} value={id}>
-                    {records[id]?.name ?? id}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Specialty view{' '}
-              <select value={specialty} disabled={horizon === 'sixMonths'} onChange={(event) => setSpecialty(event.target.value as Specialty)}>
-                {specialties.map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </label>
-            <span className="hx-spacer" />
+            <Segmented label="Time horizon" value={horizon} onChange={setHorizon} options={[{ id: 'sixMonths', label: 'In six months' }, { id: 'future', label: 'The future' }]} />
+            <Segmented label="Colour theme" value={theme} onChange={setTheme} options={[{ id: 'light', label: 'Light', icon: 'sun' }, { id: 'dark', label: 'Dark', icon: 'moon' }]} />
             <button className="hx-btn primary" type="button" disabled={!dataReady || preparing} onClick={() => void prepareAll()}>
-              {preparing ? <><span className="hx-spinner" aria-hidden /> Preparing all four…</> : 'Prepare all'}
-            </button>
-            <button className="hx-btn" type="button" disabled={!record || preparing} onClick={() => void preparePatient()}>
-              {preparing && preparationTarget === selectedId ? <><span className="hx-spinner" aria-hidden /> Preparing case…</> : 'Prepare this patient'}
+              {preparing && preparationTarget === 'all' ? <><span className="hx-spinner" aria-hidden /> Preparing all four…</> : 'Prepare all'}
             </button>
           </>
         )}
+        guide={<StoryGuide steps={story} current={storyStep} onGo={goToStoryStep} />}
       >
-        <div className="issue74-main" id="issue74-main" tabIndex={-1}>
+        <main className="issue74-main" id="issue74-main" tabIndex={-1}>
         {notice && view !== 'ready' && <div className="issue74-notice" role="status">{notice}</div>}
         {loadErrors.length > 0 && <div className="issue74-notice issue74-warning">Could not load {loadErrors.join(', ')}. Start the local demo API to open the synthetic records.</div>}
         {preparing && (
-          <Panel title={preparationTarget === 'all' ? 'Preparing the scheduled patients in parallel' : `Preparing ${record?.name ?? 'this patient'}`}>
+          <Panel title={preparationTarget === 'all' ? 'Preparing the scheduled patients in parallel' : `Preparing ${record?.name ?? 'this patient'}`} eyebrow="Copilot SDK · case preparation" icon="spark">
             <Backstage
               title={preparationTarget === 'all' ? 'Assistant work · all four cases' : 'Assistant work · one case'}
               stages={prepareStages}
@@ -695,29 +932,54 @@ export default function TeamDomitian() {
 
         {view === 'worklist' && (
           <>
-            <Panel title="Upcoming colorectal MDT · Tomorrow, 08:30" actions={<Pill tone={readyCount === scheduled.length ? 'ok' : 'warn'}>{readyCount} of {scheduled.length} prepared</Pill>}>
-              <p className="issue74-intro">Gather the evidence for the whole list before the first case is discussed. Sources and dates remain visible; missing items stay open.</p>
-              <DataTable
-                rowKey={(patient) => patient.id}
-                rows={scheduled.map((item) => ({ ...item, name: records[item.id]?.name ?? item.id, diagnosis: records[item.id]?.diagnosis.primary ?? 'Loading synthetic record…', context: mdtContext(item.id).label }))}
-                selected={selectedId}
-                onSelect={(patient) => choosePatient(patient.id)}
-                columns={[
-                  { key: 'time', label: 'Time', width: '70px' },
-                  { key: 'name', label: 'Patient', render: (patient) => <strong>{patient.name}</strong> },
-                  { key: 'diagnosis', label: 'Diagnosis' },
-                  { key: 'context', label: 'MDT context' },
-                  { key: 'source', label: 'Evidence available' },
-                  { key: 'status', label: 'Preparation', render: (patient) => <Pill tone={preparedTone(statuses[patient.id])}>{statusLabel(statuses[patient.id])}</Pill> },
-                ]}
-              />
-              <div className="issue74-worklist-footer">
-                <span>One outside hospital · report in Italian · source remains separately inspectable</span>
-                <button className="hx-btn primary" type="button" disabled={!dataReady || preparing} onClick={() => void prepareAll()}>
-                  {preparing ? <><span className="hx-spinner" aria-hidden /> Working…</> : 'Prepare all four patients'}
-                </button>
+            <section className="issue74-board-head">
+              <div>
+                <span className="p74-card-eyebrow">Colorectal MDT · Tomorrow, 08:30 · Room 2.14</span>
+                <h1>Tumour board preparation</h1>
+                <p>Gather the evidence for the whole list before the first case is discussed. Sources and dates remain visible; missing items stay open.</p>
               </div>
-            </Panel>
+              <div className="issue74-board-stats">
+                <div><strong>{scheduled.length}</strong><span>Patients</span></div>
+                <div><strong>{readyCount}</strong><span>Prepared</span></div>
+                <div><strong>{scheduled.reduce((sum, { id }) => sum + pendingFor(records[id]), 0)}</strong><span>Items to review</span></div>
+              </div>
+            </section>
+            <ul className="issue74-board" aria-label="Scheduled patients">
+              {scheduled.map(({ id, time, source }) => {
+                const patient = records[id];
+                const pending = pendingFor(patient);
+                const conflict = patient && id === 'P-003' && horizon === 'future' && isPendingReview(conflictFor(patient), evidenceReviews);
+                return (
+                  <li key={id}>
+                    <button type="button" className="issue74-board-card" disabled={!patient} onClick={() => choosePatient(id)}>
+                      <span className="issue74-board-time"><Icon name="clock" size={14} />{time}</span>
+                      <Avatar name={patient?.name ?? id} size="md" />
+                      <span className="issue74-board-name">
+                        <strong>{patient?.name ?? 'Loading synthetic record…'}</strong>
+                        <small>{patient ? `${patient.age} · ${patient.sex} · ${id}` : id}</small>
+                      </span>
+                      <span className="issue74-board-dx">
+                        <strong>{patient?.diagnosis.primary ?? '—'}</strong>
+                        <small>{mdtContext(id).label}</small>
+                      </span>
+                      <span className="issue74-board-source"><Icon name={id === 'P-010' ? 'link' : 'evidence'} size={14} />{source}</span>
+                      <span className="issue74-board-flags">
+                        {conflict && <Pill tone="crit">Source conflict</Pill>}
+                        {pending > 0 && <Pill tone="warn">{pending} to review</Pill>}
+                        <Pill tone={preparedTone(statuses[id])}>{statusLabel(statuses[id])}</Pill>
+                      </span>
+                      <Icon name="chevron" size={16} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="issue74-worklist-footer">
+              <span>One outside hospital · report in Italian · source remains separately inspectable</span>
+              <button className="hx-btn primary" type="button" disabled={!dataReady || preparing} onClick={() => void prepareAll()}>
+                {preparing ? <><span className="hx-spinner" aria-hidden /> Working…</> : 'Prepare all four patients'}
+              </button>
+            </div>
             {horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
           </>
         )}
@@ -725,6 +987,40 @@ export default function TeamDomitian() {
         {view !== 'worklist' && (
           record ? (
             <>
+              {view !== 'ready' && (
+                <section className="issue74-patient-header" aria-label="Patient header">
+                  <Avatar name={record.name} size="lg" />
+                  <div className="issue74-patient-id">
+                    <h1>{record.name}</h1>
+                    <p>{record.age} y · {record.sex} · DOB 01 Jan {2026 - record.age} · MRN {record.id}</p>
+                    <p className="issue74-patient-dx">{record.diagnosis.primary} · {record.diagnosis.stage}</p>
+                    <div className="issue74-patient-alerts">
+                      {selectedConflict && <Pill tone="crit">Source conflict</Pill>}
+                      {selectedIdentities > 0 && <Pill tone="warn">{selectedIdentities} identity match{selectedIdentities === 1 ? '' : 'es'}</Pill>}
+                      {selectedGaps > 0 && <Pill tone="warn">{selectedGaps} evidence gap{selectedGaps === 1 ? '' : 's'}</Pill>}
+                      {selectedPending > 0 && <Pill tone="info">{selectedPending} to review</Pill>}
+                      {agentResults[record.id] && <Pill tone="ai">Prepared · {agentResults[record.id].mode === 'copilot' ? 'Copilot SDK' : 'demo mode'}</Pill>}
+                    </div>
+                  </div>
+                  <dl className="issue74-patient-meta">
+                    <div><dt>MDT slot</dt><dd>Tomorrow {scheduled.find((item) => item.id === record.id)?.time}</dd></div>
+                    <div><dt>Responsible</dt><dd>{syntheticClinicians[record.id] ?? 'MDT coordinator'}</dd></div>
+                    <div><dt>Preparation</dt><dd><Pill tone={preparedTone(statuses[selectedId])}>{statusLabel(statuses[selectedId])}</Pill></dd></div>
+                  </dl>
+                  <div className="issue74-patient-actions">
+                    <label>
+                      <span>Specialty view</span>
+                      <select value={specialty} disabled={horizon === 'sixMonths'} onChange={(event) => setSpecialty(event.target.value as Specialty)}>
+                        {specialties.map((item) => <option key={item}>{item}</option>)}
+                      </select>
+                    </label>
+                    <button className="hx-btn primary" type="button" disabled={preparing} onClick={() => void preparePatient()}>
+                      {preparing && preparationTarget === selectedId ? <><span className="hx-spinner" aria-hidden /> Preparing case…</> : 'Prepare this patient'}
+                    </button>
+                  </div>
+                </section>
+              )}
+              {view !== 'ready' && <PatientTabs tabs={patientTabs} active={view} onChange={(id) => setView(id as View)} />}
               {view === 'ready' && <ReadyForMDT
                 record={record}
                 horizon={horizon}
@@ -732,8 +1028,27 @@ export default function TeamDomitian() {
                 agentResult={agentResults[selectedId]}
                 onBack={() => setView('case')}
                 onDrillDown={() => setView('evidence')}
-                onInspect={(assertion) => setEvidenceDrawer(assertion)}
+                onInspect={inspect}
               />}
+              {view === 'case' && (
+                <div className="issue74-overview">
+                  <div className="issue74-overview-main">
+                    <AtAGlance record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={inspect} />
+                    {agentPanel}
+                    {horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
+                    {reviewPanel}
+                  </div>
+                  <aside className="issue74-overview-rail" aria-label="Case status">
+                    <AttentionPanel record={record} horizon={horizon} decisions={identityDecisions} agentResult={agentResults[selectedId]} onNavigate={setView} onInspect={inspect} />
+                    <VerificationProgress record={record} horizon={horizon} agentResult={agentResults[selectedId]} onInspect={inspect} onOpenQueue={() => setView('reviewQueue')} />
+                    {horizon === 'future' && (
+                      <Panel title={`${specialty} focus`} eyebrow="Same case · different emphasis" icon="stethoscope">
+                        <SpecialtyFocus record={record} specialty={specialty} onInspect={inspect} />
+                      </Panel>
+                    )}
+                  </aside>
+                </div>
+              )}
               {view === 'identity' && (
                 <IdentityPanel
                   record={record}
@@ -756,23 +1071,13 @@ export default function TeamDomitian() {
                   horizon={horizon}
                   agentResult={agentResults[selectedId]}
                   decisions={identityDecisions}
-                  onInspect={(assertion) => setEvidenceDrawer(assertion)}
+                  agentPanel={agentPanel}
+                  onInspect={inspect}
                   onNavigate={setView}
                 />
               )}
-              {view !== 'identity' && view !== 'ready' && view !== 'reviewQueue' && (
-                <AttentionPanel
-                  record={record}
-                  horizon={horizon}
-                  decisions={identityDecisions}
-                  agentResult={agentResults[selectedId]}
-                  onNavigate={setView}
-                  onInspect={(assertion) => setEvidenceDrawer(assertion)}
-                />
-              )}
-              {view === 'case' && <AtAGlance record={record} agentResult={agentResults[selectedId]} specialty={specialty} horizon={horizon} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
-              {view === 'timeline' && <TimelinePanel record={record} timeline={timeline} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
-              {view === 'evidence' && <EvidencePanel record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              {view === 'timeline' && <TimelinePanel record={record} timeline={timeline} onInspect={inspect} />}
+              {view === 'evidence' && <EvidencePanel record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={inspect} />}
               {view === 'completeness' && (
                 <CompletenessPanel
                   record={record}
@@ -784,49 +1089,24 @@ export default function TeamDomitian() {
                     setCohortQuestions((current) => ({ ...current, [selectedId]: question }));
                     setNotice('Discussion question added to this synthetic preparation. No test was ordered and no patient fact was changed.');
                   }}
-                  onInspect={(assertion) => setEvidenceDrawer(assertion)}
+                  onInspect={inspect}
                 />
               )}
-              {view !== 'ready' && view !== 'reviewQueue' && horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
-              {view !== 'ready' && view !== 'reviewQueue' && <Panel title="Your review">
-                <p className="issue74-intro">Accepting means this evidence package is suitable for MDT review. It does not approve a diagnosis or treatment; the team keeps every clinical judgment and decision.</p>
-                {statuses[selectedId] === 'accepted' ? (
-                    <div className="issue74-review-actions">
-                      <Pill tone="ok">Evidence package accepted for MDT review · no diagnosis or treatment approved</Pill>
-                      <button className="hx-btn" type="button" onClick={() => setView('ready')}>Open Ready for MDT summary</button>
-                    </div>
-                ) : (
-                  <div className="issue74-actions">
-                    <button className="hx-btn primary" type="button" onClick={() => {
-                      updateDecision('accepted', 'Evidence package accepted as suitable for MDT review. No diagnosis or treatment was approved.');
-                      setView('ready');
-                    }}>Accept preparation for MDT review</button>
-                    <button className="hx-btn" type="button" onClick={() => updateDecision('challenged', 'Tell the team what needs a second look.')}>Challenge</button>
-                    <button className="hx-btn" type="button" onClick={() => updateDecision('returned', 'Preparation sent back for correction. The source record is unchanged.')}>Send back for correction</button>
-                  </div>
-                )}
-                {statuses[selectedId] === 'challenged' && (
-                  <form className="issue74-challenge" onSubmit={(event) => { event.preventDefault(); setNotice(challenge.trim() ? `Challenge noted: ${challenge}` : 'Add a short note so the team knows what to review.'); }}>
-                    <label htmlFor="issue74-challenge">What should the team check?</label>
-                    <textarea id="issue74-challenge" value={challenge} onChange={(event) => setChallenge(event.target.value)} placeholder="For example: confirm the date of the outside MRI report" rows={2} />
-                    <button className="hx-btn" type="submit">Save review note</button>
-                  </form>
-                )}
-              </Panel>}
-              {view !== 'ready' && view !== 'reviewQueue' && horizon === 'future' && specialty === 'Radiology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
-              {view !== 'ready' && view !== 'reviewQueue' && horizon === 'future' && specialty === 'Pathology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              {(view === 'evidence' || view === 'completeness') && reviewPanel}
+              {view !== 'ready' && view !== 'case' && view !== 'reviewQueue' && horizon === 'future' && specialty !== 'Oncology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={inspect} />}
             </>
           ) : (
             <Panel title="Loading synthetic patient record"><span className="hx-working"><span className="hx-spinner" aria-hidden /> Loading the record…</span></Panel>
           )
         )}
-        </div>
-      </HospitalShell>
+        </main>
+      </ClinicalShell>
       {evidenceDrawer && <EvidenceDrawer assertion={evidenceDrawer} onClose={() => setEvidenceDrawer(null)} />}
       </EvidenceReviewContext.Provider>
     </div>
   );
 }
+
 
 function statusLabel(status: CaseStatus) {
   return ({
@@ -840,114 +1120,119 @@ function statusLabel(status: CaseStatus) {
 }
 
 function EvidenceMarker({ state, assertion }: { state: EvidenceState; assertion?: EvidenceAssertion }) {
-  const symbols: Record<EvidenceState, string> = {
-    corroborated: '✓',
-    'single-source': '○',
-    unverified: '?',
-    contradictory: '!',
-    missing: '–',
-  };
   const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
   const review = assertion ? reviews[reviewKey(assertion)] : undefined;
-  const status = review?.outcome === 'verified' ? 'Human-verified'
-    : review?.outcome === 'gap-reviewed' ? 'Reviewed · still missing'
-      : review?.outcome === 'unverified-reviewed' ? 'Reviewed · still unverified'
-        : review?.outcome === 'accepted-a' || review?.outcome === 'accepted-b' ? 'Resolved for this case · source disagreement retained'
-          : review?.outcome === 'unresolved' ? 'Reviewed · still unresolved'
-            : review?.outcome === 'investigation' ? 'Investigation noted · unresolved'
-              : evidenceLabels[state];
+  const sourceCount = assertion?.sources.length ?? 0;
+  const support = state === 'corroborated' ? `${sourceCount || 'Multiple'} sources agree`
+    : state === 'single-source' ? '1 source'
+      : evidenceLabels[state];
+  const verified = review?.outcome === 'verified';
+  const reconciled = review?.outcome === 'accepted-a' || review?.outcome === 'accepted-b';
+  const sourceFact = state === 'corroborated' || state === 'single-source';
+  const status = verified ? 'Verified'
+    : reconciled ? `Evidence ${review?.outcome === 'accepted-a' ? 'A' : 'B'} selected`
+      : review?.outcome === 'gap-reviewed' ? 'Gap reviewed'
+        : review?.outcome === 'unverified-reviewed' ? 'Reviewed · unverified'
+          : review?.outcome === 'unresolved' ? 'Reviewed · unresolved'
+            : review?.outcome === 'investigation' ? 'Investigating'
+              : sourceFact ? 'Not yet verified'
+                : evidenceLabels[state];
+  const tone = verified || reconciled ? 'verified'
+    : review ? 'reviewed'
+      : state === 'contradictory' ? 'conflict'
+        : state === 'missing' ? 'missing'
+          : state === 'unverified' ? 'unverified'
+            : 'pending';
+  const glyph = verified || reconciled ? '✓' : review ? '•' : state === 'contradictory' ? '!' : state === 'missing' ? '–' : state === 'unverified' ? '?' : '';
+  const description = `${status}${sourceFact ? ` · ${support}` : ''}. ${evidenceDescriptions[state]}${review ? ` Human review recorded ${review.reviewedAt.slice(0, 10)}.` : ''}`;
   return (
-    <span className={`issue74-evidence-state state-${state}${review ? ' has-review' : ''}${review?.outcome === 'verified' ? ' evidence-human-verified' : ''}`} title={`${status}: ${evidenceDescriptions[state]}`} aria-label={`${status}: ${evidenceDescriptions[state]}`}>
-      <span aria-hidden="true">{review?.outcome === 'verified' ? '✓' : symbols[state]}</span> {status}
+    <span className={`issue74-evidence-state state-${state} mark-${tone}${review ? ' has-review' : ''}${verified ? ' evidence-human-verified' : ''}`} title={description} aria-label={description}>
+      {glyph && <span className="mark-glyph" aria-hidden="true">{glyph}</span>}
+      <span className="mark-status">{status}</span>
+      {sourceFact && assertion && <span className="mark-support" aria-hidden="true">{support}</span>}
     </span>
   );
 }
 
 function EvidenceLink({ assertion, onInspect, label }: { assertion: EvidenceAssertion; onInspect: (assertion: EvidenceAssertion) => void; label?: string }) {
-  const reviewContext = useContext(EvidenceReviewContext);
-  const review = reviewContext?.reviews[reviewKey(assertion)];
   return (
-    <>
-      <button type="button" className="issue74-evidence-link" title={`${assertion.explanation}${assertion.sources[0] ? ` · ${assertion.sources[0].title}, ${assertion.sources[0].hospital}` : ''}`} onClick={() => onInspect(assertion)}>
-        {label ?? `View ${assertion.sources.length} source${assertion.sources.length === 1 ? '' : 's'} ↗`}
-      </button>
-      <span className={`issue74-verification${review?.outcome === 'verified' ? ' previously-verified' : ''}`} title={review ? `Human review saved ${review.reviewedAt}. ${review.rationale || 'No rationale entered.'}` : 'No human verification has been saved for this evidence.'}>
-        {review ? reviewStatusLabel(review) : 'Not yet verified'}
-      </span>
-    </>
+    <button type="button" className="issue74-evidence-link" title={`${assertion.explanation}${assertion.sources[0] ? ` · ${assertion.sources[0].title}, ${assertion.sources[0].hospital}` : ''}`} onClick={() => onInspect(assertion)}>
+      {label ?? `View ${assertion.sources.length} source${assertion.sources.length === 1 ? '' : 's'}`}
+    </button>
   );
 }
 
-function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onInspect: (assertion: EvidenceAssertion) => void }) {
+function VerificationProgress({ record, horizon, agentResult, onInspect, onOpenQueue }: { record: PatientRecord; horizon: Horizon; agentResult?: AgentResult; onInspect: (assertion: EvidenceAssertion) => void; onOpenQueue: () => void }) {
   const reviewContext = useContext(EvidenceReviewContext);
   const reviews = reviewContext?.reviews ?? {};
-  const assertions = [
-    evidenceFor(record, 'Disease', record.diagnosis.primary),
-    evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`),
-    evidenceFor(record, 'Treatments so far', record.treatments.map((item) => `${item.regimen} · ${item.status}`).join('; ') || 'No treatment recorded'),
-    evidenceFor(record, 'What changed', record.timeline.at(-1)?.event ?? 'No recent change recorded'),
-    evidenceFor(record, 'Question for the MDT', clinicalQuestion(record)),
+  const items = caseReviewItems(record, horizon, agentResult);
+  const pending = items.filter(({ assertion }) => isPendingReview(assertion, reviews));
+  const done = items.length - pending.length;
+  const verified = items.filter(({ assertion }) => reviews[reviewKey(assertion)]?.outcome === 'verified').length;
+  const percent = items.length ? Math.round((done / items.length) * 100) : 100;
+  const facts = caseFacts(record);
+  const keyFacts = [
+    { label: 'Disease', assertion: facts.disease },
+    { label: 'Stage / current state', assertion: facts.stage },
+    { label: 'Treatments so far', assertion: facts.treatments },
+    { label: 'What changed', assertion: facts.change },
+    { label: 'Question for the MDT', assertion: facts.question },
   ];
-  const contradictionCount = record.id === 'P-003' ? 1 : 0;
-  const conflict = record.id === 'P-003' ? conflictFor(record) : undefined;
-  const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
-  const sourceUpdate = conflict ? reviewContext?.sourceUpdates[reviewKey(conflict)] : undefined;
-  const currentSourceUpdate = sourceUpdate?.filter((item) => item.reviewOutcome === conflictReview?.outcome).at(-1);
-  const missingCount = (record.id === 'P-010' ? 1 : 0) + (record.diagnosis.primary.toLowerCase().includes('metast') && !Object.keys(record.diagnosis.biomarkers).some((key) => /ras|kras/i.test(key)) ? 1 : 0);
-  const counts = [
-    { state: 'corroborated' as const, count: assertions.filter((item) => item.state === 'corroborated').length },
-    { state: 'single-source' as const, count: assertions.filter((item) => item.state === 'single-source').length },
-    { state: 'unverified' as const, count: assertions.filter((item) => item.state === 'unverified').length },
-    { state: 'contradictory' as const, count: contradictionCount },
-    { state: 'missing' as const, count: missingCount },
+  const rows = [
+    { id: 'verified', label: 'Human-verified', count: verified, tone: 'ok' },
+    ...reviewGroups.map((group) => ({
+      id: group.id,
+      label: group.id === 'fact' || group.id === 'timeline' ? `${group.label} · awaiting verification` : `${group.label} · open`,
+      count: pending.filter((item) => item.group === group.id).length,
+      tone: group.tone,
+    })),
   ];
   return (
-    <Panel title="Evidence readiness · support, not a clinical confidence score">
-      <div className="issue74-readiness">
-        {counts.map(({ state, count }) => (
-          <div key={state} className={`readiness-${state}`}><EvidenceMarker state={state} /><strong>{count}</strong></div>
-        ))}
+    <Panel title="Verification progress" eyebrow="Human review · not a clinical confidence score" icon="ready" actions={<Pill tone={pending.length ? 'warn' : 'ok'}>{pending.length ? `${pending.length} to review` : 'All reviewed'}</Pill>}>
+      <div className="issue74-progress-meter" role="progressbar" aria-valuemin={0} aria-valuemax={items.length} aria-valuenow={done} aria-label={`${done} of ${items.length} review actions recorded`}>
+        <div><strong>{done}<small> / {items.length}</small></strong><span>review actions recorded</span></div>
+        <span className="issue74-meter"><span style={{ width: `${percent}%` }} /></span>
       </div>
+      <ul className="issue74-readiness">
+        {rows.map((row) => (
+          <li key={row.id} className={`readiness-row tone-${row.tone}${row.count === 0 ? ' is-zero' : ''}`}>
+            <i aria-hidden="true" />
+            <span>{row.label}</span>
+            <strong>{row.count}</strong>
+          </li>
+        ))}
+      </ul>
+      <button type="button" className="hx-btn" onClick={onOpenQueue}>{pending.length ? `Open review queue · ${pending.length}` : 'Open review history'}</button>
       <details className="issue74-evidence-detail">
-        <summary>Open evidence status by fact</summary>
+        <summary>Evidence status by key fact</summary>
         <div className="issue74-evidence-assertions">
-          {assertions.map((assertion) => (
-            <div key={assertion.statement} className="issue74-assertion-row">
-              <strong>{assertion.statement}</strong>
+          {keyFacts.map(({ label, assertion }) => (
+            <div key={label} className="issue74-assertion-row">
+              <strong>{label}</strong>
               <EvidenceMarker state={assertion.state} assertion={assertion} />
-              <span className="issue74-fact-evidence"><EvidenceLink assertion={assertion} onInspect={onInspect} /></span>
+              <EvidenceLink assertion={assertion} onInspect={onInspect} />
             </div>
           ))}
         </div>
         <details className="issue74-status-legend">
-          <summary>What the evidence labels mean</summary>
+          <summary>What the labels mean</summary>
           <ul>
             {Object.entries(evidenceDescriptions).map(([state, explanation]) => (
-              <li key={state}><EvidenceMarker state={state as EvidenceState} /><span>{explanation}</span></li>
+              <li key={state}><strong>{evidenceLabels[state as EvidenceState]}</strong><span>{explanation}</span></li>
             ))}
           </ul>
-          <p>Source institution and document are provenance. These labels describe how sources relate to each other. Human verification is recorded separately.</p>
+          <p>Source support (for example “1 source” or “3 sources agree”) describes how sources relate. “Verified” appears only after a clinician confirms the source passage.</p>
         </details>
       </details>
-      {record.id === 'P-003' && (
-        <div className={`issue74-conflict-summary${conflictReview ? ' conflict-reviewed' : ''}${conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b' ? ' conflict-reconciled' : ''}`}>
-          <EvidenceMarker state="contradictory" assertion={conflict} />
-          <span>{conflictReview?.outcome === 'accepted-a' || conflictReview?.outcome === 'accepted-b'
-            ? `Previously reviewed result reused: ${conflict?.sources[conflictReview.outcome === 'accepted-a' ? 0 : 1].value ?? 'selected source result'}. Source disagreement is retained; ${currentSourceUpdate?.kind ?? 'source feedback'} ${currentSourceUpdate?.status ?? 'not yet proposed'}.`
-            : conflictReview ? `Review recorded · conflict remains unresolved · ${reviewStatusLabel(conflictReview)}.`
-              : 'Conflicting molecular evidence · both sources need review; neither is selected.'}</span>
-          <EvidenceLink assertion={conflictFor(record)} onInspect={onInspect} label={conflictReview ? 'Inspect review ↗' : 'Review conflict ↗'} />
-        </div>
-      )}
     </Panel>
   );
 }
-
 function BulkEvidenceReview({
   record,
   horizon,
   agentResult,
   decisions,
+  agentPanel,
   onInspect,
   onNavigate,
 }: {
@@ -955,6 +1240,7 @@ function BulkEvidenceReview({
   horizon: Horizon;
   agentResult?: AgentResult;
   decisions: Record<string, IdentityDecision>;
+  agentPanel: ReactNode;
   onInspect: (assertion: EvidenceAssertion) => void;
   onNavigate: (view: View) => void;
 }) {
@@ -963,80 +1249,15 @@ function BulkEvidenceReview({
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   useEffect(() => setSelected({}), [record.id]);
 
-  const treatments = record.treatments.map((item) => `${item.regimen} · ${item.status}`).join('; ') || 'No treatment recorded';
-  const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
-  const assertions: { label: string; assertion: EvidenceAssertion }[] = [
-    { label: 'Disease', assertion: evidenceFor(record, 'Disease', record.diagnosis.primary) },
-    { label: 'Stage / current state', assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`) },
-    { label: 'Treatments so far', assertion: evidenceFor(record, 'Treatments so far', treatments) },
-    { label: 'What changed', assertion: evidenceFor(record, 'What changed', recentChange) },
-    { label: 'Question for the MDT', assertion: evidenceFor(record, 'Question for the MDT', clinicalQuestion(record)) },
-    ...Object.entries(record.diagnosis.biomarkers).map(([key, value]) => ({
-      label: `Biomarker · ${key}`,
-      assertion: evidenceFor(record, `Biomarker · ${key}`, `${key}: ${value}`),
-    })),
-    ...(record.imaging?.slice(-1).map((scan) => ({
-      label: 'Imaging finding',
-      assertion: evidenceFor(record, 'Imaging finding', scan.result),
-    })) ?? []),
-    ...(record.comorbidities.length ? [{
-      label: 'Relevant comorbidities',
-      assertion: evidenceFor(record, 'Comorbidity', record.comorbidities.join('; ')),
-    }] : []),
-    ...record.timeline.map((event) => {
-      const isDiagnosis = event.event.toLowerCase().includes('diagnos');
-      const isTreatment = event.event.toLowerCase().includes('treatment') || event.event.toLowerCase().includes('resection') || event.event.toLowerCase().includes('surgery');
-      const assertion = isDiagnosis
-        ? evidenceFor(record, 'Disease', event.event)
-        : isTreatment
-          ? {
-              ...evidenceFor(record, 'Treatments so far', event.event),
-              sources: evidenceFor(record, 'Treatments so far', event.event).sources.map((source) => ({ ...source, date: event.date, excerpt: event.event })),
-            }
-          : {
-              patientId: record.id,
-              statement: event.event,
-              state: 'single-source' as const,
-              explanation: 'One dated synthetic record entry supports this timeline event.',
-              sources: [{
-                title: 'Dated timeline entry',
-                hospital: sourceFor(record.id).label,
-                date: event.date,
-                type: 'Synthetic source record',
-                excerpt: `“${event.event}”`,
-              }],
-            };
-      return { label: `Timeline · ${event.date}`, assertion };
-    }),
-    ...completenessItems(record, horizon).map((item) => ({ label: item.label, assertion: item.assertion })),
-    ...missingEvidenceItems(record, horizon).map((item) => ({ label: item.label, assertion: item.assertion })),
-    ...(record.id === 'P-003' && horizon === 'future'
-      ? [{ label: 'Molecular source disagreement', assertion: conflictFor(record) }]
-      : []),
-    ...(agentResult?.blocks.flatMap((block) => [
-      ...(block.body ? [{ label: 'Assistant statement', assertion: generatedAssertion(record, block.body) }] : []),
-      ...block.items.map((item) => ({
-        label: 'Assistant statement',
-        assertion: generatedAssertion(record, [item.label, item.detail].filter(Boolean).join(' · ')),
-      })),
-    ]) ?? []),
-  ];
-
-  const uniqueAssertions = [...new Map(assertions.map((item) => [reviewKey(item.assertion), item])).values()];
-  const pending = uniqueAssertions.filter(({ assertion }) => {
-    const outcome = reviews[reviewKey(assertion)]?.outcome;
-    if (assertion.state === 'missing') return outcome !== 'gap-reviewed';
-    if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed';
-    if (assertion.state === 'contradictory') return !outcome;
-    return outcome !== 'verified';
-  });
+  const items = caseReviewItems(record, horizon, agentResult);
+  const pending = items.filter(({ assertion }) => isPendingReview(assertion, reviews));
+  const completed = items.filter(({ assertion }) => !isPendingReview(assertion, reviews));
   const selectedItems = pending.filter(({ assertion }) => selected[reviewKey(assertion)]);
-  const outstandingIdentities = horizon === 'future'
-    ? identityCandidates(record).filter(({ id, state }) => {
-        const decision = decisions[`${record.id}:${id}`];
-        return (state === 'review' || state === 'probable') && decision !== 'confirmed' && decision !== 'separate';
-      })
-    : [];
+  const outstandingIdentities = openIdentityCandidates(record, horizon, decisions);
+  const setMany = (list: ReviewItem[], checked: boolean) => setSelected((current) => ({
+    ...current,
+    ...Object.fromEntries(list.map(({ assertion }) => [reviewKey(assertion), checked])),
+  }));
 
   const recordSelectedReviews = () => {
     const reviewedAt = new Date().toISOString();
@@ -1048,76 +1269,109 @@ function BulkEvidenceReview({
           : assertion.state === 'contradictory'
             ? 'Reviewed in the case review queue; source disagreement remains unresolved.'
             : 'Source evidence reviewed and human-verified in the case review queue.';
-      const outcome: EvidenceReview['outcome'] = assertion.state === 'missing'
-        ? 'gap-reviewed'
-        : assertion.state === 'unverified'
-          ? 'unverified-reviewed'
-          : assertion.state === 'contradictory'
-            ? 'unresolved'
-            : 'verified';
-      reviewContext?.saveReview(assertion, { outcome, rationale, reviewedAt });
+      reviewContext?.saveReview(assertion, { outcome: bulkOutcome(assertion), rationale, reviewedAt });
     });
     setSelected({});
   };
 
   return (
-    <Panel
-      title="Review this case · one concise queue"
-      actions={<Pill tone={pending.length ? 'warn' : 'ok'}>{pending.length ? `${pending.length} need review` : 'All review actions recorded'}</Pill>}
-    >
-      <p className="issue74-review-queue-intro">
-        Select only items you have checked. One action records the correct review type for each item: source facts become human-verified, gaps stay missing, and conflicts stay unresolved. This does not make a clinical decision.
-      </p>
-      {outstandingIdentities.length > 0 && (
-        <div className="issue74-review-queue-identity">
-          <div><strong>{outstandingIdentities.length} patient identity match{outstandingIdentities.length === 1 ? '' : 'es'} need an individual decision</strong><span>Identity cannot be confirmed or separated through bulk evidence review.</span></div>
-          <button type="button" className="hx-btn" onClick={() => onNavigate('identity')}>Review identities</button>
-        </div>
-      )}
-      <div className="issue74-review-queue-actions">
-        <label className="issue74-review-select-all">
-          <input
-            type="checkbox"
-            checked={pending.length > 0 && selectedItems.length === pending.length}
-            disabled={pending.length === 0}
-            onChange={(event) => setSelected(Object.fromEntries(pending.map(({ assertion }) => [reviewKey(assertion), event.target.checked])))}
-          />
-          Select all {pending.length} pending items
-        </label>
-        <button type="button" className="hx-btn" onClick={() => setSelected({})} disabled={selectedItems.length === 0}>Clear selection</button>
-        <button type="button" className="hx-btn primary" onClick={recordSelectedReviews} disabled={selectedItems.length === 0}>
-          Record review for {selectedItems.length} selected
+    <>
+      <div className="issue74-queue-tiles" aria-label="Review dashboard">
+        <button type="button" className={`issue74-queue-tile tone-warn${outstandingIdentities.length ? '' : ' is-zero'}`} onClick={() => onNavigate('identity')}>
+          <span>Identity matches</span><strong>{outstandingIdentities.length}</strong><small>Individual decision</small>
         </button>
+        {reviewGroups.map((group) => {
+          const count = pending.filter((item) => item.group === group.id).length;
+          const total = items.filter((item) => item.group === group.id).length;
+          return (
+            <a key={group.id} href={`#issue74-queue-${group.id}`} className={`issue74-queue-tile tone-${group.tone}${count ? '' : ' is-zero'}`} onClick={(event) => { event.preventDefault(); document.getElementById(`issue74-queue-${group.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+              <span>{group.label}</span><strong>{count}</strong><small>{total ? `${total - count} of ${total} recorded` : 'None in this case'}</small>
+            </a>
+          );
+        })}
       </div>
-      {pending.length === 0 ? (
-        <div className="issue74-review-queue-empty" role="status"><strong>✓ No evidence review actions remain.</strong><span>Missing values and unresolved conflicts still remain visible in the case.</span></div>
-      ) : (
-        <ul className="issue74-review-queue">
-          {pending.map(({ label, assertion }) => {
-            const key = reviewKey(assertion);
-            const action = assertion.state === 'missing' ? 'Gap · remains missing'
-              : assertion.state === 'unverified' ? 'Unverified · review only'
-                : assertion.state === 'contradictory' ? 'Conflict · individual selection still available'
-                  : 'Source evidence · human verification';
-            return (
-              <li key={key} className={`review-queue-${assertion.state}`}>
-                <label className="issue74-review-queue-check">
-                  <input type="checkbox" checked={Boolean(selected[key])} onChange={(event) => setSelected((current) => ({ ...current, [key]: event.target.checked }))} />
-                  <span><strong>{label}</strong><small>{action}</small></span>
+      {agentPanel}
+      <Panel
+        title="Review queue"
+        eyebrow="Prioritised · source conflicts first"
+        icon="queue"
+        actions={<Pill tone={pending.length ? 'warn' : 'ok'}>{pending.length ? `${pending.length} need review` : 'All review actions recorded'}</Pill>}
+      >
+        <p className="issue74-review-queue-intro">
+          Tick what you have checked. One action records the correct review type for each item: source facts become human-verified, gaps stay missing and conflicts stay unresolved. It does not make a clinical decision.
+        </p>
+        {outstandingIdentities.length > 0 && (
+          <div className="issue74-review-queue-identity">
+            <div><strong>{outstandingIdentities.length} patient identity match{outstandingIdentities.length === 1 ? '' : 'es'} need an individual decision</strong><span>Identity cannot be confirmed or separated in bulk.</span></div>
+            <button type="button" className="hx-btn" onClick={() => onNavigate('identity')}>Compare identities</button>
+          </div>
+        )}
+        <div className="issue74-review-queue-actions">
+          <label className="issue74-review-select-all">
+            <input
+              type="checkbox"
+              checked={pending.length > 0 && selectedItems.length === pending.length}
+              disabled={pending.length === 0}
+              onChange={(event) => setMany(pending, event.target.checked)}
+            />
+            Select all {pending.length} pending
+          </label>
+          <span className="hx-spacer" />
+          <button type="button" className="hx-btn" onClick={() => setSelected({})} disabled={selectedItems.length === 0}>Clear</button>
+          <button type="button" className="hx-btn primary" onClick={recordSelectedReviews} disabled={selectedItems.length === 0}>
+            Record review for {selectedItems.length} selected
+          </button>
+        </div>
+        {pending.length === 0 ? (
+          <div className="issue74-review-queue-empty" role="status"><strong>✓ No evidence review actions remain.</strong><span>Missing values and unresolved conflicts still remain visible in the case.</span></div>
+        ) : reviewGroups.map((group) => {
+          const list = pending.filter((item) => item.group === group.id);
+          if (!list.length) return null;
+          const allChecked = list.every(({ assertion }) => selected[reviewKey(assertion)]);
+          return (
+            <section key={group.id} id={`issue74-queue-${group.id}`} className={`issue74-queue-group tone-${group.tone}`} aria-label={group.label}>
+              <header>
+                <label>
+                  <input type="checkbox" checked={allChecked} onChange={(event) => setMany(list, event.target.checked)} aria-label={`Select all ${group.label.toLowerCase()}`} />
+                  <strong>{group.label}</strong><em>{list.length}</em>
                 </label>
-                <div className="issue74-review-queue-item">
-                  <span>{assertion.statement}</span>
-                  <button type="button" className="issue74-evidence-link" onClick={() => onInspect(assertion)}>
-                    Inspect {assertion.sources.length} source{assertion.sources.length === 1 ? '' : 's'} ↗
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      <p className="issue74-muted">Bulk review is a convenience for recording checks—not a shortcut to accepting a conflict, filling a gap, confirming an identity or deciding care. All evidence remains synthetic and source-linked.</p>
-    </Panel>
+                <small>{group.action}</small>
+              </header>
+              <ul className="issue74-review-queue">
+                {list.map(({ label, assertion }) => {
+                  const key = reviewKey(assertion);
+                  return (
+                    <li key={key} className={`review-queue-${assertion.state}${selected[key] ? ' is-selected' : ''}`}>
+                      <label className="issue74-review-queue-check">
+                        <input type="checkbox" checked={Boolean(selected[key])} onChange={(event) => setSelected((current) => ({ ...current, [key]: event.target.checked }))} />
+                        <span><small>{label}</small><strong>{assertion.statement}</strong></span>
+                      </label>
+                      <div className="issue74-review-queue-item">
+                        <EvidenceMarker state={assertion.state} assertion={assertion} />
+                        <button type="button" className="issue74-evidence-link" onClick={() => onInspect(assertion)}>
+                          Inspect {assertion.sources.length} source{assertion.sources.length === 1 ? '' : 's'}
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
+        {completed.length > 0 && (
+          <details className="issue74-queue-done">
+            <summary>Recorded reviews · {completed.length}</summary>
+            <ul>
+              {completed.map(({ label, assertion }) => (
+                <li key={reviewKey(assertion)}><EvidenceMarker state={assertion.state} assertion={assertion} /><span><small>{label}</small>{assertion.statement}</span><button type="button" className="issue74-evidence-link" onClick={() => onInspect(assertion)}>Inspect</button></li>
+              ))}
+            </ul>
+          </details>
+        )}
+        <p className="issue74-muted">Bulk review records checks. It is not a shortcut to accepting a conflict, filling a gap, confirming an identity or deciding care. All evidence remains synthetic and source-linked.</p>
+      </Panel>
+    </>
   );
 }
 
@@ -1136,61 +1390,185 @@ function AttentionPanel({
   onNavigate: (view: View) => void;
   onInspect: (assertion: EvidenceAssertion) => void;
 }) {
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const pending = caseReviewItems(record, horizon, agentResult).filter(({ assertion }) => isPendingReview(assertion, reviews));
+  const identities = openIdentityCandidates(record, horizon, decisions);
+  const of = (group: ReviewGroup) => pending.filter((item) => item.group === group);
+  const conflicts = of('conflict');
+  const gaps = of('gap');
+  const statements = of('statement');
+  const facts = [...of('fact'), ...of('timeline')];
+  const rows = [
+    ...conflicts.map((item) => ({ key: reviewKey(item.assertion), tone: 'crit', icon: 'alert' as const, title: 'Molecular sources disagree', detail: 'Neither result is selected. Compare both passages.', action: 'Review conflict', onClick: () => onInspect(item.assertion) })),
+    ...(identities.length ? [{ key: 'identity', tone: 'warn', icon: 'identity' as const, title: `${identities.length} identity match${identities.length === 1 ? '' : 'es'} to compare`, detail: 'Cross-hospital records stay separate until you decide.', action: 'Compare', onClick: () => onNavigate('identity') }] : []),
+    ...(gaps.length ? [{ key: 'gaps', tone: 'warn', icon: 'evidence' as const, title: `${gaps.length} evidence gap${gaps.length === 1 ? '' : 's'}`, detail: 'Missing values are never inferred.', action: 'Next gap', onClick: () => onInspect(gaps[0].assertion) }] : []),
+    ...(statements.length ? [{ key: 'statements', tone: 'warn', icon: 'spark' as const, title: `${statements.length} unverified assistant statement${statements.length === 1 ? '' : 's'}`, detail: 'No exact source passage is attached.', action: 'Review', onClick: () => onNavigate('reviewQueue') }] : []),
+    ...(facts.length ? [{ key: 'facts', tone: 'info', icon: 'check' as const, title: `${facts.length} source fact${facts.length === 1 ? '' : 's'} to verify`, detail: 'Check the passage, then mark human-verified.', action: 'Open queue', onClick: () => onNavigate('reviewQueue') }] : []),
+  ];
+  const total = pending.length + identities.length;
+  return (
+    <Panel title="Requires attention" eyebrow="Prioritised for this MDT" icon="alert" actions={<Pill tone={total ? 'warn' : 'ok'}>{total ? `${total} open` : 'Clear'}</Pill>}>
+      {rows.length ? (
+        <ul className="issue74-attention-list">
+          {rows.map((row) => (
+            <li key={row.key} className={`attention-row tone-${row.tone}`}>
+              <span className="issue74-attention-symbol"><Icon name={row.icon} size={16} /></span>
+              <div><strong>{row.title}</strong><span>{row.detail}</span></div>
+              <button type="button" className="issue74-attention-action" onClick={row.onClick}>{row.action}</button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="issue74-attention-clear">
+          <span><strong>✓ All review actions are recorded.</strong> Missing values and source disagreements remain visible; this is not a clinical completeness or safety decision.</span>
+          <button type="button" className="issue74-attention-action" onClick={() => onNavigate('completeness')}>Check completeness</button>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+function AgentReviewPanel({
+  record,
+  horizon,
+  agentResult,
+  run,
+  onStart,
+  onDismiss,
+  onInspect,
+}: {
+  record: PatientRecord;
+  horizon: Horizon;
+  agentResult?: AgentResult;
+  run?: AgentRun;
+  onStart: () => void;
+  onDismiss: (key: string) => void;
+  onInspect: (assertion: EvidenceAssertion) => void;
+}) {
   const reviewContext = useContext(EvidenceReviewContext);
   const reviews = reviewContext?.reviews ?? {};
-  const identityItems = horizon === 'future'
-    ? identityCandidates(record).filter((candidate) => {
-        const decision = decisions[`${record.id}:${candidate.id}`];
-        return (candidate.state === 'review' || candidate.state === 'probable') && decision !== 'confirmed' && decision !== 'separate';
-      })
-    : [];
-  const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
-  const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
-  const allGaps = missingEvidenceItems(record, horizon);
-  const pendingGaps = allGaps.filter((item) => reviews[reviewKey(item.assertion)]?.outcome !== 'gap-reviewed');
-  const generatedAssertions = agentResult?.blocks.flatMap((block) => [
-    ...(block.body ? [generatedAssertion(record, block.body)] : []),
-    ...block.items.map((item) => generatedAssertion(record, [item.label, item.detail].filter(Boolean).join(' · '))),
-  ]) ?? [];
-  const pendingGenerated = generatedAssertions.filter((assertion) => reviews[reviewKey(assertion)]?.outcome !== 'unverified-reviewed');
-  const needsAttention = identityItems.length + pendingGaps.length + pendingGenerated.length + (conflict && !conflictReview ? 1 : 0);
-  const pendingEvidence = pendingGaps.length + pendingGenerated.length;
+  const [now, setNow] = useState(() => Date.now());
+  const running = run?.status === 'running';
+  useEffect(() => {
+    if (!running) return undefined;
+    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(timer);
+  }, [running]);
+  const items = caseReviewItems(record, horizon, agentResult);
+  const assertionByKey = new Map(items.map((item) => [reviewKey(item.assertion), item]));
+  const pendingCount = items.filter(({ assertion }) => isPendingReview(assertion, reviews)).length;
+  const checked = run?.items.filter((item) => item.status !== 'queued' && item.status !== 'checking').length ?? 0;
+  const total = run?.items.length ?? 0;
+  const elapsed = run ? Math.max(0, Math.round(((run.finishedAt ?? now) - run.startedAt) / 1000)) : 0;
+  const visibleProposals = (run?.proposals ?? []).filter((proposal) => assertionByKey.has(proposal.assertion_key) && !run?.dismissed[proposal.assertion_key]);
+  const isRecorded = (proposal: EvidenceReviewProposal) => reviews[proposal.assertion_key]?.outcome === proposal.outcome;
+  const routine = visibleProposals.filter((proposal) => !isRecorded(proposal) && (proposal.outcome === 'verified' || proposal.outcome === 'gap-reviewed' || proposal.outcome === 'unverified-reviewed'));
+  const outstanding = visibleProposals.filter((proposal) => !isRecorded(proposal));
+  const individual = outstanding.filter((proposal) => !routine.includes(proposal));
+  const confirmedCount = visibleProposals.length - outstanding.length;
+  const confirm = (proposal: EvidenceReviewProposal) => {
+    const item = assertionByKey.get(proposal.assertion_key);
+    if (!item) return;
+    reviewContext?.saveReview(item.assertion, {
+      outcome: proposal.outcome,
+      rationale: `Clinician confirmed Copilot proposal: ${proposal.rationale}`,
+      reviewedAt: new Date().toISOString(),
+    });
+  };
+  const statusText: Record<AgentItemStatus, string> = { queued: 'Queued', checking: 'Checking sources…', ready: 'Proposal ready', none: 'No proposal · stays with clinician', failed: 'Not reached · stays with clinician' };
+  const outcomeLabel = (proposal: EvidenceReviewProposal) => proposal.outcome === 'verified' ? 'Propose: verified'
+    : proposal.outcome === 'accepted-a' || proposal.outcome === 'accepted-b' ? `Propose reconciliation: Evidence ${proposal.outcome === 'accepted-a' ? 'A' : 'B'}`
+      : proposal.outcome === 'gap-reviewed' ? 'Propose: gap reviewed, keep missing'
+        : proposal.outcome === 'unverified-reviewed' ? 'Propose: keep unverified'
+          : proposal.outcome === 'unresolved' ? 'Propose: keep conflict unresolved'
+            : 'Propose: investigate further';
+
+  const renderProposal = (proposal: EvidenceReviewProposal, compact: boolean) => {
+    const item = assertionByKey.get(proposal.assertion_key);
+    if (!item) return null;
+    const reconciliation = proposal.outcome === 'accepted-a' || proposal.outcome === 'accepted-b';
+    const source = proposal.source_index === undefined || proposal.source_index === null ? undefined : item.assertion.sources[proposal.source_index];
+    return (
+      <li key={proposal.assertion_key} className={reconciliation ? 'proposal-reconcile' : undefined}>
+        <div className="issue74-agent-proposal-heading">
+          <span><small>{item.label}</small><strong>{item.assertion.statement}</strong></span>
+          <Pill tone={reconciliation ? 'crit' : 'ai'}>{outcomeLabel(proposal)}</Pill>
+        </div>
+        <p><span className="issue74-ai-kind">Evidence</span>{proposal.rationale}</p>
+        {source && !compact && <p className="issue74-agent-proposal-sources"><span className="issue74-ai-kind kind-inference">Suggested source</span>{source.title} · {source.hospital}{source.value ? ` · ${source.value}` : ''}</p>}
+        <div className="issue74-review-actions">
+          <button className="issue74-evidence-link" type="button" onClick={() => onInspect(item.assertion)}>Inspect {item.assertion.sources.length} source{item.assertion.sources.length === 1 ? '' : 's'}</button>
+          <span className="hx-spacer" />
+          <button className="hx-btn" type="button" onClick={() => onDismiss(proposal.assertion_key)}>Keep for manual review</button>
+          <button className={`hx-btn${reconciliation ? '' : ' primary'}`} type="button" onClick={() => confirm(proposal)}>{reconciliation ? 'Confirm reconciliation' : 'Confirm'}</button>
+        </div>
+      </li>
+    );
+  };
+
   return (
-    <Panel
-      title="Needs your attention"
-      actions={<Pill tone={needsAttention ? 'warn' : 'ok'}>{needsAttention ? `${needsAttention} reviews to complete` : 'All review actions recorded'}</Pill>}
-    >
-      <p className="issue74-attention-intro">Up to three review items are shown; counts reflect individual actions within a group. Recording a review removes its action from this queue, while unresolved evidence stays visible in the case.</p>
-      <div className="issue74-attention-list">
-        {conflict && !conflictReview && (
-          <div className="attention-conflict">
-            <span className="issue74-attention-symbol" aria-hidden="true">!</span>
-            <div><strong>Molecular sources disagree</strong><span>Neither result is selected. Compare both source passages.</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => onInspect(conflict)}>Review conflict <span aria-hidden="true">→</span></button>
+    <section className={`issue74-agent-review${running ? ' is-running' : ''}`} aria-labelledby="issue74-agent-review-title">
+      <header className="issue74-agent-review-head">
+        <span className="issue74-agent-mark"><Icon name="spark" size={18} /></span>
+        <div>
+          <span className="p74-card-eyebrow">Copilot SDK skill · review, verify, reconcile</span>
+          <h2 id="issue74-agent-review-title">Agentic evidence review</h2>
+          <p>Copilot checks every open item against its source passages and proposes a review or a reconciliation. Nothing is recorded until you confirm.</p>
+        </div>
+        <button className="hx-btn primary" type="button" disabled={running || pendingCount === 0} onClick={onStart}>
+          {running ? <><span className="hx-spinner" aria-hidden /> Reviewing…</> : pendingCount ? `Start agentic review · ${pendingCount} item${pendingCount === 1 ? '' : 's'}` : 'Nothing left to review'}
+        </button>
+      </header>
+
+      {run && (
+        <div className="issue74-agent-progress">
+          <div className="issue74-agent-status" role="status" aria-live="polite">
+            {running ? <span className="hx-spinner" aria-hidden /> : <Icon name="check" size={16} />}
+            <strong>{running ? 'Agentic review started' : run.error ? 'Agentic review stopped' : 'Agentic review complete'}</strong>
+            <span>{checked} of {total} items checked · {elapsed}s{run.mode ? ` · ${run.mode === 'copilot' ? 'Copilot SDK' : 'deterministic demo (no Copilot token)'}` : ''}</span>
           </div>
-        )}
-        {identityItems.length > 0 && (
-          <div className="attention-identity">
-            <span className="issue74-attention-symbol" aria-hidden="true">?</span>
-            <div><strong>{identityItems.length} identity match{identityItems.length === 1 ? '' : 'es'} need your review</strong><span>These cross-hospital records remain separate until you compare the identity details.</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => onNavigate('identity')}>Compare identities <span aria-hidden="true">→</span></button>
+          <span className="issue74-meter" aria-hidden="true"><span style={{ width: `${total ? Math.round((checked / total) * 100) : 0}%` }} /></span>
+          <details className="issue74-agent-items" open={running}>
+            <summary>Item progress</summary>
+            <ol>
+              {run.items.map((item) => (
+                <li key={item.key} className={`agent-item-${item.status}`}>
+                  <span className="agent-item-icon" aria-hidden="true">{item.status === 'checking' ? <span className="hx-spinner" /> : item.status === 'ready' ? '✓' : item.status === 'queued' ? '' : '–'}</span>
+                  <span className="agent-item-label" title={item.label}>{item.label}</span>
+                  <small>{statusText[item.status]}</small>
+                </li>
+              ))}
+            </ol>
+          </details>
+          {run.error && <div className="issue74-notice issue74-warning" role="alert">{run.error}</div>}
+          {run.note && !running && <p className="issue74-muted">{run.note}</p>}
+        </div>
+      )}
+
+      {run && visibleProposals.length > 0 && (
+        <div className="issue74-agent-review-result" aria-live="polite">
+          <div className="issue74-agent-result-bar">
+            <div><strong>{outstanding.length ? `${outstanding.length} proposal${outstanding.length === 1 ? '' : 's'} awaiting your confirmation` : 'All proposals handled'}</strong><span>Routine checks can be confirmed together; conflict reconciliations need an individual decision.</span></div>
+            {routine.length > 0 && <button className="hx-btn primary" type="button" onClick={() => routine.forEach(confirm)}>Confirm {routine.length} routine proposal{routine.length === 1 ? '' : 's'}</button>}
           </div>
-        )}
-        {pendingEvidence > 0 && (
-          <div className="attention-gap">
-            <span className="issue74-attention-symbol" aria-hidden="true">–</span>
-            <div><strong>{pendingEvidence} evidence item{pendingEvidence === 1 ? '' : 's'} need review</strong><span>{pendingGaps.length > 0 && `${pendingGaps.length} gap${pendingGaps.length === 1 ? '' : 's'} · `}{pendingGenerated.length > 0 && `${pendingGenerated.length} unverified statement${pendingGenerated.length === 1 ? '' : 's'} · `}Missing values are never inferred.</span></div>
-            <button type="button" className="issue74-attention-action" onClick={() => pendingGaps.length ? onInspect(pendingGaps[0].assertion) : onInspect(pendingGenerated[0])}>{pendingGaps.length ? 'Review next gap' : 'Review next statement'} <span aria-hidden="true">→</span></button>
-          </div>
-        )}
-        {needsAttention === 0 && (
-          <div className="issue74-attention-clear">
-            <span><strong>✓ All review actions are recorded.</strong> Missing values and unresolved source disagreements remain visible; this is not a clinical completeness or safety decision.</span>
-            <button type="button" className="issue74-attention-action" onClick={() => onNavigate('completeness')}>Continue to completeness <span aria-hidden="true">→</span></button>
-          </div>
-        )}
-      </div>
-    </Panel>
+          {individual.length > 0 && (
+            <ul className="issue74-agent-proposals">
+              {individual.map((proposal) => renderProposal(proposal, false))}
+            </ul>
+          )}
+          {routine.length > 0 && (
+            <details className="issue74-agent-routine">
+              <summary><strong>{routine.length} routine proposal{routine.length === 1 ? '' : 's'}</strong><span>Source facts to verify, gaps kept missing, statements kept unverified · open to check each one</span></summary>
+              <ul className="issue74-agent-proposals is-compact">
+                {routine.map((proposal) => renderProposal(proposal, true))}
+              </ul>
+            </details>
+          )}
+          {confirmedCount > 0 && <p className="issue74-agent-confirmed"><Icon name="check" size={14} /> {confirmedCount} proposal{confirmedCount === 1 ? '' : 's'} confirmed by the clinician and recorded in the review history.</p>}
+          <p className="issue74-muted">Copilot proposes; the clinician decides. A confirmed reconciliation selects a value for this case only; the source disagreement and history are kept.</p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -1316,7 +1694,7 @@ function ReadyForMDT({ record, horizon, decisions, agentResult, onBack, onDrillD
         <summary>Inspect source evidence</summary>
         <div>
           {provenance.map(({ label, assertion }) => (
-            <div key={label}><strong>{label}</strong><EvidenceLink assertion={assertion} onInspect={onInspect} /></div>
+            <div key={label}><strong>{label}</strong><span className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></span></div>
           ))}
         </div>
       </details>
@@ -1649,7 +2027,7 @@ function AssistantEvidence({ record, result, onInspect }: { record: PatientRecor
               <div><strong>{block.body}</strong></div>
               <div className="issue74-fact-evidence">
                 <EvidenceMarker state="unverified" assertion={generatedAssertion(record, block.body)} />
-                <EvidenceLink assertion={generatedAssertion(record, block.body)} onInspect={onInspect} label="Check source ↗" />
+                <EvidenceLink assertion={generatedAssertion(record, block.body)} onInspect={onInspect} label="Check source" />
               </div>
             </div>
           )}
@@ -1658,7 +2036,7 @@ function AssistantEvidence({ record, result, onInspect }: { record: PatientRecor
             return (
               <div className="issue74-agent-item" key={`${item.label}-${itemIndex}`}>
                 <div><strong>[{blockIndex + itemIndex + 1}] {item.label}</strong>{item.detail && <span>{item.detail}</span>}</div>
-                <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} label="Inspect source context ↗" /></div>
+                <div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} label="Inspect source context" /></div>
               </div>
             );
           })}
@@ -1668,175 +2046,145 @@ function AssistantEvidence({ record, result, onInspect }: { record: PatientRecor
   );
 }
 
-function AtAGlance({ record, agentResult, specialty, horizon, onInspect }: { record: PatientRecord; agentResult?: AgentResult; specialty: Specialty; horizon: Horizon; onInspect: (assertion: EvidenceAssertion) => void }) {
-  const treatments = record.treatments.map((treatment) => `${treatment.regimen} · ${treatment.status}`).join('; ') || 'No treatment recorded';
-  const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
+function ClinicalSnapshot({ record }: { record: PatientRecord }) {
+  const byTest = new Map<string, PatientRecord['labs']>();
+  [...record.labs].sort((a, b) => a.date.localeCompare(b.date)).forEach((lab) => byTest.set(lab.test, [...(byTest.get(lab.test) ?? []), lab]));
+  const cea = byTest.get('CEA') ?? [];
+  const latestCea = cea.at(-1);
+  const previousCea = cea.at(-2);
+  const trend = latestCea && previousCea ? latestCea.value - previousCea.value : 0;
+  const otherLabs = [...byTest.entries()].filter(([test]) => test !== 'CEA').map(([, labs]) => labs.at(-1)).filter((lab): lab is PatientRecord['labs'][number] => Boolean(lab));
+  const scan = record.imaging?.at(-1);
+  return (
+    <div className="issue74-snapshot" aria-label="Clinical snapshot">
+      <article className="issue74-metric">
+        <span className="issue74-metric-label"><Icon name="drop" size={15} /> CEA · tumour marker</span>
+        {latestCea ? (
+          <>
+            <div className="issue74-metric-value">
+              <strong>{latestCea.value}</strong><span>{latestCea.unit}</span>
+              {previousCea && <em className={trend > 0 ? 'trend-up' : trend < 0 ? 'trend-down' : 'trend-flat'} aria-label={`${trend > 0 ? 'Up' : trend < 0 ? 'Down' : 'No change'} from ${previousCea.value}`}>{trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend).toFixed(1)}</em>}
+            </div>
+            <Sparkline values={cea.map((lab) => lab.value)} label={`CEA trend: ${cea.map((lab) => lab.value).join(', ')} ${latestCea.unit}`} />
+            <small>{latestCea.date}{cea.length > 1 ? ` · ${cea.length} measurements` : ''}{latestCea.flag ? ` · ${latestCea.flag}` : ''} · ref {latestCea.ref}</small>
+          </>
+        ) : <small>No CEA result in this record.</small>}
+      </article>
+      <article className="issue74-metric">
+        <span className="issue74-metric-label"><Icon name="flask" size={15} /> Stage · performance</span>
+        <div className="issue74-metric-value"><strong className="is-text">{record.diagnosis.stage.split('(')[0].trim()}</strong></div>
+        <div className="issue74-metric-chips"><Pill tone="neutral">ECOG {record.ecog}</Pill>{record.diagnosis.grade !== undefined && <Pill tone="neutral">Grade {record.diagnosis.grade}</Pill>}</div>
+        <small>{record.current_status ?? 'Current status not explicitly recorded'}</small>
+      </article>
+      <article className="issue74-metric">
+        <span className="issue74-metric-label"><Icon name="drop" size={15} /> Latest labs</span>
+        {otherLabs.length ? (
+          <ul className="issue74-lab-list">
+            {otherLabs.map((lab) => <li key={lab.test} className={lab.flag ? `lab-${lab.flag}` : ''}><span>{lab.test}</span><strong>{lab.value} <small>{lab.unit}</small></strong>{lab.flag && <em>{lab.flag === 'high' ? '↑' : lab.flag === 'low' ? '↓' : lab.flag}</em>}</li>)}
+          </ul>
+        ) : <small>No other laboratory results in this record.</small>}
+      </article>
+      <article className="issue74-metric issue74-imaging-card">
+        <span className="issue74-metric-label"><Icon name="image" size={15} /> Latest imaging</span>
+        {scan ? (
+          <div className="issue74-imaging">
+            <span className="issue74-imaging-thumb" aria-hidden="true"><i /></span>
+            <div><strong>{scan.modality}</strong><small>{scan.date}</small><span>{scan.result}</span><Pill tone="info">Report only · images not reviewed</Pill></div>
+          </div>
+        ) : (
+          <div className="issue74-imaging">
+            <span className="issue74-imaging-thumb is-empty" aria-hidden="true"><Icon name="image" size={22} /></span>
+            <div><strong>No imaging report</strong><span>{record.id === 'P-003' ? 'A surveillance CT is mentioned in the timeline; its report is not in this record.' : 'Not present in the retrieved record.'}</span><Pill tone="warn">Missing</Pill></div>
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+
+function AiNotes({ record, horizon }: { record: PatientRecord; horizon: Horizon }) {
+  const cea = record.labs.filter((lab) => lab.test === 'CEA').sort((a, b) => a.date.localeCompare(b.date));
+  const flagged = [...record.labs].sort((a, b) => b.date.localeCompare(a.date)).find((lab) => lab.flag === 'high');
+  const notes: { kind: 'Observation' | 'Evidence' | 'Gap'; text: string }[] = [];
+  if (cea.length >= 2 && (cea.at(-1)?.value ?? 0) > (cea[0]?.value ?? 0)) {
+    notes.push({ kind: 'Observation', text: `CEA rose from ${cea[0].value} to ${cea.at(-1)?.value} ${cea[0].unit} across ${cea.length} measurements (${cea[0].date} → ${cea.at(-1)?.date}).` });
+  } else if (flagged) {
+    notes.push({ kind: 'Observation', text: `${flagged.test} ${flagged.value} ${flagged.unit} is above the reference range (${flagged.ref}) on ${flagged.date}.` });
+  }
+  if (record.id === 'P-003' && horizon === 'future') notes.push({ kind: 'Evidence', text: 'The Utrecht pathology addendum (KRAS G12D) and the Milan referral letter (KRAS wild type) disagree. Neither is selected.' });
+  else if (record.id === 'P-010' && horizon === 'future') notes.push({ kind: 'Evidence', text: 'The outside Italian MRI report describes the liver lesions but does not state resectability.' });
+  else notes.push({ kind: 'Evidence', text: `The diagnosis is stated consistently in ${caseFacts(record).disease.sources.length} synthetic source records.` });
+  const gap = missingEvidenceItems(record, horizon)[0];
+  if (gap) notes.push({ kind: 'Gap', text: `${gap.label.replace(/\.$/, '')} · not found in the available sources; it stays open.` });
+  return (
+    <section className="issue74-ai-notes" aria-label="Copilot notes">
+      <header><Icon name="spark" size={15} /><strong>Copilot notes</strong><span>Derived from the synthetic record · no recommendation</span></header>
+      <ul>
+        {notes.map((note) => <li key={note.text}><span className={`issue74-ai-kind kind-${note.kind.toLowerCase()}`}>{note.kind}</span>{note.text}</li>)}
+      </ul>
+    </section>
+  );
+}
+
+function AtAGlance({ record, agentResult, horizon, onInspect }: { record: PatientRecord; agentResult?: AgentResult; horizon: Horizon; onInspect: (assertion: EvidenceAssertion) => void }) {
   const context = mdtContext(record.id);
-  const reviewContext = useContext(EvidenceReviewContext);
-  const reviews = reviewContext?.reviews ?? {};
-  const [reviewRunning, setReviewRunning] = useState(false);
-  const [reviewFinished, setReviewFinished] = useState(false);
-  const [reviewSkillResult, setReviewSkillResult] = useState<EvidenceReviewSkillResult | null>(null);
-  const [reviewSkillError, setReviewSkillError] = useState('');
-  const [dismissedProposals, setDismissedProposals] = useState<Record<string, boolean>>({});
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const facts = caseFacts(record);
   const molecularConflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
   const molecularReview = molecularConflict ? reviews[reviewKey(molecularConflict)] : undefined;
   const molecularResolution = molecularReview?.outcome === 'accepted-a' || molecularReview?.outcome === 'accepted-b'
     ? molecularConflict?.sources[molecularReview.outcome === 'accepted-a' ? 0 : 1]
     : undefined;
-  const glanceAssertions = [
-    { label: 'Disease', assertion: evidenceFor(record, 'Disease', record.diagnosis.primary) },
-    { label: 'Stage / current state', assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`) },
-    { label: 'Treatments so far', assertion: evidenceFor(record, 'Treatments so far', treatments) },
-    { label: 'What changed', assertion: evidenceFor(record, 'What changed', recentChange) },
-    { label: 'Question for the MDT', assertion: evidenceFor(record, 'Question for the MDT', clinicalQuestion(record)) },
-    ...(molecularConflict && !molecularResolution ? [{ label: 'Molecular source disagreement', assertion: molecularConflict }] : []),
-  ];
-  const reviewCandidates = glanceAssertions.filter(({ assertion }) => {
-    const outcome = reviews[reviewKey(assertion)]?.outcome;
-    if (assertion.state === 'missing') return outcome !== 'gap-reviewed';
-    if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed';
-    if (assertion.state === 'contradictory') return outcome !== 'accepted-a' && outcome !== 'accepted-b';
-    return outcome !== 'verified';
-  });
-  const assertionByKey = new Map(glanceAssertions.map(({ assertion }) => [reviewKey(assertion), assertion]));
-  const startAgentReview = async () => {
-    if (reviewRunning || reviewCandidates.length === 0) return;
-    setReviewRunning(true);
-    setReviewFinished(false);
-    setReviewSkillResult(null);
-    setReviewSkillError('');
-    setDismissedProposals({});
-    try {
-      const result = await api.reviewEvidence({
-        patient_id: record.id,
-        assertions: reviewCandidates.map(({ label, assertion }) => ({
-          key: reviewKey(assertion),
-          label,
-          statement: assertion.statement,
-          state: assertion.state,
-          sources: assertion.sources.map(({ title, hospital, date, excerpt, value }) => ({ title, hospital, date, excerpt, value })),
-        })),
-      });
-      setReviewSkillResult(result);
-    } catch {
-      setReviewSkillError('The review skill could not be reached. No review was recorded; use the source links and clinician review controls.');
-    } finally {
-      setReviewFinished(true);
-    }
-  };
-
-  const confirmAgentProposal = (proposal: EvidenceReviewProposal) => {
-    const assertion = assertionByKey.get(proposal.assertion_key);
-    if (!assertion) return;
-    reviewContext?.saveReview(assertion, {
-      outcome: proposal.outcome,
-      rationale: `Clinician confirmed agent proposal: ${proposal.rationale}`,
-      reviewedAt: new Date().toISOString(),
-    });
-  };
   return (
     <>
-      <Panel title="Patient at a glance" actions={<Pill tone={agentResult?.mode === 'copilot' ? 'ok' : agentResult ? 'neutral' : 'warn'}>{agentResult ? (agentResult.mode === 'copilot' ? 'Copilot reviewed' : 'Demo mode · synthetic record') : 'Preparation not started'}</Pill>}>
+      <ClinicalSnapshot record={record} />
+      <Panel
+        title="Patient at a glance"
+        eyebrow="What the MDT needs to know"
+        icon="overview"
+        actions={<Pill tone={agentResult?.mode === 'copilot' ? 'ai' : agentResult ? 'neutral' : 'warn'}>{agentResult ? (agentResult.mode === 'copilot' ? 'Prepared with Copilot' : 'Demo mode · synthetic record') : 'Preparation not started'}</Pill>}
+      >
         <div className="issue74-mdt-context"><Pill tone={record.id === 'P-010' ? 'info' : 'neutral'}>{context.label}</Pill><span>{context.detail}</span></div>
+        <div className="issue74-question-card">
+          <span className="p74-card-eyebrow">Question for the MDT</span>
+          <strong>{clinicalQuestion(record)}</strong>
+          <div className="issue74-fact-evidence"><EvidenceMarker state={facts.question.state} assertion={facts.question} /><EvidenceLink assertion={facts.question} onInspect={onInspect} /></div>
+        </div>
         <div className="issue74-glance">
-          <Fact label="Disease" value={record.diagnosis.primary} assertion={evidenceFor(record, 'Disease', record.diagnosis.primary)} onInspect={onInspect} />
-          <Fact label="Stage / current state" value={`${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`} assertion={evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`)} onInspect={onInspect} />
-          <Fact label="Treatments so far" value={treatments} assertion={evidenceFor(record, 'Treatments so far', treatments)} onInspect={onInspect} />
-          <Fact label="What changed" value={recentChange} assertion={evidenceFor(record, 'What changed', recentChange)} onInspect={onInspect} />
-          <Fact label="Question for the MDT" value={clinicalQuestion(record)} assertion={evidenceFor(record, 'Question for the MDT', clinicalQuestion(record))} onInspect={onInspect} />
+          <Fact label="Disease" value={record.diagnosis.primary} assertion={facts.disease} onInspect={onInspect} />
+          <Fact label="Stage / current state" value={currentStateSummary(record)} assertion={facts.stage} onInspect={onInspect} />
+          <Fact label="Treatments so far" value={treatmentSummary(record)} assertion={facts.treatments} onInspect={onInspect} />
+          <Fact label="What changed" value={record.timeline.at(-1)?.event ?? 'No recent change recorded'} assertion={facts.change} onInspect={onInspect} />
         </div>
-        <div className="issue74-agent-review-action">
-          <div><strong>Check summary evidence</strong><span>{reviewCandidates.length} item{reviewCandidates.length === 1 ? '' : 's'} need an agent review. Suggestions never update the record or replace clinician confirmation.</span></div>
-          <button className="hx-btn primary" type="button" disabled={reviewRunning || reviewCandidates.length === 0} onClick={() => void startAgentReview()}>
-            {reviewRunning ? <><span className="hx-spinner" aria-hidden /> Agent review in progress…</> : reviewCandidates.length ? 'Start agent evidence review' : 'Summary evidence reviewed'}
-          </button>
-        </div>
-        {reviewRunning && <Backstage
-          title="Copilot SDK · evidence review"
-          stages={evidenceReviewStages}
-          running
-          holdLast
-          release={reviewFinished}
-          onFinished={() => setReviewRunning(false)}
-          note="Source-grounded proposals only · clinician confirmation required · synthetic data."
-        />}
-        {reviewSkillError && <div className="issue74-notice issue74-warning" role="alert">{reviewSkillError}</div>}
-        {reviewSkillResult && (
-          <div className="issue74-agent-review-result" aria-live="polite">
-            <header>
-              <div><span className="issue74-eyebrow">{reviewSkillResult.result.mode === 'copilot' ? 'COPILOT SDK REVIEW' : 'DETERMINISTIC DEMO REVIEW'}</span><strong>{reviewSkillResult.result.mode === 'copilot' ? 'Evidence review proposals' : 'Simulated source check · confirm each proposal'}</strong></div>
-              <Pill tone={reviewSkillResult.result.mode === 'copilot' ? 'info' : 'neutral'}>{reviewSkillResult.proposals.length} proposal{reviewSkillResult.proposals.length === 1 ? '' : 's'}</Pill>
-            </header>
-            {reviewSkillResult.result.note && <p className="issue74-muted">{reviewSkillResult.result.note}</p>}
-            {reviewSkillResult.proposals.length === 0 ? (
-              <p className="issue74-muted">The agent did not return review proposals. No evidence status changed.</p>
-            ) : (
-              <ul>
-                {reviewSkillResult.proposals.map((proposal) => {
-                  const assertion = assertionByKey.get(proposal.assertion_key);
-                  if (!assertion || dismissedProposals[proposal.assertion_key]) return null;
-                  const recorded = reviews[proposal.assertion_key]?.outcome === proposal.outcome;
-                  const outcomeLabel = proposal.outcome === 'verified' ? 'Suggest human verification'
-                    : proposal.outcome === 'accepted-a' || proposal.outcome === 'accepted-b' ? `Suggest Evidence ${proposal.outcome === 'accepted-a' ? 'A' : 'B'} · clinician must reconcile`
-                      : proposal.outcome === 'gap-reviewed' ? 'Keep missing · gap reviewed'
-                        : proposal.outcome === 'unverified-reviewed' ? 'Keep unverified · review noted'
-                          : proposal.outcome === 'unresolved' ? 'Keep conflict unresolved'
-                            : 'Further investigation suggested';
-                  const source = proposal.source_index === undefined || proposal.source_index === null ? undefined : assertion.sources[proposal.source_index];
-                  return (
-                    <li key={proposal.assertion_key} className={recorded ? 'proposal-confirmed' : ''}>
-                      <div className="issue74-agent-proposal-heading"><strong>{assertion.statement}</strong><Pill tone={recorded ? 'ok' : 'warn'}>{recorded ? 'Clinician confirmed' : outcomeLabel}</Pill></div>
-                      <p>{proposal.rationale}</p>
-                      <div className="issue74-agent-proposal-sources">
-                        {assertion.sources.map((item, index) => <button key={`${item.title}-${item.date}-${index}`} className="issue74-evidence-link" type="button" onClick={() => onInspect(assertion)}>Inspect {item.title} · {item.hospital} ↗</button>)}
-                      </div>
-                      {!recorded && (
-                        <div className="issue74-review-actions">
-                          <button className="hx-btn primary" type="button" onClick={() => confirmAgentProposal(proposal)}>Confirm this review</button>
-                          <button className="hx-btn" type="button" onClick={() => setDismissedProposals((current) => ({ ...current, [proposal.assertion_key]: true }))}>Keep for clinician review</button>
-                        </div>
-                      )}
-                      {source && <small>Suggested source: {source.title} · {source.hospital}. Confirmation remains a human action.</small>}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <p className="issue74-muted">Copilot proposes; the clinician decides. Confirming a conflict records a case-specific selection but preserves the source disagreement and history.</p>
-          </div>
-        )}
+        <AiNotes record={record} horizon={horizon} />
       </Panel>
-      <EvidenceReadiness record={record} onInspect={onInspect} />
-      <Panel title={`What matters to ${specialty.toLowerCase()}`} actions={horizon === 'sixMonths' ? <Pill tone="warn">Future capability · not in six months</Pill> : undefined}>
-        {horizon === 'sixMonths' ? (
-          <p className="issue74-muted">Role-specific views need the richer future platform. The six-month view keeps one shared case summary and the visible gaps.</p>
-        ) : (
-          <SpecialtyFocus record={record} specialty={specialty} onInspect={onInspect} />
-        )}
-      </Panel>
-      <Panel title="Other case context · source linked">
+      <Panel title="Molecular, imaging and history" eyebrow="Source-linked case context" icon="flask">
         <div className="issue74-extra-facts">
-          {Object.entries(record.diagnosis.biomarkers).map(([key, value]) => (
-            <Fact key={key} label={`${molecularResolution && /ras|kras|braf/i.test(key) ? 'Original source biomarker' : 'Biomarker'} · ${key}`} value={value} assertion={evidenceFor(record, `Biomarker · ${key}`, `${key}: ${value}`)} onInspect={onInspect} />
-          ))}
+          {facts.molecular && (
+            <Fact
+              label={molecularResolution ? 'Original source biomarkers' : 'Molecular results'}
+              value={molecularSummary(record)}
+              assertion={molecularConflict ?? facts.molecular}
+              onInspect={onInspect}
+            />
+          )}
           {molecularResolution && molecularConflict && <Fact
             label="MDT-reviewed molecular result · reused"
             value={`${molecularResolution.value} · ${molecularReview ? reviewStatusLabel(molecularReview) : 'previously reviewed'}`}
             assertion={molecularConflict}
             onInspect={onInspect}
           />}
-          {record.imaging?.slice(-1).map((scan) => <Fact key="imaging" label="Imaging finding" value={`${scan.modality} · ${scan.date}: ${scan.result}`} assertion={evidenceFor(record, 'Imaging finding', scan.result)} onInspect={onInspect} />)}
-          {record.comorbidities.length > 0 && <Fact label="Relevant comorbidities" value={record.comorbidities.join('; ')} assertion={evidenceFor(record, 'Comorbidity', record.comorbidities.join('; '))} onInspect={onInspect} />}
+          {facts.imaging && record.imaging?.length && <Fact label="Imaging finding" value={`${record.imaging.at(-1)?.modality} · ${record.imaging.at(-1)?.date}: ${record.imaging.at(-1)?.result}`} assertion={facts.imaging} onInspect={onInspect} />}
+          {facts.comorbidities && <Fact label="Relevant comorbidities" value={record.comorbidities.join('; ')} assertion={facts.comorbidities} onInspect={onInspect} />}
         </div>
       </Panel>
       {agentResult && (
         <details className="issue74-agent-details">
-          <summary>Open the assistant's evidence pass · {agentResult.mode === 'copilot' ? 'Copilot SDK' : 'deterministic demo'}</summary>
+          <summary>Open the assistant's preparation pass · {agentResult.mode === 'copilot' ? 'Copilot SDK' : 'deterministic demo'}</summary>
           <p>{agentResult.note ?? 'The assistant used the synthetic sample record. Review the source before relying on any extracted fact.'}</p>
           <p className="issue74-cited-draft">
-            {record.name} has {record.diagnosis.primary} <EvidenceLink assertion={evidenceFor(record, 'Disease', record.diagnosis.primary)} onInspect={onInspect} label="[1]" />.
-            {' '}Treatment to date: {treatments} <EvidenceLink assertion={evidenceFor(record, 'Treatments so far', treatments)} onInspect={onInspect} label="[2]" />.
+            {record.name} has {record.diagnosis.primary} <EvidenceLink assertion={facts.disease} onInspect={onInspect} label="[1]" />.
+            {' '}Treatment to date: {treatmentSummary(record)} <EvidenceLink assertion={facts.treatments} onInspect={onInspect} label="[2]" />.
           </p>
           <AssistantEvidence record={record} result={agentResult} onInspect={onInspect} />
         </details>
@@ -1856,18 +2204,19 @@ function Fact({ label, value, assertion, onInspect }: { label: string; value: st
 }
 
 function SpecialtyFocus({ record, specialty, onInspect }: { record: PatientRecord; specialty: Specialty; onInspect: (assertion: EvidenceAssertion) => void }) {
+  const facts = caseFacts(record);
   if (specialty === 'Radiology') {
     const scan = record.imaging?.at(-1);
-    const assertion = scan ? evidenceFor(record, 'Imaging finding', scan.result) : missingAssertion(record, 'Imaging report');
-    return <div><p>{scan ? `${scan.modality} · ${scan.date}: ${scan.result}` : 'No imaging report is present in the retrieved record.'} <strong>Direct review of images remains a human task.</strong></p><EvidenceMarker state={assertion.state} assertion={assertion} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
+    const assertion = facts.imaging ?? missingAssertion(record, 'Imaging report');
+    return <div className="issue74-specialty"><p>{scan ? `${scan.modality} · ${scan.date}: ${scan.result}` : 'No imaging report is present in the retrieved record.'} <strong>Direct review of images remains a human task.</strong></p><div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div></div>;
   }
   if (specialty === 'Pathology') {
-    const biomarkers = Object.entries(record.diagnosis.biomarkers).map(([name, value]) => `${name}: ${value}`).join(' · ');
-    const assertion = evidenceFor(record, 'Biomarker', biomarkers || 'No biomarker result recorded');
-    return <div><p>{record.diagnosis.primary}{record.diagnosis.grade ? ` · grade ${record.diagnosis.grade}` : ''}. Biomarkers recorded: {biomarkers || 'none found'}.</p><EvidenceMarker state={assertion.state} assertion={assertion} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
+    const biomarkers = molecularSummary(record);
+    const assertion = facts.molecular ?? missingAssertion(record, 'Molecular results');
+    return <div className="issue74-specialty"><p>{record.diagnosis.primary}{record.diagnosis.grade ? ` · grade ${record.diagnosis.grade}` : ''}. Biomarkers recorded: {biomarkers || 'none found'}.</p><div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div></div>;
   }
-  const assertion = evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ECOG ${record.ecog}`);
-  return <div><p>{record.diagnosis.stage} · ECOG {record.ecog}. {record.treatments.at(-1)?.regimen ?? 'No treatment recorded'}; MDT question: {clinicalQuestion(record)}</p><EvidenceMarker state={assertion.state} assertion={assertion} /> <EvidenceLink assertion={assertion} onInspect={onInspect} /></div>;
+  const assertion = facts.stage;
+  return <div className="issue74-specialty"><p>{record.diagnosis.stage} · ECOG {record.ecog}. {record.treatments.at(-1)?.regimen ?? 'No treatment recorded'}; MDT question: {clinicalQuestion(record)}</p><div className="issue74-fact-evidence"><EvidenceMarker state={assertion.state} assertion={assertion} /><EvidenceLink assertion={assertion} onInspect={onInspect} /></div></div>;
 }
 
 function SpecialtyPanel({ record, specialty, onInspect }: { record: PatientRecord; specialty: Specialty; onInspect: (assertion: EvidenceAssertion) => void }) {
@@ -1878,6 +2227,8 @@ function SpecialtyPanel({ record, specialty, onInspect }: { record: PatientRecor
     </Panel>
   );
 }
+
+const timelineIcons: Record<TimelineKind, IconName> = { diagnosis: 'flask', treatment: 'pill', imaging: 'image', lab: 'drop', event: 'dot' };
 
 function TimelinePanel({ record, timeline, onInspect }: { record: PatientRecord; timeline: PatientRecord['timeline']; onInspect: (assertion: EvidenceAssertion) => void }) {
   const reviewContext = useContext(EvidenceReviewContext);
@@ -1899,30 +2250,11 @@ function TimelinePanel({ record, timeline, onInspect }: { record: PatientRecord;
       <p className="issue74-intro">Each event shows when it happened, the source that supports it, its evidence state and human-review status. Open the source for its passage.</p>
       <ol className="issue74-timeline">
         {timeline.map((event) => {
-          const isDiagnosis = event.event.toLowerCase().includes('diagnos');
-          const isTreatment = event.event.toLowerCase().includes('treatment') || event.event.toLowerCase().includes('resection') || event.event.toLowerCase().includes('surgery');
-          const assertion = isDiagnosis
-            ? evidenceFor(record, 'Disease', event.event)
-            : isTreatment
-              ? {
-                  ...evidenceFor(record, 'Treatments so far', event.event),
-                  sources: evidenceFor(record, 'Treatments so far', event.event).sources.map((source) => ({ ...source, date: event.date, excerpt: event.event })),
-                }
-              : {
-                  patientId: record.id,
-                  statement: event.event,
-                  state: 'single-source' as const,
-                  explanation: 'One dated synthetic record entry supports this timeline event.',
-                  sources: [{
-                    title: 'Dated timeline entry',
-                    hospital: sourceFor(record.id).label,
-                    date: event.date,
-                    type: 'Synthetic source record',
-                    excerpt: `“${event.event}”`,
-                  }],
-                };
+          const assertion = timelineAssertion(record, event);
+          const kind = timelineKind(event.event);
           return (
-            <li key={`${event.date}-${event.event}`} className={assertion.state === 'contradictory' ? 'timeline-contradiction' : undefined}>
+            <li key={`${event.date}-${event.event}`} className={`timeline-kind-${kind}${assertion.state === 'contradictory' ? ' timeline-contradiction' : ''}`}>
+              <span className="issue74-timeline-icon" aria-hidden="true"><Icon name={timelineIcons[kind]} size={15} /></span>
               <time>{event.date}</time>
               <div>
                 <strong>{event.event}</strong>
@@ -1951,7 +2283,7 @@ function TimelinePanel({ record, timeline, onInspect }: { record: PatientRecord;
               );
             })}
           </ol>
-          <div className="issue74-fact-evidence"><span>Original disagreement remains available</span><EvidenceLink assertion={conflict} onInspect={onInspect} label="Inspect source evidence ↗" /></div>
+          <div className="issue74-fact-evidence"><span>Original disagreement remains available</span><EvidenceLink assertion={conflict} onInspect={onInspect} label="Inspect source evidence" /></div>
         </section>
       )}
       {sourceUpdate && conflict && (
@@ -1985,7 +2317,7 @@ function TimelinePanel({ record, timeline, onInspect }: { record: PatientRecord;
           </ol>
           <div className="issue74-fact-evidence">
             <span>Provenance chain · {sourceUpdate.source.hospital} · {sourceUpdate.source.title}</span>
-            <EvidenceLink assertion={conflict} onInspect={onInspect} label="Inspect original sources ↗" />
+            <EvidenceLink assertion={conflict} onInspect={onInspect} label="Inspect original sources" />
           </div>
         </section>
       )}
@@ -2015,7 +2347,7 @@ function ItalianReport({ record, onInspect }: { record: PatientRecord; onInspect
       <blockquote lang="it">“Le lesioni epatiche note sono descritte; la resecabilità non è specificata nel referto.”</blockquote>
       <p><strong>Working extraction:</strong> Liver lesions mentioned. Resectability is not stated; direct image review is still needed.</p>
       <p className="issue74-muted">This is one simulated source record; its authority has not been ranked against any other evidence. No image or outside hospital was contacted.</p>
-      <EvidenceLink assertion={assertion} onInspect={onInspect} label="View report source ↗" />
+      <EvidenceLink assertion={assertion} onInspect={onInspect} label="View report source" />
     </div>
   );
 }
@@ -2095,16 +2427,17 @@ function EvidencePanel({ record, agentResult, horizon, onInspect }: { record: Pa
   const evidenceGaps = evidencePanelMissingAssertions(record, horizon);
   const resectabilityAssertion = completenessItems(record, horizon).find((item) => item.label === 'Resectability')?.assertion ?? missingAssertion(record, 'Resectability');
   const missingCount = evidenceGaps.length + (record.id === 'P-010' ? 1 : 0);
-  const facts = [
-    { label: 'Diagnosis and stage', value: `${record.diagnosis.primary} · ${record.diagnosis.stage}`, assertion: evidenceFor(record, 'Disease', record.diagnosis.primary) },
-    { label: 'Treatment', value: record.treatments.map((treatment) => treatment.regimen).join('; ') || 'Not recorded', assertion: evidenceFor(record, 'Treatments so far', record.treatments.map((treatment) => treatment.regimen).join('; ') || 'Not recorded') },
-    { label: 'Latest imaging report', value: record.imaging?.at(-1)?.result ?? 'No imaging report found in this record.', assertion: record.imaging?.length ? evidenceFor(record, 'Latest imaging report', record.imaging.at(-1)?.result ?? '') : missingAssertion(record, 'Imaging report') },
+  const facts = caseFacts(record);
+  const evidenceFacts = [
+    { label: 'Diagnosis and stage', value: `${record.diagnosis.primary} · ${record.diagnosis.stage}`, assertion: facts.disease },
+    { label: 'Treatment', value: treatmentSummary(record), assertion: facts.treatments },
+    { label: 'Latest imaging report', value: record.imaging?.at(-1)?.result ?? 'No imaging report found in this record.', assertion: facts.imaging ?? missingAssertion(record, 'Imaging report') },
   ];
   return (
     <>
       <Panel title="Evidence gathered" actions={<Pill tone="info">{source.format}</Pill>}>
         <dl className="issue74-evidence-facts"><dt>Source institution</dt><dd>{source.label}</dd>
-          {facts.map((fact) => <div className="issue74-evidence-fact-row" key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}<span className="issue74-fact-evidence"><EvidenceMarker state={fact.assertion.state} assertion={fact.assertion} /><EvidenceLink assertion={fact.assertion} onInspect={onInspect} /></span></dd></div>)}
+          {evidenceFacts.map((fact) => <div className="issue74-evidence-fact-row" key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}<span className="issue74-fact-evidence"><EvidenceMarker state={fact.assertion.state} assertion={fact.assertion} /><EvidenceLink assertion={fact.assertion} onInspect={onInspect} /></span></dd></div>)}
         </dl>
         {record.id === 'P-010' && horizon === 'future' && <ItalianReport record={record} onInspect={onInspect} />}
       </Panel>
@@ -2136,29 +2469,28 @@ function completenessItems(record: PatientRecord, horizon: Horizon): Completenes
   const markerNames = Object.keys(record.diagnosis.biomarkers);
   const molecularResult = Object.entries(record.diagnosis.biomarkers).map(([name, value]) => `${name}: ${value}`).join(' · ');
   const hasRasBraf = markerNames.some((name) => /ras|braf/i.test(name)) || /ras|braf/i.test(molecularResult);
+  const facts = caseFacts(record);
   const items: CompletenessItem[] = [
     {
       label: 'Diagnosis and stage',
       detail: `${record.diagnosis.primary} · ${record.diagnosis.stage}`,
       state: 'present',
       relevance: 'Starting point for the recorded MDT question.',
-      assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.primary} · ${record.diagnosis.stage}`),
+      assertion: facts.stage,
     },
     {
       label: 'Treatment history',
       detail: record.treatments.map((item) => `${item.regimen} (${item.status})`).join(' · ') || 'No treatment entry in this record.',
       state: record.treatments.length ? 'present' : 'missing',
       relevance: 'Available context for the team; check dates and status against the source.',
-      assertion: evidenceFor(record, 'Treatments so far', record.treatments.map((item) => item.regimen).join('; ') || 'No treatment recorded'),
+      assertion: record.treatments.length ? facts.treatments : missingAssertion(record, 'Treatment history'),
     },
     {
       label: 'Latest imaging report',
       detail: record.imaging?.at(-1)?.result ?? (record.id === 'P-003' ? 'A surveillance CT is mentioned in the timeline, but its report is not in this record.' : 'No imaging report is present in this record.'),
       state: record.imaging?.length ? 'present' : 'missing',
       relevance: record.id === 'P-003' ? 'Could affect the open question about imaging timing.' : 'Review the report and images with the relevant specialist.',
-      assertion: record.imaging?.length
-        ? evidenceFor(record, 'Latest imaging report', record.imaging.at(-1)?.result ?? '')
-        : missingAssertion(record, 'Latest imaging report'),
+      assertion: facts.imaging ?? missingAssertion(record, 'Latest imaging report'),
     },
   ];
 
@@ -2382,7 +2714,7 @@ function CompletenessPanel({
                   <span>{item.detail}</span>
                   <small>{reconciled ? `Evidence ${review?.outcome === 'accepted-a' ? 'A' : 'B'} selected for this preparation. Original source values remain unchanged.` : reviewRecorded ? `${reviewStatusLabel(review)}. The underlying evidence status is unchanged.` : item.relevance}</small>
                 </div>
-                <span className="issue74-fact-evidence"><EvidenceLink assertion={item.assertion} onInspect={onInspect} /></span>
+                <span className="issue74-fact-evidence"><EvidenceMarker state={item.assertion.state} assertion={item.assertion} /><EvidenceLink assertion={item.assertion} onInspect={onInspect} /></span>
               </li>
             );
           })}
@@ -2444,7 +2776,7 @@ function CompletenessPanel({
               <span className="issue74-eyebrow">SYNTHETIC POPULATION PATTERN · NOT PATIENT EVIDENCE</span>
               <strong>{cohort.cohort}</strong>
               <p>{cohort.pattern}</p>
-              <EvidenceLink assertion={cohortAssertion} onInspect={onInspect} label="Inspect cohort signal and source ↗" />
+              <EvidenceLink assertion={cohortAssertion} onInspect={onInspect} label="Inspect cohort signal and source" />
             </div>
             <div className="issue74-next-question">
               <div><span className="issue74-eyebrow">POSSIBLE NEXT QUESTION FOR THE MDT</span><strong>{cohort.question}</strong></div>
