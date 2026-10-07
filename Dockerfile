@@ -9,6 +9,8 @@ COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/
 RUN npm ci --workspace frontend --include-workspace-root=false
 COPY frontend/ frontend/
+# Ideas may import synthetic JSON at build time (../../../../sample-data/*.json)
+COPY sample-data/ sample-data/
 RUN npm run build --workspace frontend
 
 # ---- 2. Python runtime -------------------------------------------------------
