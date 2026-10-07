@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { api, type AgentResult, type EvidenceReviewProposal, type PatientRecord } from '../../api';
-import { Avatar, ClinicalShell, Icon, Panel, PatientTabs, Pill, Segmented, Sparkline, type IconName, type SearchEntry } from './ui';
+import { Avatar, ClinicalShell, Icon, Panel, Pill, ReviewSteps, Segmented, Sparkline, type IconName, type SearchEntry } from './ui';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './issue-74.css';
@@ -14,6 +14,7 @@ export const meta: IdeaMeta = {
 
 type CaseStatus = 'scheduled' | 'preparing' | 'prepared' | 'accepted' | 'challenged' | 'returned';
 type View = 'worklist' | 'identity' | 'reviewQueue' | 'case' | 'timeline' | 'evidence' | 'completeness' | 'ready';
+const reviewViews: View[] = ['case', 'identity', 'timeline', 'evidence', 'reviewQueue'];
 type Specialty = 'Oncology' | 'Radiology' | 'Pathology';
 type Horizon = 'future' | 'sixMonths';
 type IdentityState = 'verified' | 'probable' | 'review' | 'mismatch';
@@ -90,9 +91,9 @@ const scheduled = [
 const story: StoryStep[] = [
   { id: 'list', title: 'MDT list', explain: 'Four synthetic colorectal cases are scheduled. Their records are still held in different places.' },
   { id: 'acquire', title: 'Gather evidence', explain: 'Prepare all four cases in parallel or prepare one patient; identity and evidence checks stay visible, and missing details remain open.' },
-  { id: 'review', title: 'Review a case', explain: 'Start with a short patient-at-a-glance summary, then open the timeline and source evidence.' },
+  { id: 'review', title: 'Review a case', explain: 'Work through the case in order: overview, identity, timeline, evidence, then verify the open items. Switch patient in the patient list without leaving this step.' },
   { id: 'completeness', title: 'Check what is missing', explain: 'Check whether the record can answer the MDT question, search for existing evidence, then see what similar synthetic cases suggest asking next.' },
-  { id: 'decision', title: 'Ready for MDT', explain: 'Accept the preparation, challenge it or send it back. The clinical team owns the decision.' },
+  { id: 'decision', title: 'Ready for MDT', explain: 'See what is still open, then accept the preparation, challenge it or send it back. Every decision can be reverted; the clinical team owns the clinical decision.' },
 ];
 
 const prepareStages: Stage[] = [
@@ -623,20 +624,18 @@ export default function TeamDomitian() {
   }, []);
 
   const record = records[selectedId];
+  const showReadySummary = view === 'ready' && statuses[selectedId] === 'accepted';
   const readyCount = Object.values(statuses).filter((status) => status === 'prepared' || status === 'accepted').length;
-  const hasPreparation = Object.values(statuses).some((status) => status !== 'scheduled' && status !== 'preparing');
   const timeline = useMemo(() => [...(record?.timeline ?? [])].sort((a, b) => a.date.localeCompare(b.date)), [record]);
   const storyStep = preparing
     ? 'acquire'
-    : view === 'completeness'
-      ? 'completeness'
-    : view === 'ready' || statuses[selectedId] === 'accepted'
-      ? 'decision'
-        : view === 'evidence'
+    : view === 'worklist'
+      ? 'list'
+      : view === 'completeness'
+        ? 'completeness'
+        : view === 'ready'
           ? 'decision'
-        : hasPreparation
-          ? 'review'
-          : 'list';
+          : 'review';
 
   const prepareAll = async () => {
     if (preparing || Object.keys(records).length < scheduled.length) return;
@@ -693,11 +692,18 @@ export default function TeamDomitian() {
   };
 
   const goToStoryStep = (id: string) => {
+    setNotice('');
     if (id === 'list') setView('worklist');
-    if (id === 'acquire') void prepareAll();
-    if (id === 'review') setView('case');
+    if (id === 'acquire') {
+      if (scheduled.some(({ id: patientId }) => statuses[patientId] === 'scheduled')) void prepareAll();
+      else {
+        setView('worklist');
+        setNotice('Evidence is already gathered for all four patients. Use “Prepare this patient” in a case to gather it again.');
+      }
+    }
+    if (id === 'review' && !reviewViews.includes(view)) setView('case');
     if (id === 'completeness') setView('completeness');
-    if (id === 'decision') setView('evidence');
+    if (id === 'decision') setView('ready');
   };
 
   const searchPatientEvidence = async () => {
@@ -710,7 +716,7 @@ export default function TeamDomitian() {
 
   const choosePatient = (id: string) => {
     setSelectedId(id);
-    setView('case');
+    if (view === 'worklist') setView('case');
     setNotice('');
     setChallenge('');
   };
@@ -722,7 +728,6 @@ export default function TeamDomitian() {
   };
   const revertDecision = () => {
     updateDecision('prepared', 'Decision reverted. The preparation is back to draft and can be accepted, challenged or sent back again.');
-    if (view === 'ready') setView('case');
   };
 
   const startAgentReview = async (target: PatientRecord) => {
@@ -819,15 +824,23 @@ export default function TeamDomitian() {
     return entries;
   });
 
-  const patientTabs = [
+  const reviewTabs = [
     { id: 'case', label: 'Overview' },
-    { id: 'timeline', label: 'Timeline' },
-    { id: 'evidence', label: 'Evidence & gaps', badge: selectedConflict ? '!' : undefined },
     { id: 'identity', label: 'Identity', badge: selectedIdentities || undefined },
-    { id: 'completeness', label: 'Completeness' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'evidence', label: 'Evidence', badge: selectedConflict ? '!' : undefined },
     { id: 'reviewQueue', label: 'Review queue', badge: selectedPending || undefined },
-    ...(statuses[selectedId] === 'accepted' ? [{ id: 'ready', label: 'Ready for MDT', badge: '✓' }] : []),
   ];
+  const workflowStage = (id: string) => {
+    const status = statuses[id];
+    if (status === 'scheduled') return 'Evidence not gathered';
+    if (status === 'preparing') return 'Gathering evidence…';
+    if (status === 'accepted') return 'Ready for MDT ✓';
+    if (status === 'challenged') return 'Decision · challenged';
+    if (status === 'returned') return 'Decision · sent back';
+    const pending = pendingFor(records[id]);
+    return pending ? `Review · ${pending} open` : 'Reviewed · decision due';
+  };
 
   const agentPanel = record ? (
     <AgentReviewPanel
@@ -900,17 +913,11 @@ export default function TeamDomitian() {
         })),
       }}>
       <ClinicalShell
-        nav={[
-          { id: 'worklist', label: 'MDT board', icon: 'board', badge: scheduled.length },
-          { id: 'reviewQueue', label: 'Review queue', icon: 'queue', badge: selectedPending || undefined },
-          ...(statuses[selectedId] === 'accepted' ? [{ id: 'ready', label: 'Ready for MDT', icon: 'ready' as const, badge: '✓' }] : []),
-        ]}
-        active={view}
-        onNav={(id) => setView(id as View)}
+        highlightPatient={view !== 'worklist'}
         patients={scheduled.map(({ id, time }) => ({
           id,
           name: records[id]?.name ?? id,
-          meta: `${time} · ${records[id] ? `${records[id].diagnosis.stage.split('(')[0].trim()}` : 'Loading…'}`,
+          meta: `${time} · ${records[id] ? workflowStage(id) : 'Loading…'}`,
           status: statusLabel(statuses[id]),
           tone: preparedTone(statuses[id]),
         }))}
@@ -921,15 +928,12 @@ export default function TeamDomitian() {
           <>
             <Segmented label="Time horizon" value={horizon} onChange={setHorizon} options={[{ id: 'sixMonths', label: 'In six months' }, { id: 'future', label: 'The future' }]} />
             <Segmented label="Colour theme" value={theme} onChange={setTheme} options={[{ id: 'light', label: 'Light', icon: 'sun' }, { id: 'dark', label: 'Dark', icon: 'moon' }]} />
-            <button className="hx-btn primary" type="button" disabled={!dataReady || preparing} onClick={() => void prepareAll()}>
-              {preparing && preparationTarget === 'all' ? <><span className="hx-spinner" aria-hidden /> Preparing all four…</> : 'Prepare all'}
-            </button>
           </>
         )}
         guide={<StoryGuide steps={story} current={storyStep} onGo={goToStoryStep} />}
       >
         <main className="issue74-main" id="issue74-main" tabIndex={-1}>
-        {notice && view !== 'ready' && <div className="issue74-notice" role="status">{notice}</div>}
+        {notice && !showReadySummary && <div className="issue74-notice" role="status">{notice}</div>}
         {loadErrors.length > 0 && <div className="issue74-notice issue74-warning">Could not load {loadErrors.join(', ')}. Start the local demo API to open the synthetic records.</div>}
         {preparing && (
           <Panel title={preparationTarget === 'all' ? 'Preparing the scheduled patients in parallel' : `Preparing ${record?.name ?? 'this patient'}`} eyebrow="Copilot SDK · case preparation" icon="spark">
@@ -1007,7 +1011,7 @@ export default function TeamDomitian() {
         {view !== 'worklist' && (
           record ? (
             <>
-              {view !== 'ready' && (
+              {!showReadySummary && (
                 <section className="issue74-patient-header" aria-label="Patient header">
                   <Avatar name={record.name} size="lg" />
                   <div className="issue74-patient-id">
@@ -1040,8 +1044,28 @@ export default function TeamDomitian() {
                   </div>
                 </section>
               )}
-              {view !== 'ready' && <PatientTabs tabs={patientTabs} active={view} onChange={(id) => setView(id as View)} />}
-              {view === 'ready' && <ReadyForMDT
+              {reviewViews.includes(view) && (
+                <ReviewSteps
+                  step={3}
+                  title="Review a case"
+                  tabs={reviewTabs}
+                  active={view}
+                  onChange={(id) => setView(id as View)}
+                  next={{ label: 'Check what is missing', onClick: () => setView('completeness') }}
+                />
+              )}
+              {view === 'ready' && !showReadySummary && (
+                <div className="issue74-overview issue74-decision-step">
+                  <div className="issue74-overview-main">
+                    {reviewPanel}
+                    <VerificationProgress record={record} horizon={horizon} agentResult={agentResults[selectedId]} onInspect={inspect} onOpenQueue={() => setView('reviewQueue')} />
+                  </div>
+                  <aside className="issue74-overview-rail" aria-label="Still open before the MDT">
+                    <AttentionPanel record={record} horizon={horizon} decisions={identityDecisions} agentResult={agentResults[selectedId]} onNavigate={setView} onInspect={inspect} />
+                  </aside>
+                </div>
+              )}
+              {showReadySummary && <ReadyForMDT
                 record={record}
                 horizon={horizon}
                 decisions={identityDecisions}
@@ -1057,7 +1081,6 @@ export default function TeamDomitian() {
                     <AtAGlance record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={inspect} />
                     {agentPanel}
                     {horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
-                    {reviewPanel}
                   </div>
                   <aside className="issue74-overview-rail" aria-label="Case status">
                     <AttentionPanel record={record} horizon={horizon} decisions={identityDecisions} agentResult={agentResults[selectedId]} onNavigate={setView} onInspect={inspect} />
@@ -1119,7 +1142,11 @@ export default function TeamDomitian() {
                   onInspect={inspect}
                 />
               )}
-              {(view === 'evidence' || view === 'completeness') && reviewPanel}
+              {view === 'completeness' && (
+                <div className="issue74-step-next">
+                  <button className="hx-btn primary" type="button" onClick={() => setView('ready')}>Next: Ready for MDT decision →</button>
+                </div>
+              )}
               {view !== 'ready' && view !== 'case' && view !== 'reviewQueue' && horizon === 'future' && specialty !== 'Oncology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={inspect} />}
             </>
           ) : (

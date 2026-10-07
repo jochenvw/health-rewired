@@ -4572,3 +4572,96 @@
   .issue74-queue-table th:nth-child(5),
   .issue74-queue-table td:nth-child(5) { display: none; }
 }
+
+/* ───────── One workflow: wizard sub-steps + patient switcher ───────── */
+.p74-substeps {
+  align-items: center;
+  gap: 10px;
+}
+
+.p74-substeps ol {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.p74-substeps-label {
+  flex: 0 0 auto;
+  color: var(--p74-text-3);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.p74-substep-num {
+  display: inline-grid;
+  min-width: 26px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--p74-surface-3);
+  color: var(--p74-text-2);
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.p74-tabs button.active .p74-substep-num {
+  background: var(--p74-accent);
+  color: #fff;
+}
+
+.p74-tabs button.done .p74-substep-num {
+  background: var(--p74-accent-soft);
+  color: var(--p74-accent);
+}
+
+.p74-substeps-next {
+  flex: 0 0 auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.p74-sidebar-hint {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  color: var(--p74-text-3);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.issue74-step-next {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .p74-sidebar .p74-sidebar-section {
+    display: flex;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .p74-sidebar-label,
+  .p74-sidebar-hint {
+    display: none;
+  }
+
+  .p74-patient-list {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+
+  .p74-patient-list button {
+    width: auto;
+    min-width: 180px;
+  }
+
+  .p74-substeps-label {
+    display: none;
+  }
+}

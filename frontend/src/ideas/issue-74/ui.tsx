@@ -81,7 +81,6 @@ export function Sparkline({ values, label }: { values: number[]; label: string }
   );
 }
 
-export type NavItem = { id: string; label: string; icon: IconName; badge?: string | number };
 export type ShellPatient = { id: string; name: string; meta: string; status: string; tone: Tone };
 export type SearchEntry = { id: string; kind: string; title: string; detail: string; keywords?: string; onSelect: () => void };
 
@@ -182,22 +181,18 @@ function Spotlight({ entries }: { entries: SearchEntry[] }) {
 }
 
 export function ClinicalShell({
-  nav,
-  active,
-  onNav,
   patients,
   selectedPatientId,
+  highlightPatient,
   onPatient,
   search,
   controls,
   guide,
   children,
 }: {
-  nav: NavItem[];
-  active: string;
-  onNav: (id: string) => void;
   patients: ShellPatient[];
   selectedPatientId: string;
+  highlightPatient: boolean;
   onPatient: (id: string) => void;
   search: SearchEntry[];
   controls: ReactNode;
@@ -206,26 +201,18 @@ export function ClinicalShell({
 }) {
   return (
     <div className="p74-app">
-      <aside className="p74-sidebar" aria-label="MDT preparation navigation">
+      <aside className="p74-sidebar" aria-label="Patients on tomorrow's MDT">
         <div className="p74-brand">
           <span className="p74-brand-mark" aria-hidden="true"><Icon name="stethoscope" size={18} /></span>
           <div><strong>MDT Prep</strong><small>Colorectal tumour board</small></div>
         </div>
-        <nav className="p74-nav">
-          {nav.map((item) => (
-            <button key={item.id} type="button" className={active === item.id ? 'active' : ''} aria-current={active === item.id ? 'page' : undefined} onClick={() => onNav(item.id)}>
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-              {item.badge !== undefined && item.badge !== '' && <em>{item.badge}</em>}
-            </button>
-          ))}
-        </nav>
         <div className="p74-sidebar-section">
-          <span className="p74-sidebar-label">Tomorrow · 4 patients</span>
+          <span className="p74-sidebar-label">Patients · tomorrow · {patients.length}</span>
+          <p className="p74-sidebar-hint">Switch patient · you stay on the same workflow step.</p>
           <ul className="p74-patient-list">
             {patients.map((patient) => (
               <li key={patient.id}>
-                <button type="button" className={selectedPatientId === patient.id && active !== 'worklist' ? 'active' : ''} onClick={() => onPatient(patient.id)}>
+                <button type="button" className={selectedPatientId === patient.id && highlightPatient ? 'active' : ''} aria-current={selectedPatientId === patient.id && highlightPatient ? 'true' : undefined} onClick={() => onPatient(patient.id)}>
                   <Avatar name={patient.name} size="sm" />
                   <span><strong>{patient.name}</strong><small>{patient.meta}</small></span>
                   <i className={`p74-status-dot tone-${patient.tone}`} title={patient.status} aria-label={patient.status} />
@@ -262,15 +249,34 @@ export function Segmented<T extends string>({ label, value, options, onChange }:
   );
 }
 
-export function PatientTabs({ tabs, active, onChange }: { tabs: { id: string; label: string; badge?: string | number }[]; active: string; onChange: (id: string) => void }) {
+/** Sub-steps of one guided-workflow step, in the order the work is done, with a Next action. */
+export function ReviewSteps({ step, title, tabs, active, onChange, next }: {
+  step: number;
+  title: string;
+  tabs: { id: string; label: string; badge?: string | number }[];
+  active: string;
+  onChange: (id: string) => void;
+  next: { label: string; onClick: () => void };
+}) {
+  const index = Math.max(0, tabs.findIndex((tab) => tab.id === active));
+  const following = tabs[index + 1];
   return (
-    <nav className="p74-tabs" aria-label="Patient record sections">
-      {tabs.map((tab) => (
-        <button key={tab.id} type="button" className={active === tab.id ? 'active' : ''} aria-current={active === tab.id ? 'page' : undefined} onClick={() => onChange(tab.id)}>
-          {tab.label}
-          {tab.badge !== undefined && tab.badge !== '' && tab.badge !== 0 && <em>{tab.badge}</em>}
-        </button>
-      ))}
+    <nav className="p74-tabs p74-substeps" aria-label={`Step ${step} · ${title}`}>
+      <span className="p74-substeps-label">Step {step} · {title}</span>
+      <ol>
+        {tabs.map((tab, i) => (
+          <li key={tab.id}>
+            <button type="button" className={`${active === tab.id ? 'active' : ''}${i < index ? ' done' : ''}`} aria-current={active === tab.id ? 'step' : undefined} onClick={() => onChange(tab.id)}>
+              <span className="p74-substep-num" aria-hidden="true">{step}.{i + 1}</span>
+              {tab.label}
+              {tab.badge !== undefined && tab.badge !== '' && tab.badge !== 0 && <em>{tab.badge}</em>}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <button type="button" className="hx-btn sm p74-substeps-next" onClick={following ? () => onChange(following.id) : next.onClick}>
+        Next: {following ? following.label : next.label} →
+      </button>
     </nav>
   );
 }
