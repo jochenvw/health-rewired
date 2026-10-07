@@ -8,6 +8,7 @@ WORKDIR /src
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/
 RUN npm ci --workspace frontend --include-workspace-root=false
+COPY sample-data/issue-86-audit-events.json sample-data/
 COPY frontend/ frontend/
 RUN npm run build --workspace frontend
 
