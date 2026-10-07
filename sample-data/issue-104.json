@@ -1,0 +1,74 @@
+{
+  "synthetic": true,
+  "notice": "Invented consultation scenario and teaching numbers. No validated risk model; guideline full texts have not been retrieved or checked.",
+  "patient": {
+    "id": "SDM-104",
+    "name": "Eva Sommer",
+    "age": 68,
+    "sex": "female",
+    "diagnosis": "Resected stage III colon cancer · pT3N1a · M0",
+    "allergies": "None recorded (synthetic)",
+    "mdt": "Discuss shorter oral-plus-infusion treatment versus longer infusion treatment. No single option chosen; confirm fitness and patient preferences.",
+    "details": "Synthetic record: ECOG 1; mild diabetic foot tingling; eGFR 72 mL/min; haemoglobin 12.1 g/dL; MMR proficient. Walks daily and cares for a partner.",
+    "minimal": "Age 68; resected colon cancer; pT3N1a, M0; MMR proficient; MDT options recorded."
+  },
+  "countries": [
+    {
+      "name": "Germany",
+      "source": "German colorectal cancer guideline · version 3.2.1",
+      "url": "https://github.com/user-attachments/files/33147972/LL_KRK_Langversion_3.2.1.pdf",
+      "summary": "Demo discussion: additional chemotherapy after surgery; compare duration, side effects and the patient's ability to manage treatment.",
+      "labels": ["CAPOX · 3 months", "FOLFOX · 6 months"]
+    },
+    {
+      "name": "Italy",
+      "source": "Italian colon cancer guideline · LG.146 · August 2024",
+      "url": "https://github.com/user-attachments/files/33147967/LG.146_Colon_agg2024-13-17.pdf",
+      "summary": "Demo discussion: terapia adiuvante (treatment after surgery); balance possible benefit with tolerability and everyday life.",
+      "labels": ["CAPOX · 3 months · terapia adiuvante", "FOLFOX · 6 months · terapia adiuvante"]
+    },
+    {
+      "name": "Netherlands",
+      "source": "Richtlijnendatabase · colorectaal carcinoom",
+      "url": "https://richtlijnendatabase.nl/richtlijn/colorectaal_carcinoom_crc/startpagina_-_colorectaal_carcinoom.html",
+      "summary": "Demo discussion: adjuvante behandeling (treatment after surgery); discuss duration and burden together with the patient.",
+      "labels": ["CAPOX · 3 months · adjuvante behandeling", "FOLFOX · 6 months · adjuvante behandeling"]
+    }
+  ],
+  "options": [
+    {
+      "id": "short",
+      "plain": "Tablets at home and an infusion, over three months",
+      "benefit": "Shorter course; fewer weeks of treatment.",
+      "burden": "Tablets need careful daily management; bowel and hand/foot symptoms can occur.",
+      "survival": 80,
+      "recurrence": 18,
+      "neuropathy": 12,
+      "quality": 8,
+      "mobility": 8,
+      "survivalFit": 6,
+      "visits": 4,
+      "fatigue": [6, 4, 2]
+    },
+    {
+      "id": "long",
+      "plain": "Infusions with a take-home pump, over six months",
+      "benefit": "Another way to deliver treatment; avoids daily chemotherapy tablets.",
+      "burden": "Longer course, pump care and more visits; persistent tingling may limit walking.",
+      "survival": 81,
+      "recurrence": 16,
+      "neuropathy": 25,
+      "quality": 5,
+      "mobility": 4,
+      "survivalFit": 9,
+      "visits": 12,
+      "fatigue": [7, 7, 4]
+    }
+  ],
+  "coverage": ["Age", "pTNM", "Non-metastatic CRC: MSI", "MDT treatment recommendation", "Medical history", "WHO performance status", "Renal function"],
+  "terms": {
+    "Adjuvant therapy": "Extra treatment after surgery to reduce the chance that cancer returns. It does not mean cancer is known to remain.",
+    "Resection": "An operation to remove the part of the bowel containing the cancer.",
+    "Neuropathy": "Numbness, tingling or pain from affected nerves, often in hands or feet. It can make walking or using your hands harder."
+  }
+}
