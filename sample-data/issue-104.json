@@ -9,7 +9,7 @@
     "diagnosis": "Resected stage III colon cancer · pT3N1a · M0",
     "allergies": "None recorded (synthetic)",
     "mdt": "Discuss shorter oral-plus-infusion treatment, longer infusion treatment, or no additional chemotherapy with follow-up. No single option chosen; confirm fitness and patient preferences.",
-    "details": "Synthetic record: ECOG 1; mild diabetic foot tingling; eGFR 72 mL/min; haemoglobin 12.1 g/dL; MMR proficient. Walks daily and cares for a partner.",
+    "details": "Synthetic record: ECOG 1; eGFR 72 mL/min; haemoglobin 12.1 g/dL; MMR proficient. Discuss concerns about chemotherapy-related fatigue and nerve symptoms.",
     "minimal": "Age 68; resected colon cancer; pT3N1a, M0; MMR proficient; MDT options recorded."
   },
   "countries": [
@@ -79,27 +79,39 @@
       "fatigue": [3, 2, 1]
     }
   ],
+  "sideEffectReference": {
+    "title": "Bijwerkingen bij kanker · side-effect topics",
+    "url": "https://www.bijwerkingenbijkanker.nl/bijwerkingen",
+    "limitation": "Topic selection based on the side-effect index returned by web search. Direct page retrieval unavailable; regimen-specific advice and frequencies not verified. Definitions below are our plain-language summaries, not quotations."
+  },
+  "sideEffects": [
+    { "name": "Hair loss", "description": "Some cancer treatments can cause hair thinning or loss. Whether it occurs depends on the treatment; it is not assumed for every regimen." },
+    { "name": "Neuropathy", "description": "Treatment-related nerve symptoms can include tingling, numbness or pain in hands or feet and may affect daily activities." },
+    { "name": "Fatigue", "description": "Cancer and its treatment can cause tiredness that affects daily activity. It is not always relieved by rest." },
+    { "name": "Nausea and vomiting", "description": "Cancer treatment can make a person feel sick or vomit. The clinical team should assess symptoms and discuss supportive care." },
+    { "name": "Hand–foot syndrome", "description": "Some treatments can cause sore, red or peeling skin on palms and soles. This differs from nerve damage (neuropathy)." }
+  ],
   "priorityCases": [
     {
-      "id": "walking", "title": "Foot tingling · daily walks",
-      "context": "Synthetic Eva: mild diabetic foot tingling; daily walks and caring for a partner make energy and foot symptoms relevant.",
-      "note": "I want energy for partner care and to avoid worse foot tingling on my daily walks.",
-      "labels": { "quality": "Have energy for daily partner care", "survivalFit": "Reduce the chance of cancer returning", "mobility": "Avoid worse foot tingling on daily walks" },
+      "id": "neuropathy", "title": "Colon cancer · neuropathy concern",
+      "context": "Synthetic Eva after colon cancer surgery: concerned about chemotherapy-related fatigue and lasting tingling or numbness in hands and feet.",
+      "note": "I want to weigh cancer control against fatigue and lasting chemotherapy-related nerve symptoms.",
+      "labels": { "quality": "Limit treatment-related fatigue", "survivalFit": "Reduce the chance of cancer returning", "mobility": "Avoid lasting neuropathy in hands and feet" },
       "scores": [{ "quality": 8, "survivalFit": 6, "mobility": 8 }, { "quality": 5, "survivalFit": 9, "mobility": 4 }, { "quality": 9, "survivalFit": 1, "mobility": 10 }]
     },
     {
-      "id": "shoulder", "title": "Shoulder limitation · self-care",
-      "context": "Alternative synthetic Eva: painful restricted shoulder movement; walking is not her concern. Managing tablets and dressing without help matter.",
-      "note": "I want to manage medication and dress myself despite limited shoulder movement.",
-      "labels": { "quality": "Manage tablets without extra help", "survivalFit": "Reduce the chance of cancer returning", "mobility": "Dress and wash with limited shoulder movement" },
-      "scores": [{ "quality": 3, "survivalFit": 6, "mobility": 6 }, { "quality": 7, "survivalFit": 9, "mobility": 4 }, { "quality": 9, "survivalFit": 1, "mobility": 9 }]
+      "id": "hair-loss", "title": "Colon cancer · hair-loss concern",
+      "context": "Alternative synthetic Eva after colon cancer surgery: wants to discuss possible hair changes during treatment alongside fatigue. Hair loss is a discussion topic, not a verified risk for these regimens.",
+      "note": "I want to discuss possible hair loss and fatigue while weighing cancer-control benefit.",
+      "labels": { "quality": "Limit treatment-related fatigue", "survivalFit": "Reduce the chance of cancer returning", "mobility": "Avoid treatment-related hair loss" },
+      "scores": [{ "quality": 8, "survivalFit": 6, "mobility": 5 }, { "quality": 5, "survivalFit": 9, "mobility": 5 }, { "quality": 9, "survivalFit": 1, "mobility": 10 }]
     },
     {
-      "id": "caregiving", "title": "Caregiving · travel support",
-      "context": "Alternative synthetic Eva: provides daily childcare and needs a relative to drive her to clinic. Energy and transport burden matter more than walking.",
-      "note": "I want energy for childcare and fewer visits requiring someone to drive me.",
-      "labels": { "quality": "Keep energy for daily childcare", "survivalFit": "Reduce the chance of cancer returning", "mobility": "Limit visits needing travel support" },
-      "scores": [{ "quality": 8, "survivalFit": 6, "mobility": 8 }, { "quality": 4, "survivalFit": 9, "mobility": 3 }, { "quality": 9, "survivalFit": 1, "mobility": 10 }]
+      "id": "nausea", "title": "Colon cancer · nausea concern",
+      "context": "Alternative synthetic Eva after colon cancer surgery: concerned about nausea or vomiting and treatment-related fatigue. Supportive care should be discussed with the clinical team.",
+      "note": "I want to weigh cancer control against nausea, vomiting and fatigue during treatment.",
+      "labels": { "quality": "Limit treatment-related fatigue", "survivalFit": "Reduce the chance of cancer returning", "mobility": "Avoid treatment-related nausea and vomiting" },
+      "scores": [{ "quality": 8, "survivalFit": 6, "mobility": 6 }, { "quality": 5, "survivalFit": 9, "mobility": 6 }, { "quality": 9, "survivalFit": 1, "mobility": 10 }]
     }
   ],
   "comparablePatients": [

@@ -24,12 +24,17 @@ A guided worklist-to-decision walkthrough compares three synthetic choices, incl
 chemotherapy with follow-up (“No treatment / Do nothing”). Germany, Italy
 and Netherlands selectors change teaching wording and guideline source pointers. Linked sliders
 change preference fit, never the medical risk numbers. Every consequential element has expandable
-reasoning. Ten priority points are shared between quality of life, survival benefit and walking:
+reasoning. Ten priority points are shared between treatment-related fatigue, cancer control and a case-specific side-effect concern:
 increasing one redistributes the remaining points proportionally between the others, with whole-point
 rounding; an empty pair splits the remainder evenly. Presets and reset use the same ten-point budget.
 Live bars beside the sliders demonstrate how fit changes immediately.
-Three alternative synthetic Eva case examples adapt the factors: foot tingling and partner care,
-restricted shoulder movement and self-care, or childcare and transport support. Labels and transparent
+Three alternative synthetic colon cancer cases adapt the factors: neuropathy, hair loss or nausea
+concerns after surgery. The side-effect topic panel also explains fatigue and hand–foot syndrome.
+Topic selection uses the Bijwerkingen bij kanker side-effect index returned by web search;
+direct retrieval was unavailable. Short original definitions link to that index, not unverified deep links.
+Regimen-specific advice, frequencies and differences remain unverified. Hair-loss and nausea
+fit assumptions are equal between the chemotherapy choices; this does not establish equal clinical risk.
+Labels and transparent
 invented option-fit scores change with the case; medical placeholder figures do not. Changing case
 resets priorities, draft, choice and note so the previous scenario is not accidentally recorded.
 Named snapshots preserve weights, factor labels, fit scores, option labels, country and case context.
@@ -50,8 +55,8 @@ A synthetic 68-year-old stage III colon cancer scenario, unverified teaching sum
 links, patient priorities, case example and selected country. “Patients like me” uses invented European
 records filtered by age within five years, stage III and any tied highest-rated priority. No priorities
 means no matches in the compatible API; the UI always allocates ten points.
-Only the foot-tingling case has compatible observational examples. Shoulder and caregiving cases
-explicitly show no compatible records rather than relabelling walking examples.
+Only the neuropathy case has compatible observational examples. Hair-loss and nausea cases
+explicitly show no compatible records rather than relabelling neuropathy examples.
 
 ## Outputs
 Focused sections: worklist → visual outcomes → priorities → Patients like me → decision.

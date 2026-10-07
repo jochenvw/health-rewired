@@ -24,7 +24,7 @@ class Priorities(BaseModel):
 class Consultation(BaseModel):
     country: Literal["Germany", "Italy", "Netherlands"] = "Germany"
     horizon: Literal["future", "six-months"] = "future"
-    case_id: Literal["walking", "shoulder", "caregiving"] = "walking"
+    case_id: Literal["neuropathy", "hair-loss", "nausea"] = "neuropathy"
     priorities: Priorities = Field(default_factory=Priorities)
 
 
@@ -34,13 +34,13 @@ def consultation_data(params: Consultation) -> dict:
     priority_case = next(item for item in data["priorityCases"] if item["id"] == params.case_id)
     patient = data["patient"]["minimal"]
     if params.horizon == "future":
-        patient += " " + (data["patient"]["details"] if params.case_id == "walking" else priority_case["context"])
+        patient += " " + data["patient"]["details"] + " " + priority_case["context"]
     weights = params.priorities.model_dump()
     top_weight = max(weights.values())
     comparable = [
         item
         for item in data["comparablePatients"]
-        if params.case_id == "walking"
+        if params.case_id == "neuropathy"
         and abs(item["age"] - data["patient"]["age"]) <= 5
         and item["stage"] == "III"
         and top_weight > 0
@@ -52,6 +52,8 @@ def consultation_data(params: Consultation) -> dict:
         "patient": patient,
         "priorities": weights,
         "priority_case": priority_case,
+        "side_effect_reference": data["sideEffectReference"],
+        "side_effects": data["sideEffects"],
         "evidence_status": {
             "guidelines_and_trials": "Guideline pointers unverified; no trial results retrieved.",
             "prediction_model": "No model connected. Displayed probabilities are teaching placeholders.",
@@ -89,10 +91,13 @@ async def explain(params: Consultation) -> AgentResult:
             "guideline passages or country-specific clinical differences. Full texts are not verified. "
             "Separate patient values from guideline/trial evidence, unconnected prediction models and "
             "synthetic observational examples. Discuss the provided priorities without treating fit as "
-            "a clinical probability. Use the selected priority_case labels and context, not generic walking "
-            "labels for shoulder or caregiving cases. Case-specific fit scores are invented assumptions, not "
+            "a clinical probability. Use the selected cancer side-effect priority_case labels and context. "
+            "The side_effect_reference supports topic selection only: regimen-specific advice and frequencies "
+            "are unverified. Never infer hair-loss or nausea likelihoods or compare regimen toxicity from "
+            "invented fit scores. Distinguish neuropathy from hand-foot syndrome. "
+            "Case-specific fit scores are invented assumptions, not "
             "personalised medical predictions; clinical placeholder probabilities stay fixed. Discuss lack "
-            "of matching records when comparable_patients is empty. Do not relabel walking cohorts. Fit is not "
+            "of matching records when comparable_patients is empty. Do not relabel neuropathy cohorts. Fit is not "
             "a clinical probability. Comparable cases are not causal evidence. Do not suggest a learning "
             "loop has transmitted data or trained a model. Say summaries are synthetic, not guideline "
             "recommendations. Final choice is human."
@@ -143,6 +148,12 @@ async def explain(params: Consultation) -> AgentResult:
                         source=context["country"]["url"],
                     ),
                     UIItem(label="Ask together", detail=context["priority_case"]["context"]),
+                    UIItem(
+                        label=context["side_effect_reference"]["title"],
+                        detail=context["side_effect_reference"]["limitation"]
+                        + " Topic information only; not a source for invented risks or preference-fit scores.",
+                        source=context["side_effect_reference"]["url"],
+                    ),
                     UIItem(label="Prediction model", detail=context["evidence_status"]["prediction_model"]),
                     UIItem(
                         label="Patients like me",

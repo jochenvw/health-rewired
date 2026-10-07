@@ -56,18 +56,24 @@ def test_priorities_filter_synthetic_cases_and_reach_explanation(monkeypatch):
     assert client.post("/api/ideas/104/explain", json={"priorities": {"quality": 11}}).status_code == 422
 
 
-@pytest.mark.parametrize("case_id", ["shoulder", "caregiving"])
+@pytest.mark.parametrize("case_id", ["neuropathy", "hair-loss", "nausea"])
 def test_case_specific_priorities_and_fallback(case_id, monkeypatch):
     monkeypatch.setattr(settings, "copilot_token", None)
     monkeypatch.setattr(settings, "copilot_use_logged_in_user", False)
     context = consultation_data(Consultation(case_id=case_id))
     assert context["priority_case"]["id"] == case_id
-    assert "walking" not in context["priority_case"]["labels"]["mobility"].lower()
-    assert context["comparable_patients"] == []
+    assert "colon cancer" in context["priority_case"]["context"]
+    assert "treatment-related fatigue" in context["priority_case"]["labels"]["quality"]
+    if case_id != "neuropathy":
+        assert context["comparable_patients"] == []
+        assert context["priority_case"]["scores"][0]["mobility"] == context["priority_case"]["scores"][1]["mobility"]
     assert context["priority_case"]["context"] in context["patient"]
     assert len(context["priority_case"]["scores"]) == len(context["options"])
     client = TestClient(app)
     result = client.post("/api/ideas/104/explain", json={"case_id": case_id}).json()
     assert result["mode"] == "fallback"
     assert context["priority_case"]["labels"]["mobility"] in result["blocks"][0]["body"]
+    assert context["side_effect_reference"]["url"] in str(result)
+    assert "not a source for invented risks" in str(result)
+    assert {effect["name"] for effect in context["side_effects"]} >= {"Hair loss", "Neuropathy"}
     assert client.post("/api/ideas/104/explain", json={"case_id": "unknown"}).status_code == 422

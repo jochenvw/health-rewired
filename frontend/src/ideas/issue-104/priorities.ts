@@ -1,7 +1,7 @@
 export const criteria = [
-  { key: 'quality', label: 'Everyday quality of life' },
-  { key: 'survivalFit', label: 'Possible survival benefit' },
-  { key: 'mobility', label: 'Keep walking' },
+  { key: 'quality', label: 'Limit treatment-related fatigue' },
+  { key: 'survivalFit', label: 'Reduce the chance of cancer returning' },
+  { key: 'mobility', label: 'Avoid treatment-related side effects' },
 ] as const;
 
 export type Criterion = typeof criteria[number]['key'];
