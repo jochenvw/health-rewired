@@ -86,15 +86,56 @@ def test_idea_routers_are_discovered_and_mounted(client):
         assert {route.path for route in router.routes} <= mounted
 
 
-def test_tacit_knowledge_capture_has_a_demo_fallback(client):
+def test_tacit_knowledge_capture_preserves_provenance_in_demo_fallback(client):
+    explanation = "The patient has poor cardiopulmonary reserve and is unlikely to tolerate major surgery."
     response = client.post(
         "/api/ideas/98/capture",
-        json={"explanation": "He looks frailer than three weeks ago and needed help walking."},
+        json={"explanation": explanation},
     )
 
     assert response.status_code == 200
     body = response.json()
     assert body["mode"] == "fallback"
-    observation = next(block for block in body["blocks"] if block["type"] == "evidence")
-    assert observation["title"] == "Newly captured clinical observation"
-    assert any(item["label"] == "Source" and item["detail"] == "Treating clinician" for item in observation["items"])
+    assert body["original_explanation"] == explanation
+    assert body["concept"] == "Operative physiological reserve"
+    assert body["status"] == "Hypothesised"
+    assert body["evidence_timing"].startswith("Recorded after the decision")
+    assert body["created_by"] == "Treating clinician · agent elicitation"
+    assert body["result"]["mode"] == "fallback"
+
+
+def test_tacit_analysis_generates_synthetic_comparisons_and_metrics(client):
+    response = client.get("/api/ideas/98/analysis?size=200")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["synthetic"] is True
+    assert body["size"] == body["metrics"]["episodes_analysed"] == 200
+    assert len(body["comparison"]["cases"]) == 5
+    assert all(case["similarity"] >= 70 for case in body["comparison"]["cases"])
+    assert all(case["decision"] == "Immediate surgery" for case in body["comparison"]["cases"])
+    assert all("caregiver" not in case["evidence_available_at_decision"] for case in body["comparison"]["cases"])
+    assert all(factor["counterexample_count"] > 0 for factor in body["factors"])
+    assert body["metrics"]["unexplained_rate"] >= 0
+    assert body["factors"][0]["examples"][0]["available_at_decision"] is False
+    reverse = client.get(
+        "/api/ideas/98/analysis",
+        params={"size": 200, "current_decision": "Immediate surgery"},
+    ).json()
+    assert reverse["comparison"]["current_episode"]["decision"] == "Immediate surgery"
+    assert all(case["decision"] == "Systemic therapy first" for case in reverse["comparison"]["cases"])
+
+
+def test_tacit_analysis_counts_change_only_after_human_validation(client):
+    path = "/api/ideas/98/analysis"
+    before = client.get(path, params={"size": 200}).json()
+    validated = client.get(
+        path,
+        params={"size": 200, "validated_concepts": before["factors"][0]["concept"]},
+    ).json()
+
+    assert validated["metrics"]["validated_factors"] == 1
+    assert (
+        validated["metrics"]["unexplained_after_validated_factors"]
+        < before["metrics"]["unexplained_after_validated_factors"]
+    )
