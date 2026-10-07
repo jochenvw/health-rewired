@@ -73,6 +73,11 @@ or EHR write-back.
 ## Dependencies
 Existing HospitalShell, StoryGuide, Backstage, generated block registry and shared Copilot runner.
 No new dependencies or infrastructure.
+Per participant feedback in PR comment 6036805456, issue-local styling follows the supplied
+Enrollment Match reference: warm greys, vermilion accents, square geometry, bold sans-serif headings
+and structural divider lines. It retains HospitalShell behaviour and labelled Light/Dark controls;
+shared shell styles and other ideas are unchanged. Typography uses a local Archivo/Arial/system
+fallback stack without adding font assets or external font requests. Dark mode adapts the same palette.
 
 ## Major assumptions
 All summaries, risks, preference scores and trajectories are invented teaching material, not
