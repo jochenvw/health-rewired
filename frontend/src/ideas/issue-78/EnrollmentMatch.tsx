@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Pill } from '../../hospital/HospitalShell';
 import type { Context, Criterion, Trial } from './index';
 import { SourceReference, TrialCentres } from './SourceReference';
+import { Intervention, TrialEvidence } from './TrialEvidence';
 
 export type Inspection = { trialId: string; criterionId?: string };
 type Props = {
@@ -22,7 +23,7 @@ function CriterionStatus({ criterion }: { criterion: Criterion }) {
   </span>;
 }
 
-function TrialEvidence({ trial }: { trial: Trial }) {
+function EvidenceDetails({ trial }: { trial: Trial }) {
   return <details className="tm78-disclosure"><summary>Evidence, prior phases & provenance</summary>
     <small>Synthetic evidence only; no personalised prediction or live literature search.</small>
     {trial.evidence_track?.length ? trial.evidence_track.map((evidence, index) =>
@@ -113,12 +114,16 @@ export function EnrollmentMatch({
                   <button className="tm78-trial-heading" aria-controls="tm78-inspector"
                     aria-pressed={inspected?.id === trial.id && !criterion}
                     onClick={(event) => inspect({ trialId: trial.id }, event.currentTarget)}>{trial.title}</button>
+                   <Intervention trial={trial} />
                   <small>{trial.site}</small>
                   <TrialCentres trial={trial} />
                   <div className="tm78-segments" aria-hidden="true">{trial.criteria.map((item) =>
                     <span key={item.id} className={`tm78-segment-${item.status}`} />)}</div>
                   <span className={`tm78-verdict ${isExcluded ? 'tm78-status-Conflict' : 'tm78-status-Unknown'}`}>
-                    {isExcluded ? 'Excluded · cannot select' : trial.counts.Unknown ? 'Partial match' : 'Protocol review required'}</span>
+                    {isExcluded ? 'Not eligible on recorded criteria' : 'Potentially eligible — unconfirmed'}</span>
+                   {isExcluded && <p className="tm78-status-Conflict">{trial.criteria.filter((item) => item.status === 'Conflict').map((item) => `${item.text} — ${item.patient_value || item.evidence}`).join(' · ')}</p>}
+                   <TrialEvidence trial={trial} />
+                   <button className="hx-btn" onClick={(event) => inspect({ trialId: trial.id }, event.currentTarget)}>See details</button>
                   <small>{trial.counts.Match} met · {trial.counts.Conflict} not met · {trial.counts.Unknown} unknown</small>
                   <label className="tm78-choice"><input type="radio" name="enrollment-screening-candidate"
                     aria-label={`Choose ${trial.title} for screening${isExcluded ? ' — excluded' : ''}`}
@@ -177,6 +182,7 @@ export function EnrollmentMatch({
           <TrialCentres trial={inspected} />
           <p>{inspected.description}</p>
           <h3>Study treatment</h3><p>{inspected.treatment || 'Fictional demo regimen · details pending'}</p>
+          <Intervention trial={inspected} />
           <div className="tm78-arms">{inspected.arms?.map((arm, index) =>
             <div key={arm}><span className="tm78-arm-letter" aria-hidden="true">{String.fromCharCode(65 + index)}</span>
               <div><span className="tm78-eyebrow">Arm {String.fromCharCode(65 + index)}</span><strong>{arm}</strong></div></div>)}</div>
@@ -190,7 +196,7 @@ export function EnrollmentMatch({
           <div hidden={!secondaryExpanded}>
           <details><summary>Why this screening priority · best local first</summary><p>{inspected.priority_reason}</p>
             <small>Not a predicted benefit or treatment recommendation.</small></details>
-          <TrialEvidence trial={inspected} />
+          <EvidenceDetails trial={inspected} />
           <details><summary>All protocol criteria & exclusion reasons</summary>{[...inspected.criteria]
             .sort((a, b) => Number(b.status === 'Unknown') - Number(a.status === 'Unknown')).map((item) =>
               <div key={item.id}><CriterionStatus criterion={item} /><p>{item.text} · {item.evidence}</p>

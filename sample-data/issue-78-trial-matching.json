@@ -7,6 +7,7 @@
     "age": 58,
     "sex": "female",
     "diagnosis": "Metastatic sigmoid adenocarcinoma · liver metastases",
+    "treatment_line": "Considering second-line treatment",
     "allergies": "Not recorded"
   },
   "facts": {
@@ -28,6 +29,11 @@
       "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}, {"name": "Rewired Süd Trial Centre", "city": "Augsburg", "distance_km": 65, "nearest": false}],
       "site_contact": {"name": "PATHWAY-CRC principal investigator (synthetic)", "email": "pathway-crc@trial-site.invalid"},
       "treatment": "Investigational KRAS G12D-targeted agent DEMO-A",
+      "drug_class": "Investigational targeted therapy",
+      "schedule": "Daily tablets; fortnightly trial-clinic checks (illustrative)",
+      "illustrative_profile": {"benefit": "limited", "toxicity": "moderate", "source": "Synthetic source — illustrative: LOCAL-078-A phase I safety/response dossier", "rationale": "Invented 6/24 responses; illustrative class-related safety burden, no survival benefit established."},
+      "screening_examinations": [{"name": "Current eGFR and full blood count", "study_specific": false}, {"name": "Performance status and CT report review", "study_specific": false}, {"name": "Protocol-specific research biopsy assessment", "study_specific": true}],
+      "referral_agreement": {"exists": true, "source": "Synthetic institute trial-office agreement log · local protocol"},
       "design": "Single-arm phase II",
       "arms": ["DEMO-A alone (fictional regimen)"],
       "practical_meaning": "Daily study tablets, local trial-clinic visits and blood tests; kidney function must be checked before screening can be completed.",
@@ -36,7 +42,8 @@
       "patient_pack": "You have received FOLFOX chemotherapy. This fictional study tests an experimental treatment aimed at a change called KRAS G12D in the cancer. We do not yet know whether it helps more than usual care. Earlier small studies cannot predict what will happen to you. The trial team would explain visits, blood tests, possible side effects, alternatives and your right to stop. Kidney function and other checks are still needed. Please take time to read, ask questions and discuss your preferences before deciding; receiving this pack does not enrol you.",
       "evidence_track": [
         {"phase": "I", "population": "Previously treated KRAS G12D colorectal cancer", "sample_size": 24, "result": "Illustrative response: 6/24 overall; 4/12 in the prior-FOLFOX subgroup.", "limitation": "Invented single-arm safety cohort; very small subgroup, no comparator or survival benefit established.", "source": "Synthetic evidence dossier LOCAL-078-A §Phase I; not a publication"},
-        {"phase": "II", "population": "Current recruiting KRAS G12D cohort", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "Earlier responses do not establish efficacy or individual benefit.", "source": "Synthetic protocol LOCAL-078-A §Current study"}
+        {"phase": "II", "population": "Current recruiting KRAS G12D cohort", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "Earlier responses do not establish efficacy or individual benefit.", "source": "Synthetic protocol LOCAL-078-A §Current study"},
+        {"phase": "III", "population": "Not studied in this fictional programme", "sample_size": null, "result": "No phase III results or subgroup outcomes available.", "limitation": "Not evidence of benefit.", "source": "Synthetic source — illustrative: LOCAL-078-A evidence inventory"}
       ],
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "Age ≥18 years", "field": "age", "op": "gte", "expected": 18},
@@ -56,10 +63,20 @@
       "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}],
       "site_contact": {"name": "IMMUNE-CRC site contact (synthetic)", "email": "immune-crc@trial-site.invalid"},
       "treatment": "Investigational immunotherapy DEMO-B",
+      "drug_class": "Investigational immunotherapy",
+      "schedule": "Trial infusions every three weeks (illustrative)",
+      "illustrative_profile": {"benefit": "unknown", "toxicity": "moderate", "source": "Synthetic source — illustrative: LOCAL-078-B phase I/class safety dossier", "rationale": "MSI-high cohort cannot support benefit claims for this MSS patient; illustrative immune-related safety burden."},
+      "screening_examinations": [{"name": "MSI status and autoimmune history review", "study_specific": false}, {"name": "Protocol-specific research blood sampling", "study_specific": true}],
+      "referral_agreement": {"exists": true, "source": "Synthetic institute trial-office agreement log · local protocol"},
       "design": "Single-arm phase II",
       "arms": ["DEMO-B infusion (fictional regimen)"],
       "practical_meaning": "Trial-clinic infusions and safety checks; the recorded MSS tumour conflicts with the required MSI-high criterion.",
       "description": "Fictional immunotherapy study restricted to MSI-high tumours.",
+      "evidence_track": [
+        {"phase": "I", "population": "MSI-high colorectal cancer", "sample_size": 20, "result": "Illustrative response: 4/20 overall; 2/8 previously treated patients.", "limitation": "Invented safety cohort; not applicable to a confirmed MSS tumour.", "source": "Synthetic source — illustrative: LOCAL-078-B phase I dossier"},
+        {"phase": "II", "population": "Current recruiting MSI-high cohort", "sample_size": null, "result": "Ongoing; no results or subgroup outcomes available.", "limitation": "No confirmed efficacy.", "source": "Synthetic source — illustrative: LOCAL-078-B current protocol"},
+        {"phase": "III", "population": "Not studied in this fictional programme", "sample_size": null, "result": "No phase III results or subgroup outcomes available.", "limitation": "Not evidence of benefit.", "source": "Synthetic source — illustrative: LOCAL-078-B evidence inventory"}
+      ],
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "MSI-high tumour", "field": "msi", "op": "eq", "expected": "MSI-high"},
         {"id": "E1", "kind": "Exclusion", "text": "Exclude active autoimmune disease (must be absent)", "field": "autoimmune", "op": "eq", "expected": false}
@@ -71,10 +88,20 @@
       "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}],
       "site_contact": {"name": "RAS-WT-CRC site contact (synthetic)", "email": "ras-wt-crc@trial-site.invalid"},
       "treatment": "Investigational antibody combination DEMO-C",
+      "drug_class": "Investigational antibody combination",
+      "schedule": "Trial infusions every two weeks (illustrative)",
+      "illustrative_profile": {"benefit": "limited", "toxicity": "high", "source": "Synthetic source — illustrative: LOCAL-078-C phase II/class safety dossier", "rationale": "Invented small-cohort responses; illustrative combination safety burden, not applicable to RAS-mutant disease."},
+      "screening_examinations": [{"name": "RAS status and performance status review", "study_specific": false}, {"name": "Protocol-specific research imaging assessment", "study_specific": true}],
+      "referral_agreement": {"exists": true, "source": "Synthetic institute trial-office agreement log · local protocol"},
       "design": "Randomised phase III",
       "arms": ["DEMO-C combination (fictional regimen)", "Protocol comparator (fictional usual-care arm)"],
       "practical_meaning": "Treatment assigned by chance; the recorded KRAS G12D result conflicts with the required RAS wild-type criterion.",
       "description": "Fictional experimental combination requiring RAS wild-type disease.",
+      "evidence_track": [
+        {"phase": "I", "population": "RAS wild-type colorectal cancer", "sample_size": 18, "result": "Illustrative response: 3/18 overall; 2/10 previously treated patients.", "limitation": "Invented dose-finding cohort; no comparator.", "source": "Synthetic source — illustrative: LOCAL-078-C phase I dossier"},
+        {"phase": "II", "population": "RAS wild-type colorectal cancer", "sample_size": 40, "result": "Illustrative response: 8/40 overall; 5/24 with ECOG 0.", "limitation": "Invented cohort; not evidence for a RAS-mutant patient.", "source": "Synthetic source — illustrative: LOCAL-078-C phase II dossier"},
+        {"phase": "III", "population": "Current randomised comparison", "sample_size": null, "result": "Ongoing; no results or subgroup outcomes available.", "limitation": "No proven superiority.", "source": "Synthetic source — illustrative: LOCAL-078-C current protocol"}
+      ],
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "RAS wild-type tumour", "field": "ras", "op": "eq", "expected": "wild-type"},
         {"id": "I2", "kind": "Inclusion", "text": "ECOG ≤1", "field": "ecog", "op": "lte", "expected": 1}
@@ -86,6 +113,11 @@
       "centres": [{"name": "Rewired Alpine Trial Centre", "city": "Innsbruck", "distance_km": 165, "nearest": true}, {"name": "Rewired Partner Trial Centre", "city": "Utrecht", "distance_km": 800, "nearest": false}],
       "site_contact": {"name": "EU-PATHWAY-CRC principal investigator (synthetic)", "email": "eu-pathway-crc@trial-site.invalid"},
       "treatment": "Investigational KRAS G12D-targeted agent DEMO-D",
+      "drug_class": "Investigational targeted therapy",
+      "schedule": "Daily tablets; weekly partner-site safety visits (illustrative)",
+      "illustrative_profile": {"benefit": "unknown", "toxicity": "unknown", "source": "Synthetic source — illustrative: NETWORK-078-D phase I dossier", "rationale": "Invented mixed-tumour dose cohort; dose and safety still under assessment."},
+      "screening_examinations": [{"name": "Current eGFR and travel/logistics review", "study_specific": false}, {"name": "Protocol-specific pharmacokinetic sampling", "study_specific": true}],
+      "referral_agreement": {"exists": false, "source": "Synthetic institute trial-office agreement log · no partner agreement"},
       "design": "Single-arm dose-expansion phase I/II",
       "arms": ["DEMO-D alone (fictional regimen)"],
       "practical_meaning": "Partner-site visits, dose/safety checks and travel planning; kidney function is missing. Partner access is simulated, not a live enquiry.",
@@ -94,7 +126,8 @@
       "patient_pack": "This fictional early-phase partner study explores an experimental treatment for KRAS G12D colorectal cancer. Early studies focus on dose and safety; benefit is uncertain. Travel, extra visits, blood tests, risks and alternatives would need discussion with the trial team. Kidney function must be checked first. This pack does not enrol you, and you may decline.",
       "evidence_track": [
         {"phase": "I", "population": "KRAS G12D solid tumours, including colorectal cancer", "sample_size": 18, "result": "Illustrative response: 3/18 overall; 1/8 colorectal patients.", "limitation": "Invented dose-escalation cohort; mixed tumour types; too small for reliable subgroup conclusions.", "source": "Synthetic evidence dossier NETWORK-078-D §Phase I; not a publication"},
-        {"phase": "I/II", "population": "Current partner expansion cohort", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "No phase III evidence available; not comparable head-to-head with local studies.", "source": "Synthetic protocol NETWORK-078-D §Current study"}
+        {"phase": "I/II", "population": "Current partner expansion cohort", "sample_size": null, "result": "Ongoing; no results available.", "limitation": "No phase III evidence available; not comparable head-to-head with local studies.", "source": "Synthetic protocol NETWORK-078-D §Current study"},
+        {"phase": "III", "population": "Not studied in this fictional programme", "sample_size": null, "result": "No phase III results or subgroup outcomes available.", "limitation": "Not evidence of benefit.", "source": "Synthetic source — illustrative: NETWORK-078-D evidence inventory"}
       ],
       "criteria": [
         {"id": "I1", "kind": "Inclusion", "text": "KRAS G12D mutation", "field": "ras", "op": "eq", "expected": "G12D"},
@@ -107,6 +140,11 @@
       "centres": [{"name": "Klinikum Rewired München", "city": "Munich", "distance_km": 0, "nearest": true}, {"name": "Rewired North Trial Centre", "city": "Nuremberg", "distance_km": 170, "nearest": false}],
       "site_contact": {"name": "RECOVER-CRC principal investigator (synthetic)", "email": "recover-crc@trial-site.invalid"},
       "treatment": "Investigational chemotherapy combination DEMO-E",
+      "drug_class": "Investigational chemotherapy combination",
+      "schedule": "Two-week treatment cycles with blood checks (illustrative)",
+      "illustrative_profile": {"benefit": "limited", "toxicity": "high", "source": "Synthetic source — illustrative: LOCAL-078-E phase II/class safety dossier", "rationale": "Invented 16/80 responses without proven survival benefit; illustrative combination safety burden."},
+      "screening_examinations": [{"name": "Current eGFR, full blood count and performance status", "study_specific": false}, {"name": "Protocol-specific research blood sampling", "study_specific": true}],
+      "referral_agreement": {"exists": true, "source": "Synthetic institute trial-office agreement log · local protocol"},
       "design": "Randomised phase III",
       "arms": ["DEMO-E combination (fictional regimen)", "Protocol comparator (fictional usual-care arm)"],
       "practical_meaning": "Treatment assigned by chance, extra trial visits and blood tests; kidney function and full protocol eligibility require review.",

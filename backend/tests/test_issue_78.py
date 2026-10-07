@@ -173,3 +173,58 @@ def test_email_timeout_retains_demo_draft(monkeypatch):
     assert email["mode"] == "fallback"
     assert "timed out" in email["note"]
     assert "REF-078" in email["body"]
+
+
+def test_recruitment_evidence_and_referral_metadata(monkeypatch):
+    from app.ideas.issue_78 import DATA, screening
+
+    assessment = screening("future")
+    assert "second-line" in assessment["patient"]["treatment_line"]
+    assert "FOLFOX" in assessment["patient"]["prior_systemic_treatment"]
+    for trial in assessment["trials"] + assessment["excluded_trials"]:
+        assert trial["status"] == "Recruiting"
+        assert trial["schedule"] and trial["drug_class"] and trial["screening_examinations"]
+        assert {e["phase"] for e in trial["evidence_track"]} >= {"I", "III"}
+        assert all("synthetic" in e["source"].lower() and e["result"] for e in trial["evidence_track"])
+        assert any("subgroup" in e["result"] or "/" in e["result"] for e in trial["evidence_track"])
+        assert trial["illustrative_profile"]["benefit"] in {"high", "moderate", "limited", "unknown"}
+        assert trial["illustrative_profile"]["toxicity"] in {"high", "moderate", "limited", "unknown"}
+        assert "Synthetic" in trial["illustrative_profile"]["source"]
+        assert any(exam["study_specific"] for exam in trial["screening_examinations"])
+    partner = next(t for t in assessment["trials"] if t["scope"] == "network")
+    agreement = partner["referral_agreement"]
+    assert not agreement["exists"] and agreement["source"]
+    assert "institutional referral agreement" in agreement["agreement_email"]["body"]
+    assert "REF-078" in agreement["referral_letter"]
+    assert "Eva" not in agreement["referral_letter"]
+    data = sample_data.read(DATA)
+    data["trials"][0]["status"] = "Closed"
+    data["trials"][1]["status"] = "Not yet recruiting"
+    original_read = sample_data.read
+    monkeypatch.setattr(sample_data, "read", lambda path: data if path == DATA else original_read(path))
+    result = screening("future")
+    assert all(t["id"] not in {"LOCAL-078-A", "LOCAL-078-B"} for t in result["trials"] + result["excluded_trials"])
+
+
+def test_treatment_naive_or_unknown_history_never_supports_prior_regimen(monkeypatch):
+    from app.ideas.issue_78 import DATA, screening
+
+    data = sample_data.read(DATA)
+    original_read = sample_data.read
+    monkeypatch.setattr(sample_data, "read", lambda path: data if path == DATA else original_read(path))
+    for value in ("", "none", "no prior systemic therapy"):
+        data["facts"]["therapy"].update(value=value, display="no prior systemic therapy")
+        for horizon in ("future", "six-month"):
+            result = screening(horizon)
+            assert result["patient"]["prior_systemic_treatment"] == "no prior systemic therapy"
+            assert result["patient"]["treatment_line"] == "First-line consideration"
+            assert all(t["id"] not in {"LOCAL-078-A", "LOCAL-078-E"} for t in result["trials"])
+            for trial in result["excluded_trials"]:
+                for criterion in trial["criteria"]:
+                    if criterion["field"] == "therapy":
+                        assert criterion["status"] == "Conflict"
+    data["facts"]["therapy"].update(value=None, display="Not recorded")
+    result = screening("future")
+    assert "not recorded" in result["patient"]["prior_systemic_treatment"]
+    assert "not recorded" in result["patient"]["treatment_line"]
+    assert all(c["status"] == "Unknown" for t in result["trials"] for c in t["criteria"] if c["field"] == "therapy")

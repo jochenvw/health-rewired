@@ -375,12 +375,51 @@
 }
 .tm78-handoff { border-top: 2px solid var(--cp-accent); margin-top: 20px; padding-top: 16px; }
 .tm78 .tm78-notes input { min-height: 38px; color: var(--cp-text); background: var(--cp-surface-soft); border: 1px solid var(--cp-border); border-radius: 8px; font: inherit; padding: 8px 12px; min-width: 0; box-sizing: border-box; }
+.tm78 .tm78-grid { grid-template-columns: 220px minmax(0, 1fr) 230px; }
+.tm78[data-presentation="enrollment"] .tm78-grid { grid-template-columns: minmax(0, 1fr) 230px; }
+.tm78[data-presentation="enrollment"] .tm78-patient { grid-column: 1 / -1; }
+.tm78-action-rail {
+  grid-column: -2 / -1;
+  grid-row: 1;
+  position: sticky;
+  top: 132px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
+  background: var(--cp-surface);
+}
+.tm78 .tm78-action-rail h3 { margin: 0; }
+.tm78-action-rail .hx-btn { white-space: normal; }
+.tm78-intervention { font-size: 12px; font-weight: 600; line-height: 1.5; }
+.tm78-visible-evidence { padding: 12px 0; font-size: 12px; border-top: 1px solid var(--cp-border); }
+.tm78-evidence-track { display: grid; gap: 8px; margin-top: 8px; }
+.tm78-evidence-track > div { border-left: 2px solid var(--cp-border); padding-left: 8px; }
+.tm78-evidence-track span { display: block; margin-top: 4px; }
+.tm78-evidence-track details { font-weight: normal; }
+.tm78-mdt-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.tm78-mdt .tm78-trial { align-content: start; gap: 4px; }
+.tm78-mdt h3 { margin: 0 0 4px; }
+.tm78-mdt p { font-size: 13px; }
+.tm78[data-view="mdt"] .hx-content { gap: 10px; }
+.tm78[data-view="mdt"] .hx { min-height: 0; }
+.tm78[data-view="mdt"] .tm78-heading h1 { font-size: 24px; }
+.tm78 .tm78-launch-note { margin: 0; }
+.tm78-test-order { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--cp-border); font-size: 12px; }
+.tm78-test-order .hx-btn { flex-shrink: 0; font-size: 11px; }
+.tm78-agreement { margin-top: 20px; border-top: 1px solid var(--cp-border); }
 @media (max-width: 1100px) {
   .tm78-context-banner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .tm78-match-layout { grid-template-columns: minmax(0, 1fr) 290px; }
   .tm78[data-presentation="enrollment"] .tm78-phase-layout { grid-template-columns: minmax(0, 1fr) 290px; }
+  .tm78 .tm78-grid { grid-template-columns: minmax(0, 1fr) 220px; }
+  .tm78 .tm78-patient { grid-column: 1 / -1; grid-row: 2; }
 }
 @media (max-width: 760px) {
+  .tm78 .tm78-grid, .tm78[data-presentation="enrollment"] .tm78-grid { grid-template-columns: minmax(0, 1fr); }
+  .tm78 .tm78-action-rail { grid-column: 1; grid-row: auto; position: static; }
+  .tm78-mdt-options { grid-template-columns: minmax(0, 1fr); }
   .tm78-match-layout { grid-template-columns: minmax(0, 1fr); }
   .tm78[data-presentation="enrollment"] .tm78-phase-layout { grid-template-columns: minmax(0, 1fr); }
   .tm78-inspector { border-left: 0; border-top: 1px solid var(--cp-border); padding: 16px; }

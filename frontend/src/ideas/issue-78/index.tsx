@@ -6,6 +6,7 @@ import { Backstage, Working } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import { EnrollmentMatch, type Inspection } from './EnrollmentMatch';
 import { SourceReference, TrialCentres } from './SourceReference';
+import { Intervention, TrialEvidence } from './TrialEvidence';
 import './trial-matching.css';
 
 export const meta: IdeaMeta = {
@@ -26,11 +27,15 @@ export type Trial = {
   description: string; assessment: string; criteria: Criterion[];
   counts: { Match: number; Conflict: number; Unknown: number };
   treatment: string; design: string; arms: string[]; practical_meaning: string;
+  schedule?: string; drug_class?: string;
+  illustrative_profile?: { benefit: 'limited' | 'moderate' | 'high' | 'unknown'; toxicity: 'limited' | 'moderate' | 'high' | 'unknown'; source: string; rationale: string };
+  screening_examinations?: { name: string; study_specific: boolean }[];
+  referral_agreement?: { exists: boolean; source: string; agreement_email: EmailDraft; referral_letter: string };
   evidence_track?: { phase: string; population: string; sample_size: number | null; result: string; limitation: string; source: string }[];
   patient_pack?: string; enquiry_note: string; proposed_orders: string[]; priority_reason: string;
 };
 export type Context = {
-  patient: { id: string; name: string; age: number; sex: string; diagnosis: string; allergies: string };
+  patient: { id: string; name: string; age: number; sex: string; diagnosis: string; allergies: string; treatment_line?: string; prior_systemic_treatment?: string };
   snapshot_date: string; notice: string; horizon: Horizon; excluded_count: number;
   data_principles: string;
   facts: Record<string, { label: string; display: string; source: string }>;
@@ -92,6 +97,14 @@ export default function TrialMatching() {
     catch { return 'enrollment'; }
   });
   const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [view, setView] = useState<'doctor' | 'mdt'>('doctor');
+  const [studyConsent, setStudyConsent] = useState(false);
+  const [orderedTests, setOrderedTests] = useState<string[]>([]);
+  const [agreementChecked, setAgreementChecked] = useState(false);
+  const [agreementEmail, setAgreementEmail] = useState<EmailDraft | null>(null);
+  const [referralLetter, setReferralLetter] = useState('');
+  const [referralSigned, setReferralSigned] = useState(false);
+  const [agreementSent, setAgreementSent] = useState(false);
   const [hiddenTrials, setHiddenTrials] = useState<string[]>([]);
   const [missingOnly, setMissingOnly] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -114,7 +127,9 @@ export default function TrialMatching() {
   const [patientAgreement, setPatientAgreement] = useState(false);
   const [teamValidation, setTeamValidation] = useState(false);
   const [missingExpanded, setMissingExpanded] = useState(true);
-  const [secondaryExpanded, setSecondaryExpanded] = useState(false);
+  const [secondaryExpanded, setSecondaryExpanded] = useState(() => {
+    try { return localStorage.getItem('tm78-secondary') === 'true'; } catch { return false; }
+  });
   const [handoffOpen, setHandoffOpen] = useState(false);
   const [email, setEmail] = useState<EmailDraft | null>(null);
   const [emailSent, setEmailSent] = useState(false);
@@ -133,6 +148,9 @@ export default function TrialMatching() {
     try { localStorage.setItem('tm78-presentation', presentation); }
     catch { /* The presentation switch also works when storage is unavailable. */ }
   }, [presentation]);
+  useEffect(() => {
+    try { localStorage.setItem('tm78-secondary', String(secondaryExpanded)); } catch { /* Optional preference. */ }
+  }, [secondaryExpanded]);
 
   function cancelReview() {
     reviewRun.current += 1;
@@ -146,6 +164,8 @@ export default function TrialMatching() {
     invalidateApproval();
     setResult(null); setConfirmation(null); setReceipt(null); setError(''); setMessage('');
     setScreeningApproved(false); setPatientAgreement(false); setTeamValidation(false);
+    setStudyConsent(false); setOrderedTests([]); setAgreementChecked(false);
+    setAgreementEmail(null); setReferralLetter(''); setReferralSigned(false); setAgreementSent(false);
   }
 
   function cancelHandoff() {
@@ -230,9 +250,8 @@ export default function TrialMatching() {
   }, [confirmation]);
 
   useEffect(() => {
-    if (!missingPanelRef.current) return;
     window.scrollTo({ top: 0, behavior: 'instant' });
-    missingPanelRef.current.focus({ preventScroll: true });
+    missingPanelRef.current?.focus({ preventScroll: true });
   }, [phase]);
 
   const chosen = context?.trials.find((trial) => trial.id === candidate);
@@ -324,16 +343,28 @@ export default function TrialMatching() {
         invalidateApproval();
         setOrders((items) => items.includes(order) ? items.filter((item) => item !== order) : [...items, order]);
       }} />{order}</label>)}
+    <h3>Trial screening examinations · local simulation</h3>
+    <label className="tm78-choice"><input type="checkbox" checked={studyConsent} onChange={(event) => setStudyConsent(event.target.checked)} />
+      Simulate study-specific informed consent recorded for examinations only — not trial inclusion.</label>
+    {(chosen.screening_examinations ?? chosen.proposed_orders.map((name) => ({ name, study_specific: true }))).map((exam) =>
+      <div className="tm78-test-order" key={exam.name}><span>{exam.name} {exam.study_specific && <small>Study-specific consent required first</small>}</span>
+        <button className="hx-btn" disabled={(exam.study_specific && !studyConsent) || orderedTests.includes(exam.name)}
+          onClick={() => setOrderedTests((items) => [...items, exam.name])}>{orderedTests.includes(exam.name) ? 'Order simulated' : 'Order test (simulate)'}</button></div>)}
+    {!!orderedTests.length && <p role="status">Local simulated orders only. No test performed; evidence and eligibility are unchanged.</p>}
   </section>;
 
   return (
-    <div className="tm78" data-theme={theme} data-presentation={presentation}>
+    <div className="tm78" data-theme={theme} data-presentation={presentation} data-view={view}>
       <a className="tm78-skip" href="#tm78-main">Skip to trial matching</a>
       <div className="tm78-controls">
         <span>Hackathon prototype – synthetic data – not for clinical use</span>
         <div role="group" aria-label="Interface presentation">
           <button aria-pressed={presentation === 'current'} onClick={() => setPresentation('current')}>Current UI</button>
           <button aria-pressed={presentation === 'enrollment'} onClick={() => setPresentation('enrollment')}>Enrollment Match</button>
+        </div>
+        <div role="group" aria-label="Clinical view">
+          <button aria-pressed={view === 'doctor'} onClick={() => { setView('doctor'); window.scrollTo(0, 0); }}>Doctor view</button>
+          <button aria-pressed={view === 'mdt'} onClick={() => { setView('mdt'); window.scrollTo(0, 0); }}>MDT view</button>
         </div>
         <div role="group" aria-label="Time horizon">
           {(['six-month', 'future'] as const).map((value) => <button key={value} aria-pressed={horizon === value}
@@ -350,7 +381,7 @@ export default function TrialMatching() {
           <div><div className="tm78-eyebrow">Trial office · synthetic consultation</div><h1>Trials for this patient</h1></div>
           <small>{horizon === 'future' ? 'Local + simulated partner catalogue' : 'Local catalogue · minimal dataset'}</small>
         </div>
-        <ol className="tm78-guide" aria-label="Three-phase trial journey">
+        <ol hidden={view === 'mdt'} className="tm78-guide" aria-label="Three-phase trial journey">
           <li aria-current={phase === 'eligibility' ? 'step' : undefined}>
             <button className="hx-btn" aria-pressed={phase === 'eligibility'} onClick={() => { setPhase('eligibility'); setConfirmation(null); }}>
               <strong>1 · Eligibility</strong><span>Can this patient join?</span></button></li>
@@ -359,18 +390,18 @@ export default function TrialMatching() {
               onClick={() => { setPhase('screening'); setConfirmation(null); }}><strong>2 · Screening / preparation</strong><span>Request missing information</span></button></li>
           <li aria-current={phase === 'start' ? 'step' : undefined}>
             <button className="hx-btn" aria-pressed={phase === 'start'} disabled={!screeningApproved || !chosen}
-              onClick={() => { setPhase('start'); setConfirmation(null); }}><strong>3 · Start trial</strong><span>Agreement + trial-team validation required</span></button></li>
+              onClick={() => { setPhase('start'); setConfirmation(null); }}><strong>3 · Trial-site hand-off</strong><span>Request assessment only · not enrolment</span></button></li>
         </ol>
         {error && <div role="alert" className="tm78-attention">{error}
           {!context && <button className="hx-btn" onClick={() => { resetReview(); setRetry((value) => value + 1); }}>Retry catalogue</button>}</div>}
         {!context && !error && <Working label="Loading synthetic patient and trial catalogue" />}
         {context && <>
-         {presentation === 'enrollment' && <section className="tm78-context-banner" aria-label="Synthetic patient context">
+         <section className="tm78-context-banner" aria-label="Synthetic patient context">
            <div><span className="tm78-eyebrow">Synthetic patient · colorectal MDT</span>
              <h2>{context.patient.name}</h2><small>{context.patient.id} · {context.patient.age} years · {context.patient.sex}</small></div>
            <div><span className="tm78-eyebrow">Diagnosis</span><strong>{context.patient.diagnosis}</strong></div>
            <div><span className="tm78-eyebrow">Molecular profile</span><strong>{context.facts.ras?.display} · {context.facts.msi?.display}</strong></div>
-           <div><span className="tm78-eyebrow">Performance status</span><strong>{context.facts.ecog?.display ?? 'Not recorded'}</strong></div>
+           <div><span className="tm78-eyebrow">Prior therapy / line</span><strong>{context.patient.prior_systemic_treatment || context.facts.therapy?.display || 'Prior systemic therapy not recorded'} · {context.patient.treatment_line || 'Line not recorded'}</strong></div>
            <button className="hx-btn" onClick={() => {
              const record = document.getElementById('tm78-record') as HTMLDetailsElement | null;
              if (record) {
@@ -379,8 +410,21 @@ export default function TrialMatching() {
                record.scrollIntoView({ block: 'center', behavior: 'instant' });
              }
            }}>Full chart & sources ↓</button>
+         </section>
+         <small className="tm78-launch-note">Simulated EHR launch · not connected · regulatory status (MDR) not assessed</small>
+         {view === 'mdt' && <section className="tm78-mdt" aria-label="MDT trial options">
+           <div><h2>MDT · options for discussion</h2><p>Lists only — does not choose. Potential eligibility is unconfirmed; the MDT retains all decisions.</p></div>
+           <div className="tm78-mdt-options">{context.trials.slice(0, 3).map((trial, index) =>
+             <article className="tm78-trial" key={trial.id}><h3>{index + 1} · {trial.title}</h3><Intervention trial={trial} />
+               <Pill tone="warn">Potentially eligible — unconfirmed</Pill>
+               <small>Phase {trial.phase} · {trial.status}</small><TrialCentres trial={trial} />
+               <strong>Key reason</strong><p>{trial.priority_reason}</p>
+               <small>Unresolved: {trial.criteria.filter((item) => item.status !== 'Match').map((item) => item.patient_label || item.text).join(' · ') || 'Full protocol validation required'}</small>
+             </article>)}</div>
+           {!context.trials.length && <p>No potentially eligible recruiting trial on recorded criteria.</p>}
+           <small>{context.excluded_count} recruiting protocols not eligible on recorded criteria. Inspect exclusions and evidence in Doctor view. Trial inclusion: not confirmed / date not recorded.</small>
          </section>}
-         <section className="tm78-attention tm78-missing" aria-label="Missing information" ref={missingPanelRef} tabIndex={-1}>
+         <section hidden={view === 'mdt'} className="tm78-attention tm78-missing" aria-label="Missing information" ref={missingPanelRef} tabIndex={-1}>
            <div className="tm78-section-meta"><strong>Missing information · {chosen?.title ?? 'No screening candidate'} · eligibility not confirmed</strong>
              <button className="hx-btn" aria-expanded={missingExpanded} onClick={() => setMissingExpanded(!missingExpanded)}>
                {missingExpanded ? 'Collapse missing information' : 'Expand missing information'}</button></div>
@@ -389,14 +433,16 @@ export default function TrialMatching() {
              {!gaps.length && <span>Full protocol review still required; supported checks are not eligibility confirmation.</span>}</div>
              <small>Missing renal evidence does not block an email requesting assessment. It still blocks eligibility and enrolment; no override is available.</small></>}
          </section>
-         <p className="tm78-data-principles">{context.data_principles || 'Patient data stays in the hospital by default. Only minimum pseudonymised referral information may be shared after clinician approval.'}</p>
-         <div className={`tm78-grid tm78-phase-${phase}`}>
+         <p hidden={view === 'mdt'} className="tm78-data-principles">{context.data_principles || 'Patient data stays in the hospital by default. Only minimum pseudonymised referral information may be shared after clinician approval.'}</p>
+         <div hidden={view === 'mdt'} className={`tm78-grid tm78-phase-${phase}`}>
           <aside className="tm78-patient">
             <Panel title="Patient context">
               <div className="tm78-eyebrow">Synthetic patient</div>
               <h2 className="tm78-identity">{context.patient.name}</h2>
               <p className="tm78-demographics">{context.patient.id} · {context.patient.age} years · {context.patient.sex}</p>
               <p><strong>{context.patient.diagnosis}</strong></p>
+              <p><strong>Prior systemic therapy:</strong> {context.patient.prior_systemic_treatment || context.facts.therapy?.display || 'Not recorded'}<br />
+                <strong>Treatment line:</strong> {context.patient.treatment_line || 'Not recorded'}</p>
               <details id="tm78-record"><summary>Full chart & record sources</summary>
               <small>Allergies: {context.patient.allergies}</small>
               <small>Simulated EHR launch · not connected</small>
@@ -435,7 +481,9 @@ export default function TrialMatching() {
               ? 'Best screening candidate · local first' : 'Selected screening candidate'}>
               {chosen ? <>
                 <div className="tm78-candidate-header"><h2>{chosen.title}</h2><Pill tone={gaps.length ? 'warn' : 'ok'}>
-                  {gaps.length ? 'Partial match' : 'Supported criteria'}</Pill></div>
+                  Potentially eligible — unconfirmed</Pill></div>
+                <Intervention trial={chosen} />
+                <TrialEvidence trial={chosen} />
                 <div className="tm78-section-meta"><span>{chosen.site}</span><span>Phase {chosen.phase} · {chosen.status}</span></div>
                 <TrialCentres trial={chosen} />
                 <div className="tm78-counts"><Pill tone="ok">{chosen.counts.Match} supported</Pill>
@@ -460,7 +508,7 @@ export default function TrialMatching() {
                   <button className="hx-btn primary" onClick={openScreening}>Approve screening preparation</button>
                 </div>}
                 <button className="hx-btn" aria-expanded={secondaryExpanded} onClick={() => setSecondaryExpanded(!secondaryExpanded)}>
-                  {secondaryExpanded ? 'Hide 3 secondary sections' : '3 sections hidden — show'}</button>
+                  {secondaryExpanded ? 'Hide supporting details' : 'Show supporting details'}</button>
                 <details hidden={!secondaryExpanded} className="tm78-disclosure"><summary>Patient ↔ trial matching · criterion table</summary><MatchingTable trial={chosen} /></details>
                 <details hidden={!secondaryExpanded} className="tm78-disclosure"><summary>Evidence, prior phases & sources</summary>
                   <small>Synthetic evidence only; no live literature search or personalised response prediction.</small>
@@ -473,11 +521,12 @@ export default function TrialMatching() {
                 </details>
               </> : <p>No candidate selected. No screening enquiry will be prepared.</p>}
             </Panel>}
-            {phase === 'eligibility' && presentation === 'current' && <details hidden={!!chosen && !secondaryExpanded} className="tm78-coverage">
+            {phase === 'eligibility' && presentation === 'current' && <details open className="tm78-coverage">
               <summary>Other candidates, comparison & excluded trials</summary>
               <small>Missing information retains a potential candidate; known conflicts exclude it. Compare up to four; choose one or none.</small>
               {context.trials.map((trial) => <article className={`tm78-trial ${candidate === trial.id ? 'selected' : ''}`} key={trial.id}>
                 <h2>{trial.title}</h2><span>{trial.site} · phase {trial.phase}</span>
+                <Intervention trial={trial} /><small>{trial.status} · Potentially eligible — unconfirmed</small><TrialEvidence trial={trial} />
                 <TrialCentres trial={trial} />
                 <span>{trial.counts.Match} supported · {trial.counts.Unknown} missing information</span>
                 <div className="tm78-actions"><label className="tm78-choice"><input type="radio" name="screening-candidate"
@@ -511,13 +560,16 @@ export default function TrialMatching() {
                   </tbody>
                 </table></div> : <small>Select a trial to compare.</small>}
               </details>
-              <details><summary>Excluded trials · {context.excluded_count} known conflicts</summary>
+              <details open><summary>Excluded trials · {context.excluded_count} known conflicts</summary>
                 {context.excluded_trials?.map((trial) => <article className="tm78-trial" key={trial.id}>
-                  <h3>{trial.title}</h3><Pill tone="crit">Excluded · cannot select</Pill>
+                  <h3>{trial.title}</h3><Pill tone="crit">Not eligible on recorded criteria</Pill>
+                  <Intervention trial={trial} /><small>{trial.status}</small>
+                  <p className="tm78-status-Conflict">{trial.criteria.filter((item) => item.status === 'Conflict').map((item) => `${item.text} — ${item.patient_value || item.evidence}`).join(' · ')}</p>
+                  <TrialEvidence trial={trial} />
                   <span>{trial.site} · phase {trial.phase}</span><span>{trial.treatment} · {trial.design}</span>
                   <TrialCentres trial={trial} />
                   <span>{trial.arms?.join(' / ')}</span><span>{trial.practical_meaning}</span>
-                  <MatchingTable trial={trial} />
+                  <details><summary>See details · failing criteria</summary><MatchingTable trial={trial} /></details>
                 </article>)}
                 {!context.excluded_trials?.length && <small>No excluded protocol details supplied.</small>}
               </details>
@@ -614,8 +666,46 @@ export default function TrialMatching() {
                 setTeamValidation(event.target.checked); setReceipt(null); setHandoffOpen(false); setEmailSent(false); cancelHandoff();
               }} />I acknowledge trial-team eligibility validation is required; the evidence gaps remain unresolved.</label>
               <button className="hx-btn primary" disabled={!screeningApproved || !patientAgreement || !teamValidation}
-                onClick={() => setHandoffOpen(true)}>Start · prepare investigator hand-off</button>
+              onClick={() => setHandoffOpen(true)}>Request participation assessment · prepare hand-off</button>
               <small>These acknowledgements allow only a request for assessment, not eligibility approval or enrolment.</small>
+              <section className="tm78-agreement" aria-label="Trial-site referral agreement">
+                <h3>Trial-site agreement · simulated check</h3>
+                <p>Check the local illustrative referral agreement before preparing documents. This is not patient consent or eligibility confirmation.</p>
+                <button className="hx-btn" disabled={agreementChecked} onClick={() => {
+                  setAgreementChecked(true);
+                  setAgreementEmail(chosen.referral_agreement?.agreement_email ?? null);
+                  setReferralLetter(chosen.referral_agreement?.referral_letter ?? '');
+                }}>{agreementChecked ? 'Local agreement check complete' : 'Check agreement with trial site (simulate)'}</button>
+                {agreementChecked && <><p role="status">{chosen.referral_agreement?.exists ? 'Illustrative agreement found' : 'No agreement on synthetic record'} · checked locally · {context.snapshot_date}</p>
+                  <SourceReference source={chosen.referral_agreement?.source || 'No synthetic agreement source supplied'} />
+                  {!chosen.referral_agreement?.exists && agreementEmail && <>
+                    <label className="tm78-notes">Agreement email to<input readOnly value={agreementEmail.to} /></label>
+                    <label className="tm78-notes">Agreement email subject<input value={agreementEmail.subject} onChange={(event) => {
+                      setAgreementEmail({ ...agreementEmail, subject: event.target.value }); setAgreementSent(false);
+                    }} /></label>
+                    <label className="tm78-notes">Editable agreement email<textarea rows={5} value={agreementEmail.body} onChange={(event) => {
+                      setAgreementEmail({ ...agreementEmail, body: event.target.value }); setAgreementSent(false);
+                    }} /></label>
+                    <label className="tm78-notes">Referral letter · manual review<textarea rows={5} value={referralLetter} onChange={(event) => {
+                      setReferralLetter(event.target.value); setReferralSigned(false); setAgreementSent(false);
+                    }} /></label>
+                    <label className="tm78-choice"><input type="checkbox" checked={referralSigned} onChange={(event) => {
+                      setReferralSigned(event.target.checked); setAgreementSent(false);
+                    }} />Manually sign this referral letter in the local simulation only</label>
+                    <button className="hx-btn" disabled={!referralSigned || !referralLetter.trim() || !agreementEmail.subject.trim() || !agreementEmail.body.trim() || agreementSent}
+                      onClick={() => {
+                        const text = `${agreementEmail.subject} ${agreementEmail.body} ${referralLetter}`.toLowerCase();
+                        if (!agreementEmail.to.endsWith('.invalid') || !text.includes('ref-078') ||
+                          [context.patient.id, context.patient.name, ...context.patient.name.split(' ')].filter(Boolean).some((value) => text.includes(value.toLowerCase()))) {
+                          setError('Use REF-078 and a .invalid demo address only; remove patient names and identifiers from the agreement documents.'); return;
+                        }
+                        setError(''); setAgreementSent(true);
+                      }}>Simulate sending signed agreement request</button>
+                    {agreementSent && <p role="status">Agreement email and manually signed letter recorded locally. Nothing sent; an agreement has not been established.</p>}
+                  </>}
+                </>}
+              </section>
+              <p><strong>Trial inclusion: not confirmed / date not recorded.</strong> Local approvals never update inclusion or eligibility fields.</p>
               {handoffOpen && email && <section className="tm78-handoff" aria-label="Request participation from the principal investigator">
                 <h2>Request participation from the principal investigator</h2>
                 <p>Request assessment only · {chosen.site_contact?.name} · email simulation. Patient data remains in the hospital.</p>
@@ -670,6 +760,23 @@ export default function TrialMatching() {
               <small>Nothing actually sent, ordered, enrolled or written to the EHR. Trial-team validation and patient agreement remain required.</small>
             </div>}
           </div>
+         <aside className="tm78-action-rail" aria-label="Doctor actions">
+           <span className="tm78-eyebrow">Human control · {phase === 'eligibility' ? 'Step 1' : phase === 'screening' ? 'Step 2' : 'Step 3'}</span>
+           <h3>{chosen?.title || 'No candidate selected'}</h3>
+           <Pill tone="warn">Potential eligibility unconfirmed</Pill>
+           <small>Request assessment only. Never enrolls or chooses treatment.</small>
+           <button className="hx-btn" disabled={!chosen} onClick={() => {
+             openScreening();
+             if (phase === 'screening') document.querySelector('.tm78-proposed-checks')?.scrollIntoView({ block: 'center', behavior: 'instant' });
+           }}>Request missing information</button>
+           {phase === 'eligibility' && <button className="hx-btn primary" disabled={!chosen} onClick={openScreening}>Proceed to screening preparation</button>}
+           {phase === 'screening' && <button className="hx-btn primary" disabled={!chosen || !notes.trim()} onClick={() => {
+             cancelReview(); setReceipt(null); setConfirmation('screening');
+           }}>Review simulated screening request</button>}
+           {phase === 'start' && <button className="hx-btn primary" disabled={!chosen || !screeningApproved || !patientAgreement || !teamValidation}
+             onClick={() => { setHandoffOpen(true); window.setTimeout(() => document.querySelector('.tm78-handoff')?.scrollIntoView({ block: 'start', behavior: 'instant' }), 0); }}>Request participation assessment</button>}
+           <small>{phase === 'start' ? 'Acknowledge patient agreement and trial-team validation in the consultation first.' : 'Requests do not resolve missing evidence; clinician approval remains required.'}</small>
+         </aside>
         </div></>}
       </HospitalShell>
     </div>

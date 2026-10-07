@@ -68,6 +68,25 @@ def handoff_email(trial: dict, facts: dict) -> dict:
     }
 
 
+def referral_agreement(trial: dict, facts: dict) -> dict:
+    email = handoff_email(trial, facts)
+    return {
+        **trial["referral_agreement"],
+        "agreement_email": {
+            **email,
+            "subject": f"Institutional referral agreement enquiry — {trial['title']} (synthetic)",
+            "body": (
+                f"Dear {trial['site_contact']['name']},\n\n"
+                f"Please advise whether an institutional referral agreement for {trial['title']} "
+                "can be established with Klinikum Rewired München. "
+                "No patient information is required for this institutional agreement enquiry.\n"
+                "Synthetic draft only; nothing sent and no agreement established."
+            ),
+        },
+        "referral_letter": email["body"],
+    }
+
+
 def screening(horizon: Horizon) -> dict:
     data = sample_data.read(DATA)
     dataset = sample_data.read("minimal-mdt-dataset.json")
@@ -97,7 +116,7 @@ def screening(horizon: Horizon) -> dict:
         )
     trials = []
     for trial in data["trials"]:
-        if horizon == "six-month" and trial["scope"] != "local":
+        if trial["status"] != "Recruiting" or (horizon == "six-month" and trial["scope"] != "local"):
             continue
         criteria = []
         for criterion in trial["criteria"]:
@@ -122,6 +141,9 @@ def screening(horizon: Horizon) -> dict:
                     criterion["op"]
                 ](value, expected)
                 status = "Match" if matches else "Conflict"
+                if criterion["field"] == "therapy" and value in ("", "none", "no prior systemic therapy"):
+                    status = "Conflict"
+                    reason = "No prior systemic therapy; the required prior regimen has not been received."
             criteria.append(
                 {
                     **criterion,
@@ -158,14 +180,33 @@ def screening(horizon: Horizon) -> dict:
                 "enquiry_note": enquiry,
                 "proposed_orders": [f"Proposed evidence request: {c['text']}" for c in gaps],
                 "handoff_email": handoff_email({**trial, "criteria": criteria}, facts),
+                "referral_agreement": referral_agreement({**trial, "criteria": criteria}, facts),
             }
         )
     candidates = sorted(
         [t for t in trials if not t["counts"]["Conflict"] and t["status"] == "Recruiting"],
         key=lambda t: t["scope"] != "local",
     )[:4]
+    therapy = facts["therapy"]["value"]
+    treatment_naive = therapy in ("", "none", "no prior systemic therapy")
     return {
-        "patient": data["patient"],
+        "patient": {
+            **data["patient"],
+            "treatment_line": (
+                "First-line consideration"
+                if treatment_naive
+                else data["patient"]["treatment_line"]
+                if therapy is not None
+                else "Treatment line: not recorded"
+            ),
+            "prior_systemic_treatment": (
+                "no prior systemic therapy"
+                if treatment_naive
+                else f"Prior systemic treatment: {therapy}"
+                if therapy is not None
+                else "Prior systemic treatment: not recorded"
+            ),
+        },
         "snapshot_date": data["snapshot_date"],
         "facts": facts,
         "trials": candidates,
