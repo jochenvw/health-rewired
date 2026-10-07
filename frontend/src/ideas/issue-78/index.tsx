@@ -448,7 +448,8 @@ export default function TrialMatching() {
               <div className="tm78-attention"><strong>No actual trial start or enrolment is available.</strong>
                 <small>{gaps.length} unresolved evidence gaps remain. Sending requests never changes criterion status.</small></div>
               <div className="tm78-start-gate">
-                <button className="hx-btn" disabled aria-describedby="tm78-start-blocked">Start trial · unavailable</button>
+                <button className="hx-btn" disabled aria-describedby="tm78-start-blocked">
+                  {gaps.length ? 'Start trial — eligibility unresolved' : 'Start trial — not available'}</button>
                 <small id="tm78-start-blocked">{gaps.length
                   ? `Blocked: ${gaps.length} unresolved evidence gaps. Current renal and other missing evidence must be supplied and validated by the trial team; acknowledgements cannot resolve Unknown criteria.`
                   : 'Full trial-team validation and documented patient agreement are required. This prototype never starts or enrols a patient.'}</small>
