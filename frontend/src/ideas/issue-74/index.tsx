@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { api, type AgentResult, type EvidenceReviewProposal, type PatientRecord } from '../../api';
-import { Avatar, ClinicalShell, Icon, Panel, Pill, ReviewSteps, Segmented, Sparkline, type IconName, type SearchEntry } from './ui';
+import { Avatar, ClinicalShell, Icon, Panel, Pill, ReviewSteps, Segmented, type IconName, type SearchEntry, type Tone } from './ui';
 import { Backstage, StoryGuide, type Stage, type StoryStep } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
 import './issue-74.css';
@@ -48,6 +48,7 @@ type EvidenceSource = {
   type: string;
   excerpt: string;
   value?: string;
+  context?: { method?: string; specimen?: string; sampled?: string; kind?: string };
 };
 
 type EvidenceAssertion = {
@@ -141,7 +142,7 @@ const evidenceLabels: Record<EvidenceState, string> = {
   corroborated: 'Multiple sources agree',
   'single-source': 'One source found',
   unverified: 'Needs review',
-  contradictory: 'Sources disagree',
+  contradictory: 'Results differ',
   missing: 'Not found',
 };
 
@@ -149,7 +150,7 @@ const evidenceDescriptions: Record<EvidenceState, string> = {
   corroborated: 'Two or more separate synthetic source records contain materially equivalent information.',
   'single-source': 'One synthetic source contains this information; no independent source is linked.',
   unverified: 'This item has not been checked against an exact source passage.',
-  contradictory: 'Available source records report incompatible information. Neither value is selected.',
+  contradictory: 'Sources report different values. Different is not necessarily contradictory: check test, specimen and timing. Neither value is selected.',
   missing: 'No available source explicitly states this information.',
 };
 
@@ -1076,15 +1077,19 @@ export default function TeamDomitian() {
                 onInspect={inspect}
               />}
               {view === 'case' && (
+                <>
+                <HealthCheck record={record} horizon={horizon} decisions={identityDecisions} onInspect={inspect} onNavigate={setView} />
                 <div className="issue74-overview">
                   <div className="issue74-overview-main">
-                    <AtAGlance record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={inspect} />
                     {agentPanel}
+                    <details className="issue74-summary-details">
+                      <summary>Full case summary · source-linked text</summary>
+                      <AtAGlance record={record} agentResult={agentResults[selectedId]} horizon={horizon} onInspect={inspect} />
+                    </details>
                     {horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
                   </div>
                   <aside className="issue74-overview-rail" aria-label="Case status">
                     <AttentionPanel record={record} horizon={horizon} decisions={identityDecisions} agentResult={agentResults[selectedId]} onNavigate={setView} onInspect={inspect} />
-                    <VerificationProgress record={record} horizon={horizon} agentResult={agentResults[selectedId]} onInspect={inspect} onOpenQueue={() => setView('reviewQueue')} />
                     {horizon === 'future' && (
                       <Panel title={`${specialty} focus`} eyebrow="Same case · different emphasis" icon="stethoscope">
                         <SpecialtyFocus record={record} specialty={specialty} onInspect={inspect} />
@@ -1092,6 +1097,7 @@ export default function TeamDomitian() {
                     )}
                   </aside>
                 </div>
+                </>
               )}
               {view === 'identity' && (
                 <IdentityPanel
@@ -1498,7 +1504,7 @@ function AttentionPanel({
   const statements = of('statement');
   const facts = [...of('fact'), ...of('timeline')];
   const rows = [
-    ...conflicts.map((item) => ({ key: reviewKey(item.assertion), tone: 'crit', icon: 'alert' as const, title: 'Molecular sources disagree', detail: 'Neither result is selected. Compare both passages.', action: 'Review conflict', onClick: () => onInspect(item.assertion) })),
+    ...conflicts.map((item) => ({ key: reviewKey(item.assertion), tone: 'crit', icon: 'alert' as const, title: 'Molecular results differ', detail: 'Check test, specimen and timing before choosing.', action: 'Compare', onClick: () => onInspect(item.assertion) })),
     ...(identities.length ? [{ key: 'identity', tone: 'warn', icon: 'identity' as const, title: `${identities.length} identity match${identities.length === 1 ? '' : 'es'} to compare`, detail: 'Cross-hospital records stay separate until you decide.', action: 'Compare', onClick: () => onNavigate('identity') }] : []),
     ...(gaps.length ? [{ key: 'gaps', tone: 'warn', icon: 'evidence' as const, title: `${gaps.length} evidence gap${gaps.length === 1 ? '' : 's'}`, detail: 'Missing values are never inferred.', action: 'Next gap', onClick: () => onInspect(gaps[0].assertion) }] : []),
     ...(statements.length ? [{ key: 'statements', tone: 'warn', icon: 'spark' as const, title: `${statements.length} unverified assistant statement${statements.length === 1 ? '' : 's'}`, detail: 'No exact source passage is attached.', action: 'Review', onClick: () => onNavigate('reviewQueue') }] : []),
@@ -1934,7 +1940,11 @@ function EvidenceDrawer({ assertion, onClose }: { assertion: EvidenceAssertion; 
           <article className="issue74-source-preview">
             <span className="issue74-eyebrow">{source.type.includes('Generated') ? 'GENERATED ASSERTION · SOURCE NOT VERIFIED' : 'SYNTHETIC SOURCE PREVIEW'}</span>
             <h3>{source.title}</h3>
-            <dl><dt>Hospital</dt><dd>{source.hospital}</dd><dt>Date</dt><dd>{source.date}</dd><dt>Record type</dt><dd>{source.type}</dd></dl>
+            <dl><dt>Hospital</dt><dd>{source.hospital}</dd><dt>Date</dt><dd>{source.date}</dd><dt>Record type</dt><dd>{source.type}</dd>
+              {source.context?.method && <><dt>Test</dt><dd>{source.context.method}</dd></>}
+              {source.context?.specimen && <><dt>Specimen</dt><dd>{source.context.specimen}</dd></>}
+              {source.context?.sampled && <><dt>Sampled</dt><dd>{source.context.sampled}</dd></>}
+            </dl>
             <h4>{source.type.includes('Generated') ? 'Source check' : 'Supporting passage'}</h4>
             <blockquote>{source.excerpt}</blockquote>
             <button type="button" className="hx-btn" onClick={() => setSourceOpen(true)}>{source.type.includes('Generated') ? 'Open readable record context' : 'Open source document'}</button>
@@ -2156,62 +2166,6 @@ function AssistantEvidence({ record, result, onInspect }: { record: PatientRecor
   );
 }
 
-function ClinicalSnapshot({ record }: { record: PatientRecord }) {
-  const byTest = new Map<string, PatientRecord['labs']>();
-  [...record.labs].sort((a, b) => a.date.localeCompare(b.date)).forEach((lab) => byTest.set(lab.test, [...(byTest.get(lab.test) ?? []), lab]));
-  const cea = byTest.get('CEA') ?? [];
-  const latestCea = cea.at(-1);
-  const previousCea = cea.at(-2);
-  const trend = latestCea && previousCea ? latestCea.value - previousCea.value : 0;
-  const otherLabs = [...byTest.entries()].filter(([test]) => test !== 'CEA').map(([, labs]) => labs.at(-1)).filter((lab): lab is PatientRecord['labs'][number] => Boolean(lab));
-  const scan = record.imaging?.at(-1);
-  return (
-    <div className="issue74-snapshot" aria-label="Clinical snapshot">
-      <article className="issue74-metric">
-        <span className="issue74-metric-label"><Icon name="drop" size={15} /> CEA · tumour marker</span>
-        {latestCea ? (
-          <>
-            <div className="issue74-metric-value">
-              <strong>{latestCea.value}</strong><span>{latestCea.unit}</span>
-              {previousCea && <em className={trend > 0 ? 'trend-up' : trend < 0 ? 'trend-down' : 'trend-flat'} aria-label={`${trend > 0 ? 'Up' : trend < 0 ? 'Down' : 'No change'} from ${previousCea.value}`}>{trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend).toFixed(1)}</em>}
-            </div>
-            <Sparkline values={cea.map((lab) => lab.value)} label={`CEA trend: ${cea.map((lab) => lab.value).join(', ')} ${latestCea.unit}`} />
-            <small>{latestCea.date}{cea.length > 1 ? ` · ${cea.length} measurements` : ''}{latestCea.flag ? ` · ${latestCea.flag}` : ''} · ref {latestCea.ref}</small>
-          </>
-        ) : <small>No CEA result in this record.</small>}
-      </article>
-      <article className="issue74-metric">
-        <span className="issue74-metric-label"><Icon name="flask" size={15} /> Stage · performance</span>
-        <div className="issue74-metric-value"><strong className="is-text">{record.diagnosis.stage.split('(')[0].trim()}</strong></div>
-        <div className="issue74-metric-chips"><Pill tone="neutral">ECOG {record.ecog}</Pill>{record.diagnosis.grade !== undefined && <Pill tone="neutral">Grade {record.diagnosis.grade}</Pill>}</div>
-        <small>{record.current_status ?? 'Current status not explicitly recorded'}</small>
-      </article>
-      <article className="issue74-metric">
-        <span className="issue74-metric-label"><Icon name="drop" size={15} /> Latest labs</span>
-        {otherLabs.length ? (
-          <ul className="issue74-lab-list">
-            {otherLabs.map((lab) => <li key={lab.test} className={lab.flag ? `lab-${lab.flag}` : ''}><span>{lab.test}</span><strong>{lab.value} <small>{lab.unit}</small></strong>{lab.flag && <em>{lab.flag === 'high' ? '↑' : lab.flag === 'low' ? '↓' : lab.flag}</em>}</li>)}
-          </ul>
-        ) : <small>No other laboratory results in this record.</small>}
-      </article>
-      <article className="issue74-metric issue74-imaging-card">
-        <span className="issue74-metric-label"><Icon name="image" size={15} /> Latest imaging</span>
-        {scan ? (
-          <div className="issue74-imaging">
-            <span className="issue74-imaging-thumb" aria-hidden="true"><i /></span>
-            <div><strong>{scan.modality}</strong><small>{scan.date}</small><span>{scan.result}</span><Pill tone="info">Report only · images not reviewed</Pill></div>
-          </div>
-        ) : (
-          <div className="issue74-imaging">
-            <span className="issue74-imaging-thumb is-empty" aria-hidden="true"><Icon name="image" size={22} /></span>
-            <div><strong>No imaging report</strong><span>{record.id === 'P-003' ? 'A surveillance CT is mentioned in the timeline; its report is not in this record.' : 'Not present in the retrieved record.'}</span><Pill tone="warn">Missing</Pill></div>
-          </div>
-        )}
-      </article>
-    </div>
-  );
-}
-
 function AiNotes({ record, horizon }: { record: PatientRecord; horizon: Horizon }) {
   const cea = record.labs.filter((lab) => lab.test === 'CEA').sort((a, b) => a.date.localeCompare(b.date));
   const flagged = [...record.labs].sort((a, b) => b.date.localeCompare(a.date)).find((lab) => lab.flag === 'high');
@@ -2236,6 +2190,346 @@ function AiNotes({ record, horizon }: { record: PatientRecord; horizon: Horizon 
   );
 }
 
+type DomainStatus = 'ok' | 'attention' | 'differs' | 'missing';
+const domainStatus: Record<DomainStatus, { tone: Tone; label: string }> = {
+  ok: { tone: 'ok', label: 'Consistent' },
+  attention: { tone: 'warn', label: 'Needs attention' },
+  differs: { tone: 'crit', label: 'Results differ' },
+  missing: { tone: 'warn', label: 'Not in record' },
+};
+
+const dayMs = 24 * 60 * 60 * 1000;
+const isDate = (value?: string) => Boolean(value && /^\d{4}-\d{2}-\d{2}/.test(value));
+function monthsBetween(from: string, to: string) {
+  return Math.abs(new Date(to).getTime() - new Date(from).getTime()) / (30.44 * dayMs);
+}
+function spanLabel(from: string, to: string) {
+  const days = Math.round(Math.abs(new Date(to).getTime() - new Date(from).getTime()) / dayMs);
+  if (days < 45) return `${days} day${days === 1 ? '' : 's'}`;
+  const months = Math.round(days / 30.44);
+  return months < 24 ? `${months} months` : `${(days / 365.25).toFixed(1)} years`;
+}
+function shortDate(date: string) {
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function monthYear(date: string) {
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+}
+function recordNow(record: PatientRecord) {
+  return [...record.timeline.map((item) => item.date), ...record.labs.map((lab) => lab.date), ...(record.imaging ?? []).map((scan) => scan.date)].sort().at(-1) ?? record.diagnosis.date;
+}
+
+function TrendChart({ points, unit, refHigh, label }: { points: { date: string; value: number }[]; unit: string; refHigh?: number; label: string }) {
+  const width = 420;
+  const height = 168;
+  const pad = { left: 40, right: 34, top: 22, bottom: 30 };
+  const times = points.map((point) => new Date(point.date).getTime());
+  const t0 = Math.min(...times);
+  const t1 = Math.max(...times);
+  const maxValue = Math.max(...points.map((point) => point.value), refHigh ?? 0) * 1.25 || 1;
+  const x = (time: number) => pad.left + (t1 === t0 ? 0.5 : (time - t0) / (t1 - t0)) * (width - pad.left - pad.right);
+  const y = (value: number) => pad.top + (1 - value / maxValue) * (height - pad.top - pad.bottom);
+  return (
+    <svg className="issue74-trend" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
+      {refHigh !== undefined && (
+        <>
+          <rect className="issue74-trend-above" x={pad.left} y={pad.top} width={width - pad.left - pad.right} height={y(refHigh) - pad.top} />
+          <line className="issue74-trend-ref" x1={pad.left} x2={width - pad.right} y1={y(refHigh)} y2={y(refHigh)} />
+          <text className="issue74-trend-axis" x={pad.left - 6} y={y(refHigh) + 4} textAnchor="end">{refHigh}</text>
+          <text className="issue74-trend-reflabel" x={pad.left + 6} y={pad.top + 13}>Above reference (&gt; {refHigh})</text>
+        </>
+      )}
+      <line className="issue74-trend-baseline" x1={pad.left} x2={width - pad.right} y1={height - pad.bottom} y2={height - pad.bottom} />
+      <text className="issue74-trend-axis" x={pad.left - 6} y={height - pad.bottom + 4} textAnchor="end">0</text>
+      <text className="issue74-trend-axis" x={4} y={12}>{unit}</text>
+      <polyline className="issue74-trend-line" points={points.map((point, index) => `${x(times[index])},${y(point.value)}`).join(' ')} />
+      {points.map((point, index) => (
+        <g key={`${point.date}-${point.value}`}>
+          <circle className={refHigh !== undefined && point.value > refHigh ? 'is-high' : ''} cx={x(times[index])} cy={y(point.value)} r={4.5} />
+          <text className="issue74-trend-value" x={x(times[index])} y={y(point.value) - 9} textAnchor="middle">{point.value}</text>
+          <text className="issue74-trend-axis" x={x(times[index])} y={height - 10} textAnchor="middle">{monthYear(point.date)}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function TimeStrip({ events, label }: { events: { date: string; label: string; tone: Tone }[]; label: string }) {
+  const dated = events.filter((event) => isDate(event.date)).sort((a, b) => a.date.localeCompare(b.date));
+  if (dated.length < 2) return null;
+  const t0 = new Date(dated[0].date).getTime();
+  const t1 = new Date(dated.at(-1)!.date).getTime();
+  const position = (date: string) => (t1 === t0 ? 50 : ((new Date(date).getTime() - t0) / (t1 - t0)) * 100);
+  // Events close in time are clustered: they describe the same clinical moment.
+  const clusters: (typeof dated)[] = [];
+  dated.forEach((event) => {
+    const current = clusters.at(-1);
+    if (current && position(event.date) - position(current[0].date) < 12) current.push(event);
+    else clusters.push([event]);
+  });
+  const tonePriority: Tone[] = ['crit', 'warn', 'info', 'ok', 'neutral', 'ai'];
+  return (
+    <div className="issue74-timestrip" role="img" aria-label={`${label}: ${dated.map((event) => `${event.label} ${event.date}`).join('; ')}`}>
+      <span className="issue74-timestrip-line" />
+      {clusters.slice(1).map((cluster, index) => {
+        const previous = clusters[index];
+        const middle = (position(previous[0].date) + position(cluster[0].date)) / 2;
+        return <span key={`gap-${cluster[0].date}`} className="issue74-timestrip-gap" style={{ left: `${middle}%` }}>{spanLabel(previous.at(-1)!.date, cluster[0].date)}</span>;
+      })}
+      {clusters.map((cluster, index) => {
+        const tone = tonePriority.find((item) => cluster.some((event) => event.tone === item)) ?? 'neutral';
+        return (
+          <span key={cluster[0].date} className={`issue74-timestrip-point tone-${tone}${index % 2 ? ' is-low' : ''}${index === 0 ? ' is-first' : ''}${index === clusters.length - 1 ? ' is-last' : ''}`} style={{ left: `${position(cluster[0].date)}%` }}>
+            <i aria-hidden="true">{cluster.length > 1 ? cluster.length : ''}</i>
+            <span>
+              {cluster.map((event) => <strong key={event.label}>{event.label}</strong>)}
+              <small>{cluster.length > 1 ? `${shortDate(cluster[0].date)} – ${shortDate(cluster.at(-1)!.date)} · within ${spanLabel(cluster[0].date, cluster.at(-1)!.date)}` : shortDate(cluster[0].date)}</small>
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+type HealthDomain = { id: string; icon: IconName; title: string; status: DomainStatus; statusLabel?: string; headline: string; detail: ReactNode };
+
+function HealthCheck({ record, horizon, decisions, onInspect, onNavigate }: {
+  record: PatientRecord;
+  horizon: Horizon;
+  decisions: Record<string, IdentityDecision>;
+  onInspect: (assertion: EvidenceAssertion) => void;
+  onNavigate: (view: View) => void;
+}) {
+  const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
+  const [open, setOpen] = useState<string | null>(null);
+  useEffect(() => setOpen(null), [record.id]);
+  const facts = caseFacts(record);
+  const now = recordNow(record);
+
+  const corroborations = facts.disease.sources.length;
+  const pathology: HealthDomain = {
+    id: 'pathology',
+    icon: 'evidence',
+    title: 'Pathology · staging',
+    status: 'ok',
+    statusLabel: facts.disease.state === 'corroborated' ? `Consistent · ${corroborations} sources` : 'Single source',
+    headline: `${record.diagnosis.stage.split('(')[0].trim()} · ${record.diagnosis.primary.replace(/^Adenocarcinoma of the /i, '').replace(/^Adenocarcinoma, /i, '')}`,
+    detail: (
+      <table className="issue74-hc-table">
+        <thead><tr><th>Item</th><th>Value</th><th>Date</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Diagnosis</td><td>{record.diagnosis.primary}</td><td>{shortDate(record.diagnosis.date)}</td><td><EvidenceMarker state={facts.disease.state} assertion={facts.disease} /> <EvidenceLink assertion={facts.disease} onInspect={onInspect} /></td></tr>
+          <tr><td>Stage</td><td>{record.diagnosis.stage}</td><td>{shortDate(record.diagnosis.date)}</td><td><EvidenceMarker state={facts.stage.state} assertion={facts.stage} /> <EvidenceLink assertion={facts.stage} onInspect={onInspect} /></td></tr>
+          {record.diagnosis.grade !== undefined && <tr><td>Grade</td><td>{record.diagnosis.grade}</td><td>{shortDate(record.diagnosis.date)}</td><td>—</td></tr>}
+          <tr><td>Performance</td><td>ECOG {record.ecog}</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    ),
+  };
+
+  const conflict = record.id === 'P-003' && horizon === 'future' ? conflictFor(record) : undefined;
+  const conflictReview = conflict ? reviews[reviewKey(conflict)] : undefined;
+  const selectedSource = conflictReview?.outcome === 'accepted-a' ? conflict?.sources[0] : conflictReview?.outcome === 'accepted-b' ? conflict?.sources[1] : undefined;
+  const biomarkers = Object.entries(record.diagnosis.biomarkers);
+  const conflictDetail = conflict ? (() => {
+    const [a, b] = conflict.sources;
+    const reasons = [
+      a.context?.kind !== b.context?.kind && `Different kind of source: ${a.context?.kind?.toLowerCase()} vs ${b.context?.kind?.toLowerCase()}.`,
+      [a, b].some((item) => item.context?.method === 'Not stated') && 'One source names no test method, so the two results may not come from the same assay.',
+      [a, b].some((item) => item.context?.specimen === 'Not stated') && 'One source names no specimen; a different biopsy site or time point is possible.',
+      isDate(a.date) && isDate(b.date) && `Reports are ${spanLabel(a.date, b.date)} apart${isDate(a.context?.sampled) ? ` · tested sample taken ${shortDate(a.context!.sampled!)}` : ''}.`,
+    ].filter((reason): reason is string => Boolean(reason));
+    return (
+      <>
+        <table className="issue74-hc-table issue74-hc-compare">
+          <thead><tr><th>Source</th><th>Result</th><th>Test</th><th>Specimen</th><th>Sampled</th><th>Reported</th><th /></tr></thead>
+          <tbody>
+            {conflict.sources.map((source, index) => (
+              <tr key={source.title} className={selectedSource === source ? 'is-selected' : ''}>
+                <td><strong>{index === 0 ? 'A' : 'B'} · {source.hospital}</strong><small>{source.context?.kind ?? source.type}</small></td>
+                <td><strong>{source.value}</strong></td>
+                <td className={source.context?.method === 'Not stated' ? 'is-unknown' : ''}>{source.context?.method ?? '—'}</td>
+                <td className={source.context?.specimen === 'Not stated' ? 'is-unknown' : ''}>{source.context?.specimen ?? '—'}</td>
+                <td className={source.context?.sampled === 'Not stated' ? 'is-unknown' : ''}>{isDate(source.context?.sampled) ? shortDate(source.context!.sampled!) : source.context?.sampled ?? '—'}</td>
+                <td>{shortDate(source.date)}</td>
+                <td><EvidenceLink assertion={conflict} onInspect={onInspect} label="Source" /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <TimeStrip label="Molecular evidence over time" events={[
+          { date: record.diagnosis.date, label: 'Diagnostic biopsy', tone: 'neutral' },
+          ...(isDate(a.context?.sampled) ? [{ date: a.context!.sampled!, label: 'A · specimen taken', tone: 'info' as Tone }] : []),
+          { date: a.date, label: `A · ${a.value}`, tone: 'info' },
+          { date: b.date, label: `B · ${b.value}`, tone: 'crit' },
+        ]} />
+        <div className="issue74-hc-context">
+          <span className="issue74-eyebrow">WHY MIGHT THEY DIFFER? · CONTEXT, NOT A CONCLUSION</span>
+          <ul>{reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
+          <p>Different is not necessarily contradictory. {selectedSource ? `A clinician selected ${selectedSource === a ? 'A' : 'B'} for this preparation; both sources stay visible.` : 'Neither result is selected; the clinician decides which applies.'}</p>
+        </div>
+        <div className="issue74-hc-actions"><button type="button" className="hx-btn primary sm" onClick={() => onInspect(conflict)}>{selectedSource ? 'Open both sources' : 'Compare sources and decide'}</button></div>
+      </>
+    );
+  })() : null;
+  const molecular: HealthDomain = conflict && !selectedSource
+    ? { id: 'molecular', icon: 'flask', title: 'Molecular · biomarkers', status: 'differs', headline: `KRAS: ${conflict.sources[0].value?.replace('KRAS ', '')} vs ${conflict.sources[1].value?.replace('KRAS ', '')} · ${spanLabel(conflict.sources[0].date, conflict.sources[1].date)} apart`, detail: conflictDetail }
+    : conflict && selectedSource
+      ? { id: 'molecular', icon: 'flask', title: 'Molecular · biomarkers', status: 'ok', statusLabel: 'Clinician selected', headline: `${selectedSource.value} · difference kept visible`, detail: conflictDetail }
+      : biomarkers.length
+        ? {
+          id: 'molecular', icon: 'flask', title: 'Molecular · biomarkers', status: 'ok', statusLabel: 'Single source',
+          headline: biomarkers.map(([name, value]) => `${name} ${value.split(' (')[0]}`).join(' · '),
+          detail: (
+            <table className="issue74-hc-table">
+              <thead><tr><th>Marker</th><th>Result</th><th>Evidence</th></tr></thead>
+              <tbody>{biomarkers.map(([name, value]) => <tr key={name}><td>{name}</td><td>{value}</td><td>{facts.molecular && <><EvidenceMarker state={facts.molecular.state} assertion={facts.molecular} /> <EvidenceLink assertion={facts.molecular} onInspect={onInspect} /></>}</td></tr>)}</tbody>
+            </table>
+          ),
+        }
+        : { id: 'molecular', icon: 'flask', title: 'Molecular · biomarkers', status: 'missing', headline: 'No molecular result in the record', detail: <p className="issue74-muted">No biomarker result was found in the available sources. Nothing is inferred.</p> };
+
+  const sortedLabs = [...record.labs].sort((x, y) => x.date.localeCompare(y.date));
+  const series = new Map<string, PatientRecord['labs']>();
+  sortedLabs.forEach((lab) => series.set(lab.test, [...(series.get(lab.test) ?? []), lab]));
+  const [trendTest, trendLabs] = [...series.entries()].sort((x, y) => (y[0] === 'CEA' ? 1 : 0) - (x[0] === 'CEA' ? 1 : 0) || y[1].length - x[1].length)[0] ?? ['', []];
+  const refHigh = trendLabs[0]?.ref?.startsWith('<') ? Number.parseFloat(trendLabs[0].ref.slice(1)) : undefined;
+  const latest = trendLabs.at(-1);
+  const previous = trendLabs.at(-2);
+  const firstHigh = refHigh !== undefined ? trendLabs.find((lab) => lab.value > refHigh) : undefined;
+  const flaggedOthers = [...series.entries()].filter(([test]) => test !== trendTest).map(([, labs]) => labs.at(-1)!).filter((lab) => lab.flag);
+  const labsAssertion = evidenceFor(record, 'Laboratory results', sortedLabs.map((lab) => `${lab.test} ${lab.value} ${lab.unit} (${lab.date})`).join('; ') || 'No laboratory results');
+  const labsAttention = Boolean(latest?.flag) || flaggedOthers.length > 0;
+  const labs: HealthDomain = {
+    id: 'labs',
+    icon: 'drop',
+    title: 'Labs · tumour markers',
+    status: latest ? (labsAttention ? 'attention' : 'ok') : 'missing',
+    statusLabel: latest ? (latest.flag ? 'Above reference' : labsAttention ? 'Flagged result' : 'Within reference') : undefined,
+    headline: latest ? `${trendTest} ${trendLabs.map((lab) => lab.value).join(' → ')} ${latest.unit}${trendLabs.length > 1 ? ` over ${spanLabel(trendLabs[0].date, latest.date)}` : ''}` : 'No laboratory results in the record',
+    detail: latest ? (
+      <div className="issue74-hc-labs">
+        {trendLabs.length > 1
+          ? <TrendChart points={trendLabs.map((lab) => ({ date: lab.date, value: lab.value }))} unit={`${trendTest} · ${latest.unit}`} refHigh={refHigh} label={`${trendTest} trend: ${trendLabs.map((lab) => `${lab.value} on ${lab.date}`).join(', ')}`} />
+          : <p><strong>{trendTest} {latest.value} {latest.unit}</strong> on {shortDate(latest.date)} · one measurement, no trend.</p>}
+        <div>
+          <dl className="issue74-hc-facts">
+            <dt>Latest</dt><dd><strong>{latest.value} {latest.unit}</strong> · {shortDate(latest.date)} · ref {latest.ref}</dd>
+            {previous && <><dt>Change</dt><dd>{latest.value - previous.value >= 0 ? '+' : ''}{(latest.value - previous.value).toFixed(1)} {latest.unit} in {spanLabel(previous.date, latest.date)} (from {previous.value})</dd></>}
+            {firstHigh && <><dt>Above reference</dt><dd>since {shortDate(firstHigh.date)}</dd></>}
+            <dt>Measurements</dt><dd>{trendLabs.length} · {shortDate(trendLabs[0].date)} → {shortDate(latest.date)}</dd>
+          </dl>
+          <p className="issue74-muted">Changes that stay within the reference range are shown, not flagged. Clinical relevance is for the MDT to judge.</p>
+          {flaggedOthers.length > 0 && <p>Other flagged results: {flaggedOthers.map((lab) => `${lab.test} ${lab.value} ${lab.unit} (${lab.flag})`).join(' · ')}</p>}
+          <EvidenceLink assertion={labsAssertion} onInspect={onInspect} label="Open laboratory source" />
+        </div>
+      </div>
+    ) : <p className="issue74-muted">No laboratory results were found in the available sources.</p>,
+  };
+
+  const scan = record.imaging?.at(-1);
+  const imagingEvents = record.timeline.filter((event) => timelineKind(event.event) === 'imaging' && !/\b(due|planned|scheduled)\b/i.test(event.event));
+  const imagingGap = completenessItems(record, horizon).find((item) => /imaging/i.test(item.label) && item.state !== 'present')?.assertion ?? missingAssertion(record, 'Imaging report');
+  const scanAge = scan ? monthsBetween(scan.date, now) : undefined;
+  const imaging: HealthDomain = scan
+    ? {
+      id: 'imaging', icon: 'image', title: 'Imaging', status: scanAge !== undefined && scanAge > 6 ? 'attention' : 'ok',
+      statusLabel: scanAge !== undefined && scanAge > 6 ? `${Math.round(scanAge)} months old` : 'Recent report',
+      headline: `${scan.modality} · ${shortDate(scan.date)}`,
+      detail: (
+        <table className="issue74-hc-table">
+          <thead><tr><th>Study</th><th>Date</th><th>Age at MDT</th><th>Report finding</th><th>Evidence</th></tr></thead>
+          <tbody>{(record.imaging ?? []).slice().reverse().map((item) => <tr key={`${item.modality}-${item.date}`}><td>{item.modality}</td><td>{shortDate(item.date)}</td><td>{spanLabel(item.date, now)}</td><td>{item.result}</td><td>{item === scan && facts.imaging ? <EvidenceLink assertion={facts.imaging} onInspect={onInspect} label="Report" /> : '—'}</td></tr>)}</tbody>
+        </table>
+      ),
+    }
+    : {
+      id: 'imaging', icon: 'image', title: 'Imaging', status: 'missing', statusLabel: 'Report missing',
+      headline: imagingEvents.length ? `${imagingEvents.at(-1)!.event.split(':')[0]} ${shortDate(imagingEvents.at(-1)!.date)} · report not in record` : 'No imaging report in the record',
+      detail: (
+        <>
+          <p>{imagingEvents.length ? `The timeline mentions ${imagingEvents.map((event) => `“${event.event}” (${shortDate(event.date)}, ${spanLabel(event.date, now)} before the latest entry)`).join('; ')}, but the report itself is not in the available sources.` : 'No imaging study or report was found in the available sources.'} Nothing is inferred.</p>
+          <TimeStrip label="Imaging and marker timing" events={[
+            ...imagingEvents.map((event) => ({ date: event.date, label: event.event.split(':')[0], tone: 'warn' as Tone })),
+            ...(firstHigh ? [{ date: firstHigh.date, label: `${trendTest} above reference`, tone: 'warn' as Tone }] : []),
+          ]} />
+          <div className="issue74-hc-actions"><EvidenceLink assertion={imagingGap} onInspect={onInspect} label="Open search result" /><button type="button" className="hx-btn sm" onClick={() => onNavigate('completeness')}>Search for the report</button></div>
+        </>
+      ),
+    };
+
+  const treatment: HealthDomain = {
+    id: 'treatment',
+    icon: 'pill',
+    title: 'Treatment',
+    status: record.treatments.length ? 'ok' : 'missing',
+    statusLabel: record.treatments.length ? `${record.treatments.length} recorded` : undefined,
+    headline: record.treatments.length ? record.treatments.map((item) => item.type).join(' → ') : 'No treatment recorded',
+    detail: record.treatments.length ? (
+      <table className="issue74-hc-table">
+        <thead><tr><th>Type</th><th>Regimen</th><th>Start</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>{record.treatments.map((item, index) => <tr key={`${item.regimen}-${item.start}`}><td>{item.type}</td><td>{item.regimen}</td><td>{shortDate(item.start)}</td><td>{item.status}</td><td>{index === 0 ? <EvidenceLink assertion={facts.treatments} onInspect={onInspect} label="Source" /> : '—'}</td></tr>)}</tbody>
+      </table>
+    ) : <p className="issue74-muted">No treatment was found in the available sources.</p>,
+  };
+
+  const domains = [pathology, molecular, labs, imaging, treatment];
+  const openDomain = domains.find((domain) => domain.id === open);
+  const exceptions = domains.filter((domain) => domain.status !== 'ok').length;
+  const identityOpen = openIdentityCandidates(record, horizon, decisions).length;
+  const identityTotal = horizon === 'future' ? identityCandidates(record).length : 0;
+  return (
+    <section className="issue74-hc" aria-labelledby="issue74-hc-title">
+      <header className="issue74-hc-head">
+        <div>
+          <span className="issue74-eyebrow">HEALTH CHECK · SUMMARY FIRST, DETAIL ON DEMAND</span>
+          <h2 id="issue74-hc-title">{exceptions ? `${exceptions} of ${domains.length} clinical areas need a look` : 'All clinical areas consistent'}</h2>
+        </div>
+        <div className="issue74-hc-question">
+          <span>MDT question</span>
+          <strong>{clinicalQuestion(record)}</strong>
+        </div>
+      </header>
+      <button type="button" className={`issue74-hc-linkage${identityOpen ? ' is-open' : ''}`} onClick={() => onNavigate('identity')}>
+        <Icon name="identity" size={16} />
+        <span><strong>Record linkage</strong> · is this the same patient?</span>
+        <span className="issue74-hc-linkage-text">{identityTotal ? (identityOpen ? `${identityOpen} of ${identityTotal} outside records await a match decision · handled separately from clinical content` : `${identityTotal} outside records resolved`) : 'Single hospital record · no linkage needed'}</span>
+        <Pill tone={identityOpen ? 'warn' : 'ok'}>{identityOpen ? 'Linkage open' : 'Linked'}</Pill>
+      </button>
+      <span className="issue74-hc-group">Clinical content · do the findings agree?</span>
+      <div className="issue74-hc-grid">
+        {domains.map((domain) => (
+          <button
+            key={domain.id}
+            type="button"
+            className={`issue74-hc-card status-${domain.status}${open === domain.id ? ' is-open' : ''}`}
+            aria-expanded={open === domain.id}
+            aria-controls="issue74-hc-detail"
+            onClick={() => setOpen(open === domain.id ? null : domain.id)}
+          >
+            <span className="issue74-hc-card-top"><i className={`issue74-hc-dot tone-${domainStatus[domain.status].tone}`} aria-hidden="true" /><Icon name={domain.icon} size={15} /><span>{domain.title}</span></span>
+            <strong>{domain.statusLabel ?? domainStatus[domain.status].label}</strong>
+            <small>{domain.headline}</small>
+            <span className="issue74-hc-more">{open === domain.id ? 'Hide detail' : 'Detail'} <Icon name="chevron" size={12} /></span>
+          </button>
+        ))}
+      </div>
+      {openDomain && (
+        <div className="issue74-hc-detail" id="issue74-hc-detail" role="region" aria-label={`${openDomain.title} detail`}>
+          <header>
+            <strong><i className={`issue74-hc-dot tone-${domainStatus[openDomain.status].tone}`} aria-hidden="true" /> {openDomain.title} · {openDomain.statusLabel ?? domainStatus[openDomain.status].label}</strong>
+            <button type="button" className="issue74-hc-close" aria-label="Close detail" onClick={() => setOpen(null)}>×</button>
+          </header>
+          {openDomain.detail}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function AtAGlance({ record, agentResult, horizon, onInspect }: { record: PatientRecord; agentResult?: AgentResult; horizon: Horizon; onInspect: (assertion: EvidenceAssertion) => void }) {
   const context = mdtContext(record.id);
   const reviews = useContext(EvidenceReviewContext)?.reviews ?? {};
@@ -2247,7 +2541,6 @@ function AtAGlance({ record, agentResult, horizon, onInspect }: { record: Patien
     : undefined;
   return (
     <>
-      <ClinicalSnapshot record={record} />
       <Panel
         title="Patient at a glance"
         eyebrow="What the MDT needs to know"
@@ -2505,8 +2798,8 @@ function conflictFor(record: PatientRecord): EvidenceAssertion {
     state: 'contradictory',
     explanation: 'Two clearly labelled synthetic source excerpts disagree. Neither result is selected or reconciled; clinical review is required.',
     sources: [
-      { title: 'Pathology molecular addendum · Evidence A', hospital: 'Utrecht University Medical Center', date: record.diagnosis.date, type: 'Synthetic pathology report', excerpt: `${actual} detected in the synthetic pathology addendum.`, value: actual },
-      { title: 'Outside referral letter · Evidence B', hospital: 'Milan Cancer Centre', date: record.diagnosis.date, type: 'Synthetic referral · intentionally conflicting demo value', excerpt: 'The referral letter lists KRAS wild type. This conflicts with the pathology addendum. Both source records remain available for clinician review.', value: 'KRAS wild type' },
+      { title: 'Pathology molecular addendum · Evidence A', hospital: 'Utrecht University Medical Center', date: '2024-07-02', type: 'Synthetic pathology report', excerpt: `${actual} detected by NGS panel on the resection specimen (sigmoid primary, tumour cell content 40%).`, value: actual, context: { kind: 'Primary laboratory report', method: 'NGS panel · 50 genes', specimen: 'Resection specimen · sigmoid primary', sampled: '2024-06-20' } },
+      { title: 'Outside referral letter · Evidence B', hospital: 'Milan Cancer Centre', date: '2025-12-08', type: 'Synthetic referral · intentionally conflicting demo value', excerpt: 'The referral letter lists “KRAS wild type” in the history section. No test, specimen or laboratory is named.', value: 'KRAS wild type', context: { kind: 'Result cited in a letter', method: 'Not stated', specimen: 'Not stated', sampled: 'Not stated' } },
     ],
   };
 }
