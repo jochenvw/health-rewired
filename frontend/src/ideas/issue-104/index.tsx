@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { request, type AgentResult } from '../../api';
+import { useEffect, useState } from 'react';
+import { api, request, type AgentResult } from '../../api';
 import { RenderBlock } from '../../blocks/registry';
 import { HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, StoryGuide, type StoryStep } from '../../hospital/Story';
-import data from '../../../../sample-data/issue-104.json';
-import dataset from '../../../../sample-data/minimal-mdt-dataset.json';
+import { data } from './data';
 import type { IdeaMeta } from '../index';
 import './decision.css';
+
+/** Shape we read from the shared /sample-data/minimal-mdt-dataset.json, fetched at runtime. */
+type MinimalDataset = {
+  groups: { group: string; elements: { name: string; likely_source: string }[] }[];
+};
 
 export const meta: IdeaMeta = {
   id: '104', issue: 104, title: 'Post-MDT shared decision making',
@@ -49,6 +53,10 @@ export default function SharedDecision() {
   const [notes, setNotes] = useState('I want to keep walking and understand whether extra treatment time is worth it.');
   const [confirmed, setConfirmed] = useState(false);
   const [receipt, setReceipt] = useState('');
+  const [dataset, setDataset] = useState<MinimalDataset | null>(null);
+  useEffect(() => {
+    api.sampleData<MinimalDataset>('minimal-mdt-dataset.json').then(setDataset).catch(() => setDataset(null));
+  }, []);
   const future = horizon === 'future';
   const country = data.countries.find((item) => item.name === countryName)!;
   const score = (option: Option) => {
@@ -180,7 +188,7 @@ export default function SharedDecision() {
       {!future && <Panel title="What this needs from the minimal dataset">
         <p>7 of 7 record fields are listed; availability still depends on each hospital. Source categories are hackathon assumptions, not measured readiness.</p>
         <div className="sdm-scroll"><table className="hx-table"><caption>Coverage from /sample-data/minimal-mdt-dataset.json</caption><thead><tr><th>Group</th><th>Field</th><th>Likely source</th><th>Six-month readiness</th></tr></thead><tbody>
-          {dataset.groups.flatMap((group) => group.elements.filter((element) => data.coverage.includes(element.name)).map((element) => <tr key={element.name}><td>{group.group}</td><td>{element.name}</td><td>{element.likely_source}</td>
+          {(dataset?.groups ?? []).flatMap((group) => group.elements.filter((element) => (data.coverage as readonly string[]).includes(element.name)).map((element) => <tr key={element.name}><td>{group.group}</td><td>{element.name}</td><td>{element.likely_source}</td>
             <td>{['structured', 'derived'].includes(element.likely_source) ? '✓ Map structured field' : '◐ Structure / confirm with clinician'}</td></tr>))}
           <tr><td>Beyond MDT data</td><td>Personalised probabilities; weekly symptoms; costs</td><td>Validated models / richer records</td><td>✕ Not available</td></tr>
         </tbody></table></div>
