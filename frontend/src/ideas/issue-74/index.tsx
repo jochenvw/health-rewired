@@ -13,7 +13,7 @@ export const meta: IdeaMeta = {
 };
 
 type CaseStatus = 'scheduled' | 'preparing' | 'prepared' | 'accepted' | 'challenged' | 'returned';
-type View = 'worklist' | 'identity' | 'case' | 'timeline' | 'evidence' | 'completeness' | 'ready';
+type View = 'worklist' | 'identity' | 'reviewQueue' | 'case' | 'timeline' | 'evidence' | 'completeness' | 'ready';
 type Specialty = 'Oncology' | 'Radiology' | 'Pathology';
 type Horizon = 'future' | 'sixMonths';
 type IdentityState = 'verified' | 'probable' | 'review' | 'mismatch';
@@ -161,7 +161,7 @@ function reviewKey(assertion: EvidenceAssertion) {
 }
 
 function reviewStatusLabel(review: EvidenceReview) {
-  const outcome = review.outcome === 'verified' ? 'Previously verified'
+  const outcome = review.outcome === 'verified' ? 'Human-verified'
     : review.outcome === 'gap-reviewed' ? 'Gap reviewed · still missing'
       : review.outcome === 'unverified-reviewed' ? 'Review noted · still unverified'
         : review.outcome === 'accepted-a' ? 'Evidence A selected · conflict retained'
@@ -617,6 +617,7 @@ export default function TeamDomitian() {
         nav={[
           { id: 'worklist', label: 'Upcoming MDT', badge: scheduled.length },
           { id: 'identity', label: 'Patient identity' },
+          { id: 'reviewQueue', label: 'Review all items' },
           { id: 'case', label: 'Patient at a glance' },
           { id: 'timeline', label: 'Timeline' },
           { id: 'evidence', label: 'Evidence & gaps' },
@@ -743,7 +744,17 @@ export default function TeamDomitian() {
                   }}
                 />
               )}
-              {view !== 'identity' && view !== 'ready' && (
+              {view === 'reviewQueue' && (
+                <BulkEvidenceReview
+                  record={record}
+                  horizon={horizon}
+                  agentResult={agentResults[selectedId]}
+                  decisions={identityDecisions}
+                  onInspect={(assertion) => setEvidenceDrawer(assertion)}
+                  onNavigate={setView}
+                />
+              )}
+              {view !== 'identity' && view !== 'ready' && view !== 'reviewQueue' && (
                 <AttentionPanel
                   record={record}
                   horizon={horizon}
@@ -770,8 +781,8 @@ export default function TeamDomitian() {
                   onInspect={(assertion) => setEvidenceDrawer(assertion)}
                 />
               )}
-              {view !== 'ready' && horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
-              {view !== 'ready' && <Panel title="Your review">
+              {view !== 'ready' && view !== 'reviewQueue' && horizon === 'sixMonths' && <CoveragePanel groups={datasetGroups} record={record} />}
+              {view !== 'ready' && view !== 'reviewQueue' && <Panel title="Your review">
                 <p className="issue74-intro">Accepting means this evidence package is suitable for MDT review. It does not approve a diagnosis or treatment; the team keeps every clinical judgment and decision.</p>
                 {statuses[selectedId] === 'accepted' ? (
                     <div className="issue74-review-actions">
@@ -796,8 +807,8 @@ export default function TeamDomitian() {
                   </form>
                 )}
               </Panel>}
-              {view !== 'ready' && horizon === 'future' && specialty === 'Radiology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
-              {view !== 'ready' && horizon === 'future' && specialty === 'Pathology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              {view !== 'ready' && view !== 'reviewQueue' && horizon === 'future' && specialty === 'Radiology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
+              {view !== 'ready' && view !== 'reviewQueue' && horizon === 'future' && specialty === 'Pathology' && <SpecialtyPanel record={record} specialty={specialty} onInspect={(assertion) => setEvidenceDrawer(assertion)} />}
             </>
           ) : (
             <Panel title="Loading synthetic patient record"><span className="hx-working"><span className="hx-spinner" aria-hidden /> Loading the record…</span></Panel>
@@ -840,8 +851,8 @@ function EvidenceMarker({ state, assertion }: { state: EvidenceState; assertion?
             : review?.outcome === 'investigation' ? 'Investigation noted · unresolved'
               : evidenceLabels[state];
   return (
-    <span className={`issue74-evidence-state state-${state}${review ? ' has-review' : ''}`} title={`${status}: ${evidenceDescriptions[state]}`} aria-label={`${status}: ${evidenceDescriptions[state]}`}>
-      <span aria-hidden="true">{symbols[state]}</span> {status}
+    <span className={`issue74-evidence-state state-${state}${review ? ' has-review' : ''}${review?.outcome === 'verified' ? ' evidence-human-verified' : ''}`} title={`${status}: ${evidenceDescriptions[state]}`} aria-label={`${status}: ${evidenceDescriptions[state]}`}>
+      <span aria-hidden="true">{review?.outcome === 'verified' ? '✓' : symbols[state]}</span> {status}
     </span>
   );
 }
@@ -922,6 +933,184 @@ function EvidenceReadiness({ record, onInspect }: { record: PatientRecord; onIns
           <EvidenceLink assertion={conflictFor(record)} onInspect={onInspect} label={conflictReview ? 'Inspect review ↗' : 'Review conflict ↗'} />
         </div>
       )}
+    </Panel>
+  );
+}
+
+function BulkEvidenceReview({
+  record,
+  horizon,
+  agentResult,
+  decisions,
+  onInspect,
+  onNavigate,
+}: {
+  record: PatientRecord;
+  horizon: Horizon;
+  agentResult?: AgentResult;
+  decisions: Record<string, IdentityDecision>;
+  onInspect: (assertion: EvidenceAssertion) => void;
+  onNavigate: (view: View) => void;
+}) {
+  const reviewContext = useContext(EvidenceReviewContext);
+  const reviews = reviewContext?.reviews ?? {};
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  useEffect(() => setSelected({}), [record.id]);
+
+  const treatments = record.treatments.map((item) => `${item.regimen} · ${item.status}`).join('; ') || 'No treatment recorded';
+  const recentChange = record.timeline.at(-1)?.event ?? 'No recent change recorded';
+  const assertions: { label: string; assertion: EvidenceAssertion }[] = [
+    { label: 'Disease', assertion: evidenceFor(record, 'Disease', record.diagnosis.primary) },
+    { label: 'Stage / current state', assertion: evidenceFor(record, 'Stage / current state', `${record.diagnosis.stage} · ${record.current_status ?? 'See latest record entry'}`) },
+    { label: 'Treatments so far', assertion: evidenceFor(record, 'Treatments so far', treatments) },
+    { label: 'What changed', assertion: evidenceFor(record, 'What changed', recentChange) },
+    { label: 'Question for the MDT', assertion: evidenceFor(record, 'Question for the MDT', clinicalQuestion(record)) },
+    ...Object.entries(record.diagnosis.biomarkers).map(([key, value]) => ({
+      label: `Biomarker · ${key}`,
+      assertion: evidenceFor(record, `Biomarker · ${key}`, `${key}: ${value}`),
+    })),
+    ...(record.imaging?.slice(-1).map((scan) => ({
+      label: 'Imaging finding',
+      assertion: evidenceFor(record, 'Imaging finding', scan.result),
+    })) ?? []),
+    ...(record.comorbidities.length ? [{
+      label: 'Relevant comorbidities',
+      assertion: evidenceFor(record, 'Comorbidity', record.comorbidities.join('; ')),
+    }] : []),
+    ...record.timeline.map((event) => {
+      const isDiagnosis = event.event.toLowerCase().includes('diagnos');
+      const isTreatment = event.event.toLowerCase().includes('treatment') || event.event.toLowerCase().includes('resection') || event.event.toLowerCase().includes('surgery');
+      const assertion = isDiagnosis
+        ? evidenceFor(record, 'Disease', event.event)
+        : isTreatment
+          ? {
+              ...evidenceFor(record, 'Treatments so far', event.event),
+              sources: evidenceFor(record, 'Treatments so far', event.event).sources.map((source) => ({ ...source, date: event.date, excerpt: event.event })),
+            }
+          : {
+              patientId: record.id,
+              statement: event.event,
+              state: 'single-source' as const,
+              explanation: 'One dated synthetic record entry supports this timeline event.',
+              sources: [{
+                title: 'Dated timeline entry',
+                hospital: sourceFor(record.id).label,
+                date: event.date,
+                type: 'Synthetic source record',
+                excerpt: `“${event.event}”`,
+              }],
+            };
+      return { label: `Timeline · ${event.date}`, assertion };
+    }),
+    ...completenessItems(record, horizon).map((item) => ({ label: item.label, assertion: item.assertion })),
+    ...missingEvidenceItems(record, horizon).map((item) => ({ label: item.label, assertion: item.assertion })),
+    ...(record.id === 'P-003' && horizon === 'future'
+      ? [{ label: 'Molecular source disagreement', assertion: conflictFor(record) }]
+      : []),
+    ...(agentResult?.blocks.flatMap((block) => [
+      ...(block.body ? [{ label: 'Assistant statement', assertion: generatedAssertion(record, block.body) }] : []),
+      ...block.items.map((item) => ({
+        label: 'Assistant statement',
+        assertion: generatedAssertion(record, [item.label, item.detail].filter(Boolean).join(' · ')),
+      })),
+    ]) ?? []),
+  ];
+
+  const uniqueAssertions = [...new Map(assertions.map((item) => [reviewKey(item.assertion), item])).values()];
+  const pending = uniqueAssertions.filter(({ assertion }) => {
+    const outcome = reviews[reviewKey(assertion)]?.outcome;
+    if (assertion.state === 'missing') return outcome !== 'gap-reviewed';
+    if (assertion.state === 'unverified') return outcome !== 'unverified-reviewed';
+    if (assertion.state === 'contradictory') return !outcome;
+    return outcome !== 'verified';
+  });
+  const selectedItems = pending.filter(({ assertion }) => selected[reviewKey(assertion)]);
+  const outstandingIdentities = horizon === 'future'
+    ? identityCandidates(record).filter(({ id, state }) => {
+        const decision = decisions[`${record.id}:${id}`];
+        return (state === 'review' || state === 'probable') && decision !== 'confirmed' && decision !== 'separate';
+      })
+    : [];
+
+  const recordSelectedReviews = () => {
+    const reviewedAt = new Date().toISOString();
+    selectedItems.forEach(({ assertion }) => {
+      const rationale = assertion.state === 'missing'
+        ? 'Reviewed in the case review queue; the value remains missing.'
+        : assertion.state === 'unverified'
+          ? 'Reviewed in the case review queue; no exact source passage is attached.'
+          : assertion.state === 'contradictory'
+            ? 'Reviewed in the case review queue; source disagreement remains unresolved.'
+            : 'Source evidence reviewed and human-verified in the case review queue.';
+      const outcome: EvidenceReview['outcome'] = assertion.state === 'missing'
+        ? 'gap-reviewed'
+        : assertion.state === 'unverified'
+          ? 'unverified-reviewed'
+          : assertion.state === 'contradictory'
+            ? 'unresolved'
+            : 'verified';
+      reviewContext?.saveReview(assertion, { outcome, rationale, reviewedAt });
+    });
+    setSelected({});
+  };
+
+  return (
+    <Panel
+      title="Review this case · one concise queue"
+      actions={<Pill tone={pending.length ? 'warn' : 'ok'}>{pending.length ? `${pending.length} need review` : 'All review actions recorded'}</Pill>}
+    >
+      <p className="issue74-review-queue-intro">
+        Select only items you have checked. One action records the correct review type for each item: source facts become human-verified, gaps stay missing, and conflicts stay unresolved. This does not make a clinical decision.
+      </p>
+      {outstandingIdentities.length > 0 && (
+        <div className="issue74-review-queue-identity">
+          <div><strong>{outstandingIdentities.length} patient identity match{outstandingIdentities.length === 1 ? '' : 'es'} need an individual decision</strong><span>Identity cannot be confirmed or separated through bulk evidence review.</span></div>
+          <button type="button" className="hx-btn" onClick={() => onNavigate('identity')}>Review identities</button>
+        </div>
+      )}
+      <div className="issue74-review-queue-actions">
+        <label className="issue74-review-select-all">
+          <input
+            type="checkbox"
+            checked={pending.length > 0 && selectedItems.length === pending.length}
+            disabled={pending.length === 0}
+            onChange={(event) => setSelected(Object.fromEntries(pending.map(({ assertion }) => [reviewKey(assertion), event.target.checked])))}
+          />
+          Select all {pending.length} pending items
+        </label>
+        <button type="button" className="hx-btn" onClick={() => setSelected({})} disabled={selectedItems.length === 0}>Clear selection</button>
+        <button type="button" className="hx-btn primary" onClick={recordSelectedReviews} disabled={selectedItems.length === 0}>
+          Record review for {selectedItems.length} selected
+        </button>
+      </div>
+      {pending.length === 0 ? (
+        <div className="issue74-review-queue-empty" role="status"><strong>✓ No evidence review actions remain.</strong><span>Missing values and unresolved conflicts still remain visible in the case.</span></div>
+      ) : (
+        <ul className="issue74-review-queue">
+          {pending.map(({ label, assertion }) => {
+            const key = reviewKey(assertion);
+            const action = assertion.state === 'missing' ? 'Gap · remains missing'
+              : assertion.state === 'unverified' ? 'Unverified · review only'
+                : assertion.state === 'contradictory' ? 'Conflict · individual selection still available'
+                  : 'Source evidence · human verification';
+            return (
+              <li key={key} className={`review-queue-${assertion.state}`}>
+                <label className="issue74-review-queue-check">
+                  <input type="checkbox" checked={Boolean(selected[key])} onChange={(event) => setSelected((current) => ({ ...current, [key]: event.target.checked }))} />
+                  <span><strong>{label}</strong><small>{action}</small></span>
+                </label>
+                <div className="issue74-review-queue-item">
+                  <span>{assertion.statement}</span>
+                  <button type="button" className="issue74-evidence-link" onClick={() => onInspect(assertion)}>
+                    Inspect {assertion.sources.length} source{assertion.sources.length === 1 ? '' : 's'} ↗
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <p className="issue74-muted">Bulk review is a convenience for recording checks—not a shortcut to accepting a conflict, filling a gap, confirming an identity or deciding care. All evidence remains synthetic and source-linked.</p>
     </Panel>
   );
 }

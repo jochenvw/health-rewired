@@ -472,6 +472,132 @@
   line-height: 1.5;
 }
 
+.issue74-review-queue-intro {
+  max-width: 76ch;
+  margin: 0 0 12px;
+  color: var(--cp-text-muted);
+  line-height: 1.5;
+}
+
+.issue74-review-queue-identity,
+.issue74-review-queue-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid #b77900;
+  background: var(--cp-surface-soft);
+}
+
+.issue74-review-queue-identity > div,
+.issue74-review-queue-empty {
+  display: grid;
+  gap: 4px;
+}
+
+.issue74-review-queue-identity span,
+.issue74-review-queue-empty span {
+  color: var(--cp-text-muted);
+  font-size: 12px;
+}
+
+.issue74-review-queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.issue74-review-select-all,
+.issue74-review-queue-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.issue74-review-select-all {
+  align-items: center;
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.issue74-review-queue input[type="checkbox"],
+.issue74-review-select-all input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--cp-accent);
+  flex: 0 0 auto;
+}
+
+.issue74-review-queue {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issue74-review-queue > li {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.75fr) minmax(0, 1.5fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-link);
+  background: var(--cp-surface-soft);
+}
+
+.issue74-review-queue > .review-queue-missing,
+.issue74-review-queue > .review-queue-contradictory {
+  border-left-color: #b77900;
+}
+
+.issue74-review-queue > .review-queue-unverified {
+  border-left-color: #315e85;
+}
+
+.issue74-review-queue-check > span,
+.issue74-review-queue-item {
+  display: grid;
+  gap: 4px;
+}
+
+.issue74-review-queue-check strong {
+  line-height: 1.35;
+}
+
+.issue74-review-queue-check small {
+  color: var(--cp-text-muted);
+  font-size: 11px;
+}
+
+.issue74-review-queue-item {
+  min-width: 0;
+  color: var(--cp-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.issue74-review-queue-item > span {
+  overflow-wrap: anywhere;
+}
+
+.issue74-review-queue-empty {
+  justify-content: initial;
+  border-left-color: #16803c;
+}
+
 .issue74-evidence-detail {
   margin-top: 10px;
   border-top: 1px solid var(--cp-border);
@@ -578,6 +704,12 @@
 
 .state-single-source {
   color: #315e85;
+}
+
+.issue74-evidence-state.evidence-human-verified {
+  border-color: #176b36;
+  background: #e8f6ec;
+  color: #176b36;
 }
 
 .state-unverified,
@@ -1919,6 +2051,28 @@
   background: #1a2733;
 }
 
+.issue74[data-theme="dark"] .issue74-review-queue-identity,
+.issue74[data-theme="dark"] .issue74-review-queue-empty,
+.issue74[data-theme="dark"] .issue74-review-queue > li {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text);
+}
+
+.issue74[data-theme="dark"] .issue74-review-queue > .review-queue-missing,
+.issue74[data-theme="dark"] .issue74-review-queue > .review-queue-contradictory {
+  border-left-color: #f2cc65;
+}
+
+.issue74[data-theme="dark"] .issue74-review-queue > .review-queue-unverified {
+  border-left-color: #8fc7f3;
+}
+
+.issue74[data-theme="dark"] .issue74-evidence-state.evidence-human-verified {
+  border-color: #70d995;
+  background: #183c29;
+  color: #a7e6b8;
+}
+
 .issue74[data-theme="dark"] .issue74-ready {
   background: var(--cp-surface);
   color: var(--cp-text);
@@ -2097,5 +2251,13 @@
   .issue74-attention-list > div {
     grid-template-columns: 1fr;
     justify-items: start;
+  }
+
+  .issue74-review-queue > li {
+    grid-template-columns: 1fr;
+  }
+
+  .issue74-review-queue-actions > button {
+    flex: 1 1 100%;
   }
 }
