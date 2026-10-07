@@ -41,6 +41,62 @@ def test_agent_falls_back_without_token(client):
     assert any(step["tool"] == "get_patient" for step in body["trace"])
 
 
+def test_issue_74_evidence_review_returns_proposals_without_applying_them(client):
+    response = client.post(
+        "/api/ideas/74/evidence-review",
+        json={
+            "patient_id": "P-003",
+            "assertions": [
+                {
+                    "key": "evidence-1234",
+                    "label": "Disease",
+                    "statement": "Adenocarcinoma of the sigmoid colon",
+                    "state": "single-source",
+                    "sources": [
+                        {
+                            "title": "Synthetic oncology record",
+                            "hospital": "Utrecht University Medical Center",
+                            "date": "2024-06-03",
+                            "excerpt": "Diagnosis: Adenocarcinoma of the sigmoid colon",
+                        }
+                    ],
+                },
+                {
+                    "key": "evidence-5678",
+                    "label": "Molecular result",
+                    "statement": "Molecular result needs reconciliation",
+                    "state": "contradictory",
+                    "sources": [
+                        {
+                            "title": "Pathology report",
+                            "hospital": "Utrecht University Medical Center",
+                            "date": "2024-06-03",
+                            "excerpt": "KRAS G12D detected.",
+                        },
+                        {
+                            "title": "Referral letter",
+                            "hospital": "Milan Cancer Centre",
+                            "date": "2024-06-03",
+                            "excerpt": "KRAS wild type.",
+                        },
+                    ],
+                },
+            ],
+        },
+    )
+    body = response.json()
+    assert response.status_code == 200
+    assert body["result"]["mode"] == "fallback"
+    assert {item["outcome"] for item in body["proposals"]} == {"verified", "accepted-a"}
+    reconciliation = next(item for item in body["proposals"] if item["outcome"] == "accepted-a")
+    assert reconciliation["source_index"] == 0
+    assert "Clinician confirmation is required" in reconciliation["rationale"]
+    assert all(
+        "confirmation is still required" in item["rationale"] or "confirmation is required" in item["rationale"]
+        for item in body["proposals"]
+    )
+
+
 def test_render_ui_tool_schema_is_self_contained():
     captured = []
     tool = build_render_ui_tool(captured.append)
