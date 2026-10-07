@@ -4,6 +4,7 @@ import { RenderBlock } from '../../blocks/registry';
 import { HospitalShell, Panel, Pill } from '../../hospital/HospitalShell';
 import { Backstage, Working } from '../../hospital/Story';
 import type { IdeaMeta } from '../index';
+import { EnrollmentMatch, type Inspection } from './EnrollmentMatch';
 import './trial-matching.css';
 
 export const meta: IdeaMeta = {
@@ -13,11 +14,11 @@ export const meta: IdeaMeta = {
 };
 
 type Horizon = 'future' | 'six-month';
-type Criterion = {
+export type Criterion = {
   id: string; kind: string; text: string; status: 'Match' | 'Conflict' | 'Unknown';
   evidence: string; source: string; protocol_source: string; patient_label: string; patient_value: string;
 };
-type Trial = {
+export type Trial = {
   id: string; title: string; site: string; phase: string; status: string;
   description: string; assessment: string; criteria: Criterion[];
   counts: { Match: number; Conflict: number; Unknown: number };
@@ -25,7 +26,7 @@ type Trial = {
   evidence_track?: { phase: string; population: string; sample_size: number | null; result: string; limitation: string; source: string }[];
   patient_pack?: string; enquiry_note: string; proposed_orders: string[]; priority_reason: string;
 };
-type Context = {
+export type Context = {
   patient: { id: string; name: string; age: number; sex: string; diagnosis: string; allergies: string };
   snapshot_date: string; notice: string; horizon: Horizon; excluded_count: number;
   facts: Record<string, { label: string; display: string; source: string }>;
@@ -60,6 +61,13 @@ const stages = [
 ];
 
 export default function TrialMatching() {
+  const [presentation, setPresentation] = useState<'current' | 'enrollment'>(() => {
+    try { return localStorage.getItem('tm78-presentation') === 'current' ? 'current' : 'enrollment'; }
+    catch { return 'enrollment'; }
+  });
+  const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [hiddenTrials, setHiddenTrials] = useState<string[]>([]);
+  const [missingOnly, setMissingOnly] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [horizon, setHorizon] = useState<Horizon>('future');
   const [context, setContext] = useState<Context | null>(null);
@@ -83,6 +91,11 @@ export default function TrialMatching() {
   const reviewController = useRef<AbortController | null>(null);
   const reviewTimer = useRef<number | undefined>(undefined);
   const confirmationRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    try { localStorage.setItem('tm78-presentation', presentation); }
+    catch { /* The presentation switch also works when storage is unavailable. */ }
+  }, [presentation]);
 
   function cancelReview() {
     reviewRun.current += 1;
@@ -229,10 +242,14 @@ export default function TrialMatching() {
   }
 
   return (
-    <div className="tm78" data-theme={theme}>
+    <div className="tm78" data-theme={theme} data-presentation={presentation}>
       <a className="tm78-skip" href="#tm78-main">Skip to trial matching</a>
       <div className="tm78-controls">
         <span>Hackathon prototype – synthetic data – not for clinical use</span>
+        <div role="group" aria-label="Interface presentation">
+          <button aria-pressed={presentation === 'current'} onClick={() => setPresentation('current')}>Current UI</button>
+          <button aria-pressed={presentation === 'enrollment'} onClick={() => setPresentation('enrollment')}>Enrollment Match</button>
+        </div>
         <div role="group" aria-label="Time horizon">
           {(['six-month', 'future'] as const).map((value) => <button key={value} aria-pressed={horizon === value}
             onClick={() => { if (horizon !== value) { resetReview(); setPhase('eligibility'); setScreeningOpened(false); setContext(null); setHorizon(value); } }}>
@@ -262,14 +279,30 @@ export default function TrialMatching() {
         {error && <div role="alert" className="tm78-attention">{error}
           {!context && <button className="hx-btn" onClick={() => { resetReview(); setRetry((value) => value + 1); }}>Retry catalogue</button>}</div>}
         {!context && !error && <Working label="Loading synthetic patient and trial catalogue" />}
-        {context && <div className="tm78-grid">
+        {context && <>
+         {presentation === 'enrollment' && <section className="tm78-context-banner" aria-label="Synthetic patient context">
+           <div><span className="tm78-eyebrow">Synthetic patient · colorectal MDT</span>
+             <h2>{context.patient.name}</h2><small>{context.patient.id} · {context.patient.age} years · {context.patient.sex}</small></div>
+           <div><span className="tm78-eyebrow">Diagnosis</span><strong>{context.patient.diagnosis}</strong></div>
+           <div><span className="tm78-eyebrow">Molecular profile</span><strong>{context.facts.ras?.display} · {context.facts.msi?.display}</strong></div>
+           <div><span className="tm78-eyebrow">Performance status</span><strong>{context.facts.ecog?.display ?? 'Not recorded'}</strong></div>
+           <button className="hx-btn" onClick={() => {
+             const record = document.getElementById('tm78-record') as HTMLDetailsElement | null;
+             if (record) {
+               record.open = true;
+               record.querySelector('summary')?.focus();
+               record.scrollIntoView({ block: 'center', behavior: 'instant' });
+             }
+           }}>Full chart & sources ↓</button>
+         </section>}
+         <div className="tm78-grid">
           <aside className="tm78-patient">
             <Panel title="Patient context">
               <div className="tm78-eyebrow">Synthetic patient</div>
               <h2 className="tm78-identity">{context.patient.name}</h2>
               <p className="tm78-demographics">{context.patient.id} · {context.patient.age} years · {context.patient.sex}</p>
               <p><strong>{context.patient.diagnosis}</strong></p>
-              <details><summary>Full chart & record sources</summary>
+              <details id="tm78-record"><summary>Full chart & record sources</summary>
               <small>Allergies: {context.patient.allergies}</small>
               <small>Simulated EHR launch · not connected</small>
               <dl className="hx-facts">{Object.entries(context.facts).map(([key, fact]) =>
@@ -297,7 +330,12 @@ export default function TrialMatching() {
           </aside>
           <div className="tm78-workspace">
             {message && <p role="status" className="tm78-attention">{message}</p>}
-            {phase === 'eligibility' && <Panel title={chosen?.title === 'PATHWAY-CRC'
+            {phase === 'eligibility' && presentation === 'enrollment' && <EnrollmentMatch
+              context={context} chosen={chosen} compare={compare} choose={choose} toggleComparison={toggleComparison}
+              openScreening={openScreening} inspection={inspection} setInspection={setInspection}
+              hiddenTrials={hiddenTrials} setHiddenTrials={setHiddenTrials}
+              missingOnly={missingOnly} setMissingOnly={setMissingOnly} />}
+            {phase === 'eligibility' && presentation === 'current' && <Panel title={chosen?.title === 'PATHWAY-CRC'
               ? 'Best screening candidate · local first' : 'Selected screening candidate'}>
               {chosen ? <>
                 <div className="tm78-candidate-header"><h2>{chosen.title}</h2><Pill tone={gaps.length ? 'warn' : 'ok'}>
@@ -335,7 +373,7 @@ export default function TrialMatching() {
                 </details>
               </> : <p>No candidate selected. No screening enquiry will be prepared.</p>}
             </Panel>}
-            {phase === 'eligibility' && <details className="tm78-coverage">
+            {phase === 'eligibility' && presentation === 'current' && <details className="tm78-coverage">
               <summary>Other candidates, comparison & excluded trials</summary>
               <small>Missing information retains a potential candidate; known conflicts exclude it. Compare up to four; choose one or none.</small>
               {context.trials.map((trial) => <article className={`tm78-trial ${candidate === trial.id ? 'selected' : ''}`} key={trial.id}>
@@ -485,7 +523,7 @@ export default function TrialMatching() {
               <small>Nothing actually sent, ordered, enrolled or written to the EHR. Trial-team validation and patient agreement remain required.</small>
             </div>}
           </div>
-        </div>}
+        </div></>}
       </HospitalShell>
     </div>
   );

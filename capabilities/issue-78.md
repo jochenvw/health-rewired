@@ -21,6 +21,8 @@ An oncologist reviewing a colorectal patient after FOLFOX; a trial coordinator r
 ## Capability
 The decision-first overview opens with compact patient context and a prominent local screening candidate: treatment, design, arms, practical implications, supported criteria and missing information. Detailed chart facts, patient-versus-criterion tables, excluded studies and prior-phase evidence sit behind drill-downs. Known conflicts stay outside selectable candidates; missing data does not hide promising options. Up to four potential candidates can be compared. Candidate priority is not a treatment recommendation or confirmation of eligibility.
 
+The persistent Current UI / Enrollment Match control switches between that overview and an attachment-inspired, macOS-style comparison workspace. Enrollment Match places patient characteristics beside trial criteria and opens evidence in a contextual inspector. Both presentations use the same synthetic colorectal record, catalogue, selected candidate, editable drafts, approvals and three-phase journey; changing the UI does not reset clinical work. Light / Dark and both horizons remain available. The attachment's criterion overrides and direct enrolment are deliberately not implemented: missing evidence cannot be marked as met or waived.
+
 ## Agent behaviour
 The shared Copilot SDK runner reviews the selected horizon-specific candidates, summarises earlier-phase findings and limitations, and drafts an enquiry for each trial. Editable deterministic drafts are available immediately without waiting for AI. A bounded review timeout and issue-specific fallback keep the consultation usable without credentials or when the SDK stalls. Neither mode confirms eligibility or recommends treatment.
 
