@@ -27,3 +27,7 @@ Thumbs.db
 .env.*
 !.env.example
 .azure-bootstrap.env
+
+# Local browser verification artifacts
+.browser78verify*
+.browser-issue78*
