@@ -24,6 +24,18 @@ export type AgentResult = {
   note?: string | null;
 };
 
+export type EvidenceReviewProposal = {
+  assertion_key: string;
+  outcome: 'verified' | 'gap-reviewed' | 'unverified-reviewed' | 'accepted-a' | 'accepted-b' | 'unresolved' | 'investigation';
+  rationale: string;
+  source_index?: number | null;
+};
+
+export type EvidenceReviewSkillResult = {
+  result: AgentResult;
+  proposals: EvidenceReviewProposal[];
+};
+
 export type Status = {
   event: string;
   city: string;
@@ -42,10 +54,12 @@ export type PatientRecord = {
   sex: string;
   ecog: number;
   diagnosis: { primary: string; date: string; stage: string; grade?: number; biomarkers: Record<string, string> };
+  current_status?: string;
   comorbidities: string[];
   medications: string[];
   treatments: { type: string; regimen: string; start: string; status: string; cycle?: string }[];
   labs: { date: string; test: string; value: number; unit: string; ref: string; flag?: string }[];
+  imaging?: { date: string; modality: string; result: string }[];
   patient_reported: { date: string; symptom: string; grade: number }[];
   timeline: { date: string; event: string }[];
   open_questions: string[];
@@ -67,4 +81,14 @@ export const api = {
   sampleData: <T,>(path: string) => request<T>(`/api/sample-data/${path}`),
   runAgent: (body: { task: string; patient_id?: string; role?: string }) =>
     request<AgentResult>('/api/agent/run', { method: 'POST', body: JSON.stringify(body) }),
+  reviewEvidence: (body: {
+    patient_id: string;
+    assertions: {
+      key: string;
+      label: string;
+      statement: string;
+      state: 'corroborated' | 'single-source' | 'unverified' | 'contradictory' | 'missing';
+      sources: { title: string; hospital: string; date: string; excerpt: string; value?: string }[];
+    }[];
+  }) => request<EvidenceReviewSkillResult>('/api/ideas/74/evidence-review', { method: 'POST', body: JSON.stringify(body) }),
 };

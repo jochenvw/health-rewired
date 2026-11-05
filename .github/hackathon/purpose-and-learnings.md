@@ -124,6 +124,7 @@ Each learning states the failure we saw and the rule that prevents it.
 | A prototype showed a working screen, but the viewer could not tell what the vision was or how it would work | Tell one storyline end to end: `StoryGuide` steps, simulated `Backstage` work with explanations, a clear payoff |
 | Big-picture issues ("Europe as one cohort") produced a generic analytics screen | Turn the vision into one concrete scenario with a user, a need and an ending; mention other scenarios as "next" |
 | AI calls took 10–60 s with only a greyed-out button; viewers thought it had hung | Every wait shows a spinner + label immediately where the user looks (`Working`, `Backstage`, spinner in the button) |
+| Medical experts asked to judge data found walls of evidence text too verbose and started debating the data itself | Less verbose, summary first: status by clinical domain (OK / exception) → structured context on click (date, test, specimen, source) → raw source on demand. Different is not necessarily contradictory; show timing and trend lines for repeated values; keep record linkage separate from clinical content |
 
 ## 6. When in doubt
 
